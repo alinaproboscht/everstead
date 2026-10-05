@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100508">
+<meta name="everstead-build" content="2026100510">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -282,6 +282,9 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
 #wcard .seg button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
 .bau{display:grid;grid-template-columns:34px 1fr auto;gap:4px 8px;align-items:center;background:var(--chip);border-radius:12px;padding:8px 10px;margin:6px 0;border-left:4px solid #e0a83a}.bau .bi{font-size:1.5rem;text-align:center}.bau b{display:block}.bau small{color:var(--muted);font-size:.78rem}
 .bau .bp{font-weight:700;font-size:.95rem}.bau .ba{grid-column:2/4;display:flex;gap:6px}.bau .ba button{min-height:34px;border-radius:9px;border:1px solid var(--line);background:var(--panel);font:inherit;font-size:.82rem;padding:0 10px}.bau .ba .danger{color:#c0453a}
+.seasonban{position:fixed;left:50%;top:22%;transform:translate(-50%,-10px);z-index:80;display:flex;gap:14px;align-items:center;padding:16px 26px;border-radius:20px;background:rgba(250,246,236,.96);box-shadow:0 10px 40px rgba(0,0,0,.25);border:2px solid #d9b45a;animation:sbIn .5s ease-out forwards;transition:opacity .8s,transform .8s;font-family:"Alegreya",Georgia,serif}
+.seasonban span{font-size:3rem}.seasonban b{display:block;font-size:1.5rem;color:#2a2118}.seasonban small{font-size:.95rem;color:#6b5a44;font-family:system-ui}.seasonban.out{opacity:0;transform:translate(-50%,-30px)}
+.seasonban.s0{border-color:#e89ab4}.seasonban.s1{border-color:#e8b84a}.seasonban.s2{border-color:#d9822e}.seasonban.s3{border-color:#8ab4d8}@keyframes sbIn{from{opacity:0;transform:translate(-50%,10px) scale(.94)}to{opacity:1;transform:translate(-50%,-10px)}}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:9px 16px;border-radius:12px;font-size:.95rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10;max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 #sheet:not([hidden])~#toast,#ed:not([hidden])~#toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
@@ -2150,6 +2153,10 @@ function migrateRathaus(){const rh=S.b.find(b=>b.t==='rathaus');if(!rh||S._rh2)r
  for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){const i=(rh.y+dy)*W+rh.x+dx;S.road[i]=0;if(S.map[i]===1||S.map[i]===2)S.map[i]=0}
  for(const p of S.p){if(p.inside===rh.id){p.x+=ox;p.y+=oy}p.path=null}rh._fx=null;index();if(!roadTouch('rathaus',rh.x,rh.y))connectToRoad(rh);rh.rot=faceRoadS('rathaus',rh.x,rh.y);pcache.clear();
  if(typeof terDirty!=='undefined'){terDirty=true;bDirty=true}if(day()>0)log('🏛️ Das Rathaus wurde zu einem prächtigen Bau mit Uhrturm erweitert.')}
+// ===== Mittelalterlicher Badestrand =====
+Object.assign(BT,{badestrand:{n:'Badestrand',i:'🏖️',onSand:1,hobby:{n:'Am Strand baden',v:'badet im Meer und ruht unter dem Sonnensegel',likes:['Baden','die Natur','Angeln'],open:[8,21],kids:1},cost:{taler:30,bretter:6},bh:3,cat:'hobby',d:'Mittelalterlicher Strand: Sonnensegel aus Leinen, Badehütte, Ruderboot, trocknende Netze und Feuerstelle. Auf Sand bauen.'}});
+ATTR.badestrand=3;HOBSK.badestrand='fitness';
+for(const F2 of FESTS)if(/Strand/.test(F2[0])&&!F2[2].includes('badestrand'))F2[2].splice(1,0,'badestrand');
 
 // ===== Schritt 6: Epochen =====
 const ERAS=[{k:'mittelalter',n:'Mittelalter',i:'🏰',y:1350,d:'Fachwerk, Zünfte, Märkte und Kutschen.',style:'fachwerk'},
@@ -2216,12 +2223,15 @@ function pEra(){const e=eraOf(),E=ERAS[e],nx=ERAS[e+1];let h=`<div class="eline"
 // ===== Jahreszeiten (je 25 Tage) =====
 const SEASONS=[['fruehling','🌸','Frühling'],['sommer','☀️','Sommer'],['herbst','🍂','Herbst'],['winter','❄️','Winter']],SEASON_DAYS=25;
 const seasonIdx=()=>Math.floor(day()/SEASON_DAYS)%4,seasonDay=()=>day()%SEASON_DAYS+1;
-function seasonWeights(){const t=hAbs()/24/SEASON_DAYS,i=Math.floor(t)%4,f=(t-Math.floor(t))*SEASON_DAYS,bl=Math.min(1,f/2),w=[0,0,0,0];w[i]+=bl;w[(i+3)%4]+=1-bl;return w}
+function seasonWeights(){if(hAbs()/24<SEASON_DAYS)return[1,0,0,0];const t=hAbs()/24/SEASON_DAYS,i=Math.floor(t)%4,f=(t-Math.floor(t))*SEASON_DAYS,bl=Math.min(1,f/2),w=[0,0,0,0];w[i]+=bl;w[(i+3)%4]+=1-bl;return w}
 Object.assign(MOODLET,{frieren:{i:'🥶',n:'Es ist bitterkalt',v:-8,h:24,e:'traurig'},schnee:{i:'⛄',n:'Spaß im Schnee',v:6,h:12,e:'glueck'},fruehling:{i:'🌸',n:'Frühlingsgefühle',v:5,h:24,e:'glueck'},sommer:{i:'☀️',n:'Sommerlaune',v:4,h:24,e:'glueck'},herbst:{i:'🍂',n:'Gemütlicher Herbst',v:3,h:24,e:'ruhig'}});
 const FARM={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,imker:1,garten:1,viehhof:.5};
 function seasonProd(b){const f=FARM[b.t];if(!f)return 1;const m=[1.0,1.15,1.35,.3][seasonIdx()];return 1+(m-1)*f}
-function seasonDaily(){const si=seasonIdx(),SE=SEASONS[si];
- if(S._season!==si){S._season=si;log(`${SE[1]} Der ${SE[2]} beginnt!${si===3?' Die Haushalte brauchen jetzt Brennholz zum Heizen.':si===2?' Zeit der Ernte – die Felder tragen besonders viel.':si===0?' Die Natur erwacht.':' Die Strände füllen sich mit Gästen.'}`);if(typeof toast==='function')toast(`${SE[1]} ${SE[2]}`);
+function seasonBanner(si,pre){if(typeof document==='undefined')return;const SE=SEASONS[si],el=document.createElement('div');el.className='seasonban s'+si;
+ el.innerHTML=pre?`<span>${SE[1]}</span><div><b>Bald beginnt der ${SE[2]}</b><small>in ${pre} ${pre>1?'Tagen':'Tag'}${si===3?' – lege jetzt Brennholz für den Winter an!':si===2?' – die Erntezeit naht.':''}</small></div>`:`<span>${SE[1]}</span><div><b>Der ${SE[2]} beginnt</b><small>${['Die Natur erwacht – Felder und Gärten blühen auf.','Lange, warme Tage – die Strände füllen sich.','Erntezeit – die Felder tragen besonders viel.','Schnee und Kälte – die Häuser brauchen Brennholz.'][si]}</small></div>`;
+ document.body.appendChild(el);setTimeout(()=>el.classList.add('out'),pre?4200:5500);setTimeout(()=>el.remove(),pre?5000:6400)}
+function seasonDaily(){const si=seasonIdx(),SE=SEASONS[si];const left=SEASON_DAYS-seasonDay()+1;if(left===2&&S._preNote!==day()){S._preNote=day();const nx=(si+1)%4;log(`${SEASONS[nx][1]} In 2 Tagen beginnt der ${SEASONS[nx][2]}.`);seasonBanner(nx,2)}
+ if(S._season!==si){S._season=si;seasonBanner(si,0);log(`${SE[1]} Der ${SE[2]} beginnt!${si===3?' Die Haushalte brauchen jetzt Brennholz zum Heizen.':si===2?' Zeit der Ernte – die Felder tragen besonders viel.':si===0?' Die Natur erwacht.':' Die Strände füllen sich mit Gästen.'}`);if(typeof toast==='function')toast(`${SE[1]} ${SE[2]}`);
   const mk=['fruehling','sommer','herbst'][si];for(const s of S.p){if(mk)addM(s,mk);else if(isKid(s))addM(s,'schnee')}}
  if(si===3){const homes=S.b.filter(b=>b.built>=1&&beds(b)>0&&residents(b).length),need=homes.length;const have=Math.floor(S.res.holz||0);const use=Math.min(have,need);S.res.holz-=use;if(use)flow('cons','holz',use);
   if(use<need){const cold=homes.slice(use);for(const h of cold)for(const p of residents(h))addM(p,'frieren');if(S._coldNote!==day()){S._coldNote=day();log(`🥶 ${need-use} ${need-use>1?'Haushalte frieren':'Haushalt friert'} – es fehlt Brennholz! Mehr Holzfäller helfen.`)}}}}
@@ -3132,6 +3142,70 @@ function previewHouse3D(cv2,d){if(!GL_OK)return false;if(PFB_OK===null){try{PFB_
  const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'#bfd8ea');g.addColorStop(.7,'#e8f0e6');g.addColorStop(1,'#a8c98a');c.fillStyle=g;c.fillRect(0,0,w,h);c.fillStyle='#8fbf6a';c.beginPath();c.ellipse(w/2,h*.86,w*.42,h*.1,0,0,7);c.fill();
  const sz=Math.min(w,h*1.25);c.drawImage(ptmp,0,0,PSZ,PSZ,(w-sz)/2,h-sz*.98,sz,sz);return true}
 
+// ===== Betriebe sehen aus wie ihr Handwerk =====
+let HOUSE_DRESS=false;
+function hangSign(x,y,z,draw){box(TR(x,y,z-.06),.012,.012,.14,col('#2f2a26'));box(TR(x,y-.012,z+.01),.004,.025,.004,col('#2f2a26'));box(TR(x,y-.11,z+.01),.1,.09,.012,col('#7a5232'));draw(x,y-.065,z+.018)}
+function dress(t,fn){HMESH[t]=function(b,cx,cz){HOUSE_DRESS=true;let top;try{top=houseMesh(b.d,cx,cz,1,b)}finally{HOUSE_DRESS=false}const fp=FOOT[b.d.f]||FOOT.fachwerk;fn(b,cx,cz,fp[0],fp[1],top,cz+fp[1]/2);return top}}
+const loaf=(x,y,z,s)=>ell3(TR(x,y,z),.03*s,.018*s,.02*s,4,6,col('#c98a4a'));
+dress('baeckerei',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.32,fz,(x,y,z)=>{for(let k=0;k<8;k++){const a=k/8*Math.PI*2;ell3(TR(x+Math.cos(a)*.025,y+Math.sin(a)*.025,z),.008,.008,.006,3,4,col('#c98a4a'))}});
+ box(TR(cx-.12,0,fz+.12),.28,.1,.12,col('#8a6a42'));box(TR(cx-.12,.1,fz+.12),.3,.012,.14,col('#a07a4a'));for(let k=0;k<5;k++)loaf(cx-.24+k*.06,.115,fz+.12,1);
+ for(let k=0;k<2;k++)ell3(TR(cx+.2+k*.07,.05,fz+.1),.035,.05,.03,4,6,col('#e8dcc0'));box(TR(cx+w*.32,top-.05,cz-.08),.1,.3,.1,col('#9a8f80'));box(TR(cx+w*.32,top+.25,cz-.08),.12,.02,.12,col('#7a7268'))});
+dress('taverne',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{cyl(TR(x,y-.025,z),.02,.022,.045,8,col('#c9a24a'));box(TR(x+.025,y-.005,z),.01,.025,.01,col('#c9a24a'))});
+ for(const s of[-1,1]){const x=cx+s*.2,z=fz+.18;box(TR(x,.08,z),.16,.012,.1,col('#8a6a42'));for(const q of[-1,1])box(TR(x+q*.06,0,z),.012,.08,.08,col('#6b4a2e'));for(const q of[-1,1])box(TR(x,0,z+q*.08),.16,.045,.03,col('#6b4a2e'));cyl(TR(x+.03,.092,z),.012,.012,.03,6,col('#d9a35a'))}
+ for(let k=0;k<2;k++)cyl(TR(cx-w/2+.06,0,fz+.05+k*.08,0,0,0),.04,.04,.1,8,col('#7a5030'));box(TR(cx,.28,fz+.02),.02,.02,.02,col('#ffd27a'),1)});
+dress('kraemer',(b,cx,cz,w,dd,top,fz)=>{const cc=['#c0453a','#f4efe4'];for(let k=0;k<6;k++)box(TR(cx-w/2+(k+.5)*w/6,.24,fz+.08,0,-.4),w/6,.012,.2,col(cc[k%2]));
+ box(TR(cx,0,fz+.14),w*.8,.09,.12,col('#8a6a42'));for(let k=0;k<4;k++)box(TR(cx-.18+k*.12,.09,fz+.14),.07,.05,.07,col(['#c9a24a','#a45a36','#6b8a4a','#e8dcc0'][k]));for(let k=0;k<3;k++)cyl(TR(cx-.12+k*.12,.09,fz+.2),.02,.025,.05,8,col('#b8603a'));
+ hangSign(cx+w/2-.05,.36,fz,(x,y,z)=>{cyl(TR(x,y-.02,z),.025,.025,.006,10,col('#c9a24a'))})});
+dress('schneider',(b,cx,cz,w,dd,top,fz)=>{box(TR(cx+.15,0,fz+.12),.02,.24,.02,col('#5a3d24'));box(TR(cx+.15,.24,fz+.12),.22,.012,.012,col('#5a3d24'));for(let k=0;k<4;k++)box(TR(cx+.07+k*.05,.11,fz+.12),.035,.13,.006,col(['#8a2a4a','#2f5f9a','#c9a24a','#3d7a4a'][k]));
+ cyl(TR(cx-.18,0,fz+.12),.015,.015,.15,6,col('#5a3d24'));ell3(TR(cx-.18,.2,fz+.12),.04,.06,.03,5,7,col('#c0453a'));hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{box(TR(x-.01,y,z,0,0,.6),.006,.05,.004,col('#bbb'));box(TR(x+.01,y,z,0,0,-.6),.006,.05,.004,col('#bbb'))})});
+dress('schule',(b,cx,cz,w,dd,top,fz)=>{const tx=cx,tz=cz;box(TR(tx,top-.08,tz),.12,.2,.12,col('#efe6d4'));for(const s of[-1,1])box(TR(tx+s*.05,top+.12,tz),.02,.1,.12,col('#5a3d24'));cyl(TR(tx,top+.12,tz),.025,.035,.05,8,col('#c9a24a'));cone(TR(tx,top+.22,tz,Math.PI/4),.1,.14,4,col('#4d5963'));ell3(TR(tx,top+.37,tz),.012,.012,.012,3,4,col('#c9a24a'));
+ gq(cx-.42,fz+.04,cx+.42,fz+.42,.008,col('#d8c79e'));for(let k=0;k<=8;k++)box(TR(cx-.42+k*.105,0,fz+.42),.012,.07,.012,col('#8a6a42'));box(TR(cx,.05,fz+.42),.84,.01,.01,col('#8a6a42'));
+ box(TR(cx+.25,0,fz+.15),.012,.18,.012,col('#5a3d24'));box(TR(cx+.25,.08,fz+.16,0,-.2),.14,.1,.01,col('#2f3a32'));box(TR(cx+.25,.12,fz+.166,0,-.2),.08,.004,.002,col('#f4f4f0'));
+ for(const s of[-1,1])box(TR(cx+s*.2,.04,fz+.3),.18,.012,.05,col('#8a6a42'));hangSign(cx-w/2+.05,.34,fz,(x,y,z)=>{box(TR(x,y-.02,z),.06,.04,.006,col('#f4efe4'));box(TR(x,y-.02,z+.004),.004,.04,.004,col('#7a2a2a'))})});
+dress('heiler',(b,cx,cz,w,dd,top,fz)=>{for(const s of[-1,1]){box(TR(cx+s*.26,0,fz+.18),.2,.04,.22,col('#6b4a2e'));for(let k=0;k<6;k++)flower3(cx+s*.26-.06+(k%3)*.06,.04,fz+.12+Math.floor(k/3)*.1,.6,['#8a5cc2','#f4efe4','#e0b040'][k%3],k)}
+ for(let k=0;k<6;k++){const x=cx-w/2+.06+k*(w-.12)/5;box(TR(x,.26,fz+.03),.004,.03,.004,col('#6b4a2e'));ell3(TR(x,.22,fz+.03),.018,.035,.018,4,5,col(['#5c8a3a','#7a9a4a','#a08a4a'][k%3]))}
+ hangSign(cx+w/2-.05,.36,fz,(x,y,z)=>{cyl(TR(x,y-.035,z),.025,.018,.03,8,col('#e8e2d4'));box(TR(x+.01,y-.01,z,0,0,-.5),.006,.04,.006,col('#8a6a42'))});box(TR(cx,.0,fz+.05),.18,.05,.06,col('#8a6a42'))});
+dress('musikhaus',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{ell3(TR(x,y-.025,z),.02,.025,.005,4,6,col('#c9a24a'));box(TR(x,y,z),.006,.03,.004,col('#5a3d24'))});box(TR(cx-.15,.04,fz+.1),.2,.012,.06,col('#8a6a42'));ell3(TR(cx+.15,.06,fz+.1),.035,.05,.015,5,7,col('#a0703a'))});
+dress('druckerei',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.36,fz,(x,y,z)=>{box(TR(x,y-.02,z),.05,.04,.008,col('#7a2a2a'))});for(let k=0;k<3;k++)box(TR(cx-.15,k*.03,fz+.1),.12,.03,.09,col(k%2?'#f4efe4':'#e8dcc0'))});
+dress('bauhuette',(b,cx,cz,w,dd,top,fz)=>{for(let k=0;k<5;k++)box(TR(cx-.25,.02+k*.03,fz+.18),.3,.03,.03+((k*7)%3)*.005,col(k%2?'#c9a26a':'#b8915c'));for(const s of[-1,1])box(TR(cx+.22+s*.06,0,fz+.15),.015,.4,.015,col('#8a6a42'));box(TR(cx+.22,.38,fz+.15),.15,.015,.015,col('#8a6a42'));box(TR(cx+.22,.2,fz+.18),.004,.18,.004,col('#3a3a3a'));box(TR(cx+.22,.1,fz+.18),.05,.05,.05,col('#a9a49a'))});
+dress('holz',(b,cx,cz,w,dd,top,fz)=>{for(let r=0;r<3;r++)for(let k=0;k<4-r;k++)cyl(TR(cx-.28+k*.07+r*.035,.03+r*.055,fz+.16,0,0,Math.PI/2),.03,.03,.24,8,col(k%2?'#8a5a32':'#7a4e2a'));cyl(TR(cx+.22,0,fz+.15),.06,.06,.08,10,col('#9a7a52'));box(TR(cx+.22,.12,fz+.15,0,0,.4),.012,.12,.012,col('#6b4a2e'))});
+dress('saege',(b,cx,cz,w,dd,top,fz)=>{for(let k=0;k<6;k++)box(TR(cx-.22,.02+k*.02,fz+.16),.32,.02,.12,col(k%2?'#d0a870':'#c49a62'));for(let k=0;k<3;k++)cyl(TR(cx+.18,.03+k*.06,fz+.15,0,0,Math.PI/2),.03,.03,.22,8,col('#8a5a32'))});
+// Badehaus: Zuber, Dampf, Schild
+if(HMESH.badehaus){const _bh=HMESH.badehaus;HMESH.badehaus=function(b,cx,cz){const t=_bh(b,cx,cz);for(const s of[-1,1]){const x=cx+s*.28,z=cz+.38;cyl(TR(x,0,z),.09,.08,.09,12,col('#8a5a32'));cyl(TR(x,.085,z),.08,.08,.006,12,col('#7fc0d8'));for(const y of[.02,.065])cyl(TR(x,y,z),.092,.092,.008,12,col('#3a3a3a'))}
+ for(let k=0;k<3;k++)box(TR(cx,.02+k*.02,cz+.42),.1,.02,.06,col(k%2?'#f4efe4':'#e0d6c4'));for(let k=0;k<4;k++)ell3(TR(cx+.05+k*.02,t+.05+k*.07,cz-.1),.05+k*.015,.04+k*.01,.05+k*.015,4,6,col('#f2f4f6'));
+ hangSign(cx-.25,.34,cz+.32,(x,y,z)=>{cyl(TR(x,y-.035,z),.025,.02,.025,8,col('#8a5a32'));ell3(TR(x,y-.005,z),.02,.008,.02,3,5,col('#7fc0d8'))});return t}}
+// Bauernhof: Heu, Zaun, Hühner
+if(!HMESH.bauernhof)HMESH.bauernhof=function(b,cx,cz){const t=houseMesh(b.d,cx-.1,cz-.12,.9,b);for(let k=0;k<3;k++)cyl(TR(cx+.28,.06,cz+.25+k*.06-.06,0,0,Math.PI/2),.06,.06,.1,10,col('#e0c060'));for(let k=0;k<3;k++)hen3(cx-.2+k*.1,cz+.32+(k%2)*.05);
+ for(let k=0;k<6;k++)box(TR(cx-.45+k*.18,0,cz+.46),.015,.08,.015,col('#8a6a42'));box(TR(cx,.05,cz+.46),.9,.012,.012,col('#8a6a42'));return t};
+// ===== Wohnhäuser wie auf den Bildern =====
+const _hmDress=houseMesh;
+houseMesh=function(d,cx,cz,s,bld){const shut=bld&&['fachwerk','buerger','lang'].includes(d.f);const prev=SHUTTERS;if(shut)SHUTTERS=['#2f5f3a','#2f4f7a','#6a2a2a','#3d6a5a'][bld.id%4];let t;try{t=_hmDress(d,cx,cz,s,bld)}finally{SHUTTERS=prev}
+ if(!shut)return t;const fp=FOOT[d.f]||FOOT.fachwerk,w=fp[0]*s,dd=fp[1]*s,stone=col('#a49a88');box(TR(cx,0,cz),w+.03*s,.11*s,dd+.03*s,stone);for(let k=0;k<6;k++)box(TR(cx-w/2+(k+.5)*w/6,.11*s,cz+dd/2+.016*s),w/6-.01,.004,.008,col('#8a8070'));
+ const H=(d.fl||1)*.3*s;box(TR(cx+w*.28,H*.8,cz-dd*.12),.08*s,.42*s,.08*s,col('#958a7a'));box(TR(cx+w*.28,H*.8+.42*s,cz-dd*.12),.1*s,.025*s,.1*s,col('#6e665a'));return t};
+let SHUTTERS=null;
+const _boxShut=box;box=function(T,w,h,d,c,e){_boxShut(T,w,h,d,c,e);if(c!==WIN||!SHUTTERS||h<.03)return;const fz=d<w,ww=fz?w:d,th=Math.min(w,d)+.01,sc=col(SHUTTERS);
+ for(const sd of[-1,1]){if(fz)boxO(T,sd*(ww*.5+ww*.22),0,0,ww*.4,h,th,sc);else boxO(T,0,0,sd*(ww*.5+ww*.22),th,h,ww*.4,sc)}};
+HMESH.badestrand=function(b,cx,cz){const x0=b.x,z0=b.y,wood=col('#8a6a42'),dk=col('#5a3d24'),lin=col('#efe4cc'),rope=col('#b8a27a');gq(x0+.02,z0+.02,x0+.98,z0+.98,.006,col('#e8d4a4'));
+ for(let k=0;k<6;k++)ell3(TR(x0+.1+((k*37)%80)/100,.004,z0+.08+((k*53)%80)/100),.04,.004,.025,2,5,col('#d8c08e'));
+ // Sonnensegel
+ const sx=x0+.32,sz=z0+.3,P=[[-.2,-.16],[.2,-.16],[-.2,.16],[.2,.16]];for(const[a,c]of P)box(TR(sx+a,0,sz+c),.018,.3,.018,wood);
+ quad([sx-.2,.3,sz-.16],[sx+.2,.3,sz-.16],[sx+.2,.26,sz],[sx-.2,.26,sz],lin,0,[sx,0,sz]);quad([sx-.2,.26,sz],[sx+.2,.26,sz],[sx+.2,.3,sz+.16],[sx-.2,.3,sz+.16],lin,0,[sx,0,sz]);
+ for(const[a,c]of P)box(TR(sx+a*1.3,0,sz+c*1.3,Math.atan2(a,c)),.004,.004,.1,rope);
+ for(const s of[-1,1]){box(TR(sx+s*.09,.004,sz),.14,.006,.22,col('#cdb27a'));for(let k=0;k<4;k++)box(TR(sx+s*.09,.008,sz-.09+k*.06),.14,.002,.004,col('#a88c58'));box(TR(sx+s*.09,.012,sz-.08),.08,.012,.04,lin)}
+ // Badehütte
+ const hx=x0+.78,hz=z0+.25;box(TR(hx,0,hz),.2,.24,.18,col('#9a7448'));for(let k=0;k<5;k++)box(TR(hx-.1+k*.05,0,hz+.091),.004,.24,.004,dk);prism(TR(hx,.24,hz),.26,.12,.24,col('#d9b56a'));box(TR(hx,.02,hz+.093),.1,.18,.006,col('#c0453a'));box(TR(hx,.2,hz+.095),.12,.01,.008,dk);
+ // Ruderboot kieloben
+ const bx=x0+.72,bz=z0+.72;ell3(TR(bx,0,bz,.5),.07,.05,.18,4,8,col('#7a5030'),{th1:Math.PI/2});box(TR(bx,.0,bz,.5),.13,.008,.34,col('#6b4428'));for(const s of[-1,1])box(TR(bx+s*.11,.01,bz+.05,.5+s*.2,0,1.45),.01,.22,.012,wood);
+ // Netze
+ const nx=x0+.18,nz=z0+.78;for(const s of[-1,1])box(TR(nx+s*.12,0,nz),.016,.26,.016,wood);box(TR(nx,.25,nz),.26,.008,.008,rope);for(let i=0;i<7;i++)box(TR(nx-.12+i*.04,.12,nz),.003,.13,.003,col('#4a5a52'));for(let j=0;j<4;j++)box(TR(nx,.07+j*.04,nz),.24,.003,.003,col('#4a5a52'));
+ for(let k=0;k<3;k++)ell3(TR(nx-.08+k*.08,.19-((k%2)*.02),nz+.004),.015,.01,.006,3,4,col('#c98a3a'));
+ // Feuerstelle
+ const fx=x0+.48,fz=z0+.62;for(let k=0;k<9;k++){const a=k/9*Math.PI*2;ell3(TR(fx+Math.cos(a)*.07,.012,fz+Math.sin(a)*.07),.022,.016,.018,3,4,col(k%2?'#8a8478':'#9a948a'))}
+ for(let k=0;k<3;k++)cyl(TR(fx,.02,fz,k*1.05,0,Math.PI/2.4),.012,.01,.1,6,dk);ell3(TR(fx,.02,fz),.035,.015,.035,3,5,col('#ff7a2e'),1);
+ // Treibholzbank, Körbe, Eimer
+ cyl(TR(fx-.02,.03,fz+.18,0,0,Math.PI/2),.025,.022,.24,8,col('#a89070'));for(const s of[-1,1])cyl(TR(fx+s*.18,0,fz-.02),.03,.035,.05,8,col('#b08a52'));for(let k=0;k<4;k++)ell3(TR(fx+.18+((k%2)-.5)*.02,.05,fz-.02+(k-1.5)*.012),.012,.006,.02,3,4,col(k%2?'#9fb3bf':'#e8dcc8'));
+ cyl(TR(x0+.9,0,z0+.5),.03,.035,.06,8,col('#7a5a3a'));for(let k=0;k<5;k++)ell3(TR(x0+.06+k*.05,.01,z0+.96-k*.02),.03,.02,.025,3,5,col('#8a8478'));return .32};
+
 // ===== Dioramen der Regionen =====
 const DIOC=new Map();
 const DSTY={holz:{g:'#5f8a4a',w:null},stein:{g:'#8a9a6e',w:null},see:{g:'#7fa65a',w:'#3f86b8'},burg:{g:'#7fa65a',w:null},palmen:{g:'#e6d3a0',w:'#3fc1c9'},wueste:{g:'#dcc28a',w:'#3f86b8'},pagoden:{g:'#7aa35a',w:'#5aa0b8'},kuppeln:{g:'#e3d2a8',w:'#2f8fb8'},vulkan:{g:'#5a5048',w:'#2f6fa8'},fjorde:{g:'#5f7a52',w:'#2f5f8a'},kolonie:{g:'#86b35a',w:'#3f86b8'}};
@@ -3300,7 +3374,7 @@ function endCtrl(){const s=ctrlCit();if(s){setCtrl(s,false);toast(`${s.fn} hande
 
 // ---------- HUD ----------
 function hud(){
- $('clk').textContent=`${WD[wday()].slice(0,2)} ${clock()}`;$('yr').textContent=`${year()} · ${S.name} · ${SEASONS[seasonIdx()][1]} ${SEASONS[seasonIdx()][2]} ${seasonDay()}/${SEASON_DAYS}`;
+ $('clk').textContent=`${WD[wday()].slice(0,2)} ${clock()} · ${year()}`;$('yr').textContent=`${S.name} · ${SEASONS[seasonIdx()][1]} ${SEASONS[seasonIdx()][2]} · Tag ${seasonDay()}/${SEASON_DAYS}`;
  chips();
  const c=ctrlCit();$('ctrlbar').hidden=!c;
  $('feed').style.top=(c?$('ctrlbar').offsetHeight+18+(IM?54:0):IM?64:10)+'px';
