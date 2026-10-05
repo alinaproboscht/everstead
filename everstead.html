@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100501">
+<meta name="everstead-build" content="2026100502">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -1440,7 +1440,7 @@ PLAN_TYPES.kontor=1;PLAN_TYPES.hafen=1;JP.kontor=6;JP.hafen=7;
 // ---- Zustand ----
 function initTrade(){migrateCoast();if(!S.prices){S.prices={};for(const k of TRADEABLE)S.prices[k]=BASE[k]}if(!S.ph)S.ph={};for(const k of TRADEABLE){if(S.res[k]==null)S.res[k]=0;if(!S.ph[k])S.ph[k]=[S.prices[k]]}
  if(!S.towns)S.towns=TOWNS.map(t=>({id:t.id,rel:35+Math.round(rnd()*20),treaty:false,f:Object.fromEntries(TRADEABLE.map(k=>[k,.9+rnd()*.2]))}));
- S.routes=S.routes||[];S.carts=S.carts||[];S.tradelog=S.tradelog||[];S.lux=S.lux||{};S.rid=S.rid||1;ensureTradeRoads();initExplore();if(typeof restoreColonies==='function')restoreColonies();expandWorld();roughenMountains();initVeh();assignBikes();setEraStyle();railTick();if(typeof initRegions==='function')initRegions()}
+ S.routes=S.routes||[];S.carts=S.carts||[];S.tradelog=S.tradelog||[];S.lux=S.lux||{};S.rid=S.rid||1;ensureTradeRoads();initExplore();if(typeof restoreColonies==='function')restoreColonies();expandWorld();roughenMountains();initVeh();assignBikes();setEraStyle();railTick();if(typeof initRegions==='function')initRegions();if(typeof connectHouses==='function')connectHouses()}
 const TD=id=>TOWNS.find(t=>t.id===id),TS=id=>S.towns.find(t=>t.id===id);
 const price=k=>S.prices?S.prices[k]:BASE[k];
 function townBuy(t,k){const d=TD(t.id),m=d.buys.includes(k)?1.35:d.sells.includes(k)?.7:1;return BASE[k]*m*t.f[k]*(t.treaty?1.1:1)}
@@ -2122,6 +2122,20 @@ function pBiz(){const rows=bizRows(),opt=rows.filter(r=>!r.have&&!r.build&&!r.ne
  for(const[g,rs]of Object.entries(groups))h+=`<h3>${g}</h3>${rs.map(row).join('')}`;
  if(opt.length)h+=`<h3>💤 Noch nicht gebaut – derzeit kein Bedarf</h3><div class="optl">${opt.map(r=>`<button data-a="bizbuild" data-v="${r.t}">${r.T.i} ${esc(r.T.n)}</button>`).join('')}</div>`;
  return h+`<p class="hint">Der Bedarf richtet sich nach Einwohnerzahl, dem Verbrauch von gestern und dem, was andere Betriebe als Rohstoff brauchen. „Benötigt“ ist eine Empfehlung bei voller Besetzung.</p>`}
+// ===== Häuser stehen an der Straße =====
+const ROADFREE={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,viehhof:1,imker:1,garten:1,park:1,dorflinde:1,spielplatz:1,aussichtspunkt:1,bogen:1,angelsteg:1,bootssteg:1,badebereich:1,steinbruch:1,holz:1};
+function needsRoad(t){const T=BT[t];if(!T||ROADFREE[t]||T.onSand||T.onWater||T.nearW)return false;return t==='haus'||!!T.def}
+function roadTouch(t,x,y){const z=szOf(t);for(let k=-1;k<=z;k++)for(const[xx,yy]of[[x+k,y-1],[x+k,y+z],[x-1,y+k],[x+z,y+k]]){if(k<0||k>=z){if(!((xx>=x&&xx<x+z)||(yy>=y&&yy<y+z)))continue}if(xx<0||yy<0||xx>=W||yy>=H)continue;if(S.road[yy*W+xx])return true}return false}
+function faceRoadS(t,x,y){const z=szOf(t);const tests=[[0,z,0],[z,0,1],[0,-1,2],[-1,0,3]];for(const[dx,dy,r]of tests)for(let k=0;k<z;k++){const xx=x+(dy?k:dx),yy=y+(dx?k:dy);if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.road[yy*W+xx])return r}return 0}
+const _canPlaceR=canPlace;canPlace=function(t,x,y){const r=_canPlaceR(t,x,y);if(r)return r;if(S&&S.hgt&&needsRoad(t)&&!roadTouch(t,x,y))return 'Häuser müssen an einer Straße oder einem Weg stehen.';return null};
+function connectToRoad(b){const z=szOf(b.t),starts=[];for(let k=0;k<z;k++)for(const[xx,yy]of[[b.x+k,b.y+z],[b.x+z,b.y+k],[b.x+k,b.y-1],[b.x-1,b.y+k]])if(xx>=0&&yy>=0&&xx<W&&yy<H)starts.push(yy*W+xx);
+ const h0=S.hgt?S.hgt[b.y*W+b.x]||0:0,ok=i=>!occ[i]&&S.map[i]!==3&&Math.abs((S.hgt?S.hgt[i]||0:0)-h0)<1,prev=new Map(),q=[];for(const s of starts)if(ok(s)||S.road[s]){prev.set(s,-1);q.push(s)}
+ let goal=-1;for(let h=0;h<q.length&&h<4000;h++){const i=q[h];if(S.road[i]){goal=i;break}const x=i%W,y=(i/W)|0;let d=0;for(let c=i;prev.get(c)!==-1;c=prev.get(c))d++;if(d>14)continue;
+  for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const j=ny*W+nx;if(prev.has(j))continue;if(!(ok(j)||S.road[j]))continue;prev.set(j,i);q.push(j)}}
+ if(goal<0)return false;for(let c=prev.get(goal);c!=null&&c!==-1;c=prev.get(c)){if(!S.road[c]){S.road[c]=2;if(S.map[c]===1||S.map[c]===2)S.map[c]=0}}
+ let first=goal;for(let c=goal;c!==-1&&c!=null;c=prev.get(c))first=c;if(!S.road[first]){S.road[first]=2;if(S.map[first]===1||S.map[first]===2)S.map[first]=0}b.rot=faceRoadS(b.t,b.x,b.y);b._fx=null;return true}
+function connectHouses(force){if(!S||!S.hgt)return 0;if(S._hroad>=1&&!force)return 0;let n=0;for(const b of S.b){if(!needsRoad(b.t)||roadTouch(b.t,b.x,b.y))continue;if(connectToRoad(b))n++}S._hroad=1;
+ if(n){pcache.clear();if(typeof terDirty!=='undefined'){terDirty=true;bDirty=true}log(`🛤️ ${n} Gebäude ${n>1?'haben':'hat'} einen Weg zur Straße bekommen.`)}return n}
 
 // ===== Schritt 6: Epochen =====
 const ERAS=[{k:'mittelalter',n:'Mittelalter',i:'🏰',y:1350,d:'Fachwerk, Zünfte, Märkte und Kutschen.',style:'fachwerk'},
