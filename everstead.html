@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100506">
+<meta name="everstead-build" content="2026100507">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -637,7 +637,7 @@ function updB(b,dh){
  if(!w){b.st=jobCount.get(b.id)?'Geschlossen – Personal nicht vor Ort':'Sucht Personal';return}
  if(!b.prog&&Object.keys(T.out||{}).every(k=>S.res[k]>=(T.cap||autoCap(k)))){b.st='Lager voll – pausiert';return}
  if(!b.prog){for(const[k,n]of Object.entries(T.in||{}))if(S.res[k]<n){b.st='Wartet auf '+RES[k][1];return}for(const[k,n]of Object.entries(T.in||{})){S.res[k]-=n;flow('cons',k,n)}b.prog=1e-6}
- b.prog+=dh*w*vehProd(b)*eraProd();b.st='In Betrieb';
+ b.prog+=dh*w*vehProd(b)*eraProd()*seasonProd(b);b.st='In Betrieb';
  if(b.prog>=T.wh){b.prog=0;for(const[k,n]of Object.entries(T.out||{})){if(S.res.werkzeug>=1&&rnd()<.05){S.res.werkzeug-=1;flow('cons','werkzeug',1)}if(b.t==='seidensticker'&&k==='stickerei'&&S.res.seide>=1){S.res.seide-=1;flow('cons','seide',1);S.res.stickerei=(S.res.stickerei||0)+1}if(b.t==='schneider'&&k==='kleidung'&&S.res.tuch>=1){S.res.tuch-=1;flow('cons','tuch',1);S.res.kleidung+=1}S.res[k]+=n;flow('prod',k,n);fx.push({x:b.x+.5,y:b.y,i:RES[k][0],t:0})}
   if(T.near&&rnd()<.12){for(let k=0;k<30;k++){const x=b.x+((rnd()*7)|0)-3,y=b.y+((rnd()*7)|0)-3;if(x>=0&&y>=0&&x<W&&y<H&&S.map[y*W+x]===1){S.map[y*W+x]=0;hooks.tile(y*W+x);break}}}}
 }
@@ -675,7 +675,7 @@ function daily(){
  // Zuzug
  if(S.b.some(b=>b.t==='rathaus'&&b.built>=1)&&S.mood>45){const v=S.b.find(vacant);if(v&&rnd()<.6)arrivals(v)}
  // Abgaben
- for(const s of S.p){const f=s.fin||(s.fin={inc:0,exp:0,tax:0});f.pinc=f.inc;f.pexp=f.exp;f.ptax=f.tax;f.inc=0;f.exp=0;f.tax=0}sicknessDaily();cityIncomeDaily();famDaily();progDaily();regionsDaily();S.flPrev=S.fl||{in:{},out:{},prod:{},cons:{}};S.fl=null;
+ for(const s of S.p){const f=s.fin||(s.fin={inc:0,exp:0,tax:0});f.pinc=f.inc;f.pexp=f.exp;f.ptax=f.tax;f.inc=0;f.exp=0;f.tax=0}sicknessDaily();seasonDaily();cityIncomeDaily();famDaily();progDaily();regionsDaily();S.flPrev=S.fl||{in:{},out:{},prod:{},cons:{}};S.fl=null;
  // Wünsche
  for(const s of S.p)checkGoal(s);
 }
@@ -2213,6 +2213,31 @@ function pEra(){const e=eraOf(),E=ERAS[e],nx=ERAS[e+1];let h=`<div class="eline"
  else h+=`<p class="hint">Die Moderne ist erreicht – ${S.name} hat sich vom mittelalterlichen Dorf zur modernen Stadt entwickelt.</p>`;
  h+=`<p class="hint">Fortschritt entsteht durch Schule, Kontor, Rathaus, Heiler, Kirche, Druckerei, Universität und weitere Einrichtungen – besetzt bringen sie mehr. Wissen der Bewohner und Bücher helfen ebenfalls. Bestehende Gebäude bleiben beim Epochenwechsel erhalten; neue Häuser entstehen im Stil der Zeit.</p>`;return h}
 
+// ===== Jahreszeiten (je 25 Tage) =====
+const SEASONS=[['fruehling','🌸','Frühling'],['sommer','☀️','Sommer'],['herbst','🍂','Herbst'],['winter','❄️','Winter']],SEASON_DAYS=25;
+const seasonIdx=()=>Math.floor(day()/SEASON_DAYS)%4,seasonDay=()=>day()%SEASON_DAYS+1;
+function seasonWeights(){const t=hAbs()/24/SEASON_DAYS,i=Math.floor(t)%4,f=(t-Math.floor(t))*SEASON_DAYS,bl=Math.min(1,f/2),w=[0,0,0,0];w[i]+=bl;w[(i+3)%4]+=1-bl;return w}
+Object.assign(MOODLET,{frieren:{i:'🥶',n:'Es ist bitterkalt',v:-8,h:24,e:'traurig'},schnee:{i:'⛄',n:'Spaß im Schnee',v:6,h:12,e:'glueck'},fruehling:{i:'🌸',n:'Frühlingsgefühle',v:5,h:24,e:'glueck'},sommer:{i:'☀️',n:'Sommerlaune',v:4,h:24,e:'glueck'},herbst:{i:'🍂',n:'Gemütlicher Herbst',v:3,h:24,e:'ruhig'}});
+const FARM={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,imker:1,garten:1,viehhof:.5};
+function seasonProd(b){const f=FARM[b.t];if(!f)return 1;const m=[1.0,1.15,1.35,.3][seasonIdx()];return 1+(m-1)*f}
+function seasonDaily(){const si=seasonIdx(),SE=SEASONS[si];
+ if(S._season!==si){S._season=si;log(`${SE[1]} Der ${SE[2]} beginnt!${si===3?' Die Haushalte brauchen jetzt Brennholz zum Heizen.':si===2?' Zeit der Ernte – die Felder tragen besonders viel.':si===0?' Die Natur erwacht.':' Die Strände füllen sich mit Gästen.'}`);if(typeof toast==='function')toast(`${SE[1]} ${SE[2]}`);
+  const mk=['fruehling','sommer','herbst'][si];for(const s of S.p){if(mk)addM(s,mk);else if(isKid(s))addM(s,'schnee')}}
+ if(si===3){const homes=S.b.filter(b=>b.built>=1&&beds(b)>0&&residents(b).length),need=homes.length;const have=Math.floor(S.res.holz||0);const use=Math.min(have,need);S.res.holz-=use;if(use)flow('cons','holz',use);
+  if(use<need){const cold=homes.slice(use);for(const h of cold)for(const p of residents(h))addM(p,'frieren');if(S._coldNote!==day()){S._coldNote=day();log(`🥶 ${need-use} ${need-use>1?'Haushalte frieren':'Haushalt friert'} – es fehlt Brennholz! Mehr Holzfäller helfen.`)}}}}
+const _festDailyS=festDaily;
+festDaily=function(){const d=day();if(d%2!==1){S.fest=null;return}const pref=[['Maifest','Parkfest','Marktfest'],['Strandfest','Strandnacht mit Feuerwerk','Marktfest','Parkfest'],['Erntedankfest','Marktfest','Parkfest'],['Lichterfest','Marktfest']][seasonIdx()];
+ for(let o=0;o<pref.length;o++){const nm2=pref[(Math.floor(d/2)+o)%pref.length],F2=FESTS.find(f=>f[0]===nm2);if(!F2)continue;let site=null;for(const t of F2[2]){site=S.b.find(b=>b.t===t&&b.built>=1);if(site)break}if(!site)continue;
+  S.fest={n:F2[0],i:F2[1],bid:site.id,d,kind:FEST_KIND(site.t)};log(`${F2[1]} Heute ab 16 Uhr: ${F2[0]} ${S.fest.kind==='strand'?'am Strand':S.fest.kind==='park'?'im Park':'auf dem Marktplatz'} – alle sind eingeladen!`);return}_festDailyS()};
+const _guestsS=guestsToday;guestsToday=function(){return Math.round(_guestsS()*[1.0,1.35,.9,.6][seasonIdx()])};
+// ---- Wettereffekte ----
+function seasonFX(){if(typeof gfxLevel==='function'&&gfxLevel()<1)return;const w=seasonWeights(),si=seasonIdx();const amt=w[si]*(si===1?0:1);if(amt<.2)return;const g=G;G=BT_DT;
+ const n=Math.round((si===3?170:si===2?70:50)*amt),R=cam.fp?7:Math.min(14,cam.dist*.9+3),cx=cam.fp?cam.fp.x:cam.x,cz=cam.fp?cam.fp.z:cam.y,t=performance.now()/1000,top=cam.fp?3:Math.min(6,cam.dist*.45+1.5);
+ for(let k=0;k<n;k++){const r1=cRandS(k*3.1),r2=cRandS(k*7.7),r3=cRandS(k*1.3),sp=si===3?.35+r3*.25:.45+r3*.3,ph=((t*sp*.35+r3*7)%1);
+  const x=cx+(r1-.5)*2*R+Math.sin(t*.7+k)*.25*(si===3?1:2),z=cz+(r2-.5)*2*R+Math.cos(t*.5+k)*.2,y=top*(1-ph);
+  if(si===3)box(TR(x,y,z,t+k),.025,.025,.025,col('#ffffff',.9),0);else{const c=si===2?['#d9822e','#c0452a','#e6b13a','#a8642a'][k%4]:['#f4c6d4','#ffffff','#f7d9e4'][k%3];box(TR(x,y,z,t*2+k,t*1.5+k,t*1.1),.05,.004,.035,col(c,.95),0)}}G=g}
+function cRandS(k){const x=Math.sin(k*12.9898)*43758.5453;return x-Math.floor(x)}
+
 // ===== 3D-Renderer (WebGL, eigener Mini-Motor) =====
 const cv=document.getElementById('cv'),ov=document.getElementById('ov'),oc=ov.getContext('2d');
 const gl=cv.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:false});const skyc=document.getElementById('sky'),skx=skyc.getContext('2d');
@@ -2232,7 +2257,7 @@ precision highp float;
 precision mediump float;
 #endif
 varying vec4 vc;varying vec3 vn;varying vec3 vw;varying float ve;varying vec4 vl;
-uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform float shOn;uniform float tm;uniform float day;uniform float det;uniform sampler2D smap;
+uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform float shOn;uniform float tm;uniform float day;uniform float det;uniform vec4 sw;uniform sampler2D smap;
 float hsh(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vno(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hsh(i),hsh(i+vec2(1.,0.)),f.x),mix(hsh(i+vec2(0.,1.)),hsh(i+vec2(1.,1.)),f.x),f.y);}
 float unpack(vec4 v){return dot(v,vec4(1.,1./255.,1./65025.,1./16581375.));}
@@ -2242,7 +2267,13 @@ void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=
  vec3 base=vc.rgb;float ao=1.;
  if(det>.5&&ve>-.5&&ve<.5&&vc.a>.99){float dist=length(vw-eye),fd=clamp(1.-dist/14.,0.,1.);float n1=vno(vw.xz*5.+vw.y*2.3),n2=vno(vw.xz*21.+vw.y*13.+7.);base*=.92+.1*n1+.07*(n2-.5)*fd;
   float ay=abs(N.y);if(ay>.28&&ay<.93){float row=fract(vw.y*26.+n1*.15);base*=mix(1.,.86+.16*smoothstep(0.,.3,row),clamp(1.-dist/18.,0.,1.));}
-  if(ay<.3)ao=mix(.68,1.,smoothstep(0.,.11,vw.y));}
+  if(ay<.3)ao=mix(.68,1.,smoothstep(0.,.11,vw.y));
+  float veg=smoothstep(.03,.1,base.g-max(base.r,base.b));if(veg>0.){float tn=vno(floor(vw.xz*1.7)*.73+.5);float gr=1.-smoothstep(.02,.08,vw.y);
+   vec3 spr=mix(base*vec3(1.02,1.04,.9)+vec3(.0,.015,0.),mix(vec3(.97,.74,.84),vec3(1.,.96,.97),tn),(1.-gr)*step(.74,tn)*.9);
+   vec3 aut=mix(mix(vec3(.86,.5,.14),vec3(.76,.24,.1),tn),vec3(.92,.74,.2),step(.62,tn));aut=mix(aut,mix(vec3(.52,.5,.28),vec3(.6,.52,.3),tn),gr);aut=mix(base,aut,mix(.85,.6,gr));
+   float lu=dot(base,vec3(.3,.5,.2));vec3 win=mix(vec3(lu)*vec3(.9,.86,.76),base*.7+vec3(.06,.05,.03),.4);
+   base=mix(base,spr*sw.x+base*sw.y+aut*sw.z+win*sw.w,veg);}
+  base=mix(base,vec3(.66,.69,.75)*(.93+.08*n1),sw.w*smoothstep(.32,.75,N.y)*.9);}
  vec3 amb=mix(gnd,sky,N.y*.5+.5)*ao;float wrap=max(nd*.82+.18,0.)*(d>0.?1.:.35);
  vec3 col=base*(amb*1.02+lc*wrap*mix(.32,1.,sh));
  if(det>.5&&ve>-.5&&ve<.5){vec3 Hh=normalize(ld+V);col+=lc*pow(max(dot(N,Hh),0.),36.)*.18*sh*day;col+=sky*pow(1.-max(dot(N,V),0.),3.)*.12*day;}
@@ -2260,7 +2291,7 @@ let SP=null,SL={},SFB=null,STX=null,SSZ=2048,SH_OK=false;
 let P=null,L={};
 function initGL(){if(!gl)return false;const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
  P=gl.createProgram();gl.attachShader(P,mk(gl.VERTEX_SHADER,VS));gl.attachShader(P,mk(gl.FRAGMENT_SHADER,FS));['p','n','c','e'].forEach((a,i)=>gl.bindAttribLocation(P,i,a));gl.linkProgram(P);gl.useProgram(P);
- for(const a of['p','n','c','e'])L[a]=gl.getAttribLocation(P,a);for(const u of['vp','mdl','nm','ld','lc','sky','gnd','night','eye','fogc','lvp','smap','shOn','tm','day','det'])L[u]=gl.getUniformLocation(P,u);
+ for(const a of['p','n','c','e'])L[a]=gl.getAttribLocation(P,a);for(const u of['vp','mdl','nm','ld','lc','sky','gnd','night','eye','fogc','lvp','smap','shOn','tm','day','det','sw'])L[u]=gl.getUniformLocation(P,u);
  try{SP=gl.createProgram();gl.attachShader(SP,mk(gl.VERTEX_SHADER,SVS));gl.attachShader(SP,mk(gl.FRAGMENT_SHADER,SFS));gl.bindAttribLocation(SP,0,'p');gl.linkProgram(SP);for(const u of['lvp','mdl'])SL[u]=gl.getUniformLocation(SP,u);
   STX=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,STX);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,SSZ,SSZ,0,gl.RGBA,gl.UNSIGNED_BYTE,null);for(const[k,v]of[[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
   const rb=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,SSZ,SSZ);SFB=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,SFB);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,STX,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);
@@ -2491,7 +2522,7 @@ function drawScene(ui){
  if(terDirty)buildTerrain();else if(DIRTY.size)updateDirty();const now=performance.now();if(now>sigT){sigT=now+400;const sg=bsig();if(sg!==sig){sig=sg;buildStatic()}}
  camMats();const Lt=lightNow(),cut=cutaway();
  drawSky(Lt);gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
- gl.uniformMatrix4fv(L.vp,false,new Float32Array(VPM));setModel(ID4,ID3);gl.uniform1f(L.tm,S.t*.6);gl.uniform1f(L.det,gfxLevel()>=1?1:0);gl.uniform1f(L.day,Lt.day);gl.uniform3fv(L.ld,Lt.ld);gl.uniform3fv(L.lc,Lt.lc);gl.uniform3fv(L.sky,Lt.sky);gl.uniform3fv(L.gnd,Lt.gnd);gl.uniform1f(L.night,Lt.night);gl.uniform3fv(L.eye,EYE);gl.uniform3fv(L.fogc,Lt.fog);
+ gl.uniformMatrix4fv(L.vp,false,new Float32Array(VPM));setModel(ID4,ID3);gl.uniform1f(L.tm,S.t*.6);gl.uniform1f(L.det,gfxLevel()>=1?1:0);gl.uniform4fv(L.sw,seasonWeights());gl.uniform1f(L.day,Lt.day);gl.uniform3fv(L.ld,Lt.ld);gl.uniform3fv(L.lc,Lt.lc);gl.uniform3fv(L.sky,Lt.sky);gl.uniform3fv(L.gnd,Lt.gnd);gl.uniform1f(L.night,Lt.night);gl.uniform3fv(L.eye,EYE);gl.uniform3fv(L.fogc,Lt.fog);
  // dynamisch
  G=BT_DYN;G.n=0;const DT=BT_DT;DT.n=0;const faceList=[];
  const selS=ui.sel&&ui.sel.k==='s'?ui.sel.id:0,selB=ui.sel&&ui.sel.k==='b'?bById.get(ui.sel.id):null;
@@ -2499,7 +2530,7 @@ function drawScene(ui){
    for(let k=0;k<8;k++)box(TR(cx,.22,cz,ry+Math.PI/2,0,a+k*Math.PI/4),.05,.2,.012,col('#6b4a2e'));continue}if(b.t==='muehle'){const a=S.t*1.5,cx=b.x+.5,cz=b.y+.5+.27,yy=.62;for(let k=0;k<4;k++)box(TR(cx,yy,cz,0,0,a+k*Math.PI/2),.06,.42,.012,col('#e8dcc0'));cyl(TR(cx,yy-.02,cz-.02,0,Math.PI/2),.03,.03,.05,6,col('#5a3d24'))}continue}
   setRot(b);constructionMesh(b);BROT=null}
  BY=0;
- drawSea(Lt);drawVehicles();drawFest();drawTrain();
+ drawSea(Lt);drawVehicles();drawFest();drawTrain();seasonFX();
  {const h0=hod(),cook=(h0>=6&&h0<9)||(h0>=17&&h0<21);G=DT;for(const sm of SMOKE){if(Math.abs(sm.x-cam.x)>cam.dist*1.4||Math.abs(sm.z-cam.y)>cam.dist*1.4)continue;const b=sm.b;const act=b.t==='haus'?(cook&&insideOf(b).length):(b.t==='baeckerei'||b.t==='schmiede'||b.t==='taverne')?S.p.some(p=>p.job===b.id&&p.inside===b.id):cook;if(!act)continue;
   for(let k=0;k<4;k++){const ph=(S.t*.35+k/4+b.id*.13)%1;ell3(TR(sm.x+ph*.12,sm.y-BY+ph*.55,sm.z-ph*.05),.03+ph*.07,.03+ph*.06,.03+ph*.07,3,5,col('#d9d6d0',.45*(1-ph)))}}
   if(Lt.night>.25)for(const[lx,ly,lz]of LAMPS){if(Math.abs(lx-cam.x)>cam.dist*1.5||Math.abs(lz-cam.y)>cam.dist*1.5)continue;gq(lx-.6,lz-.6,lx+.6,lz+.6,ly+.012,col('#ffcf70',.16*Lt.night));gq(lx-.3,lz-.3,lx+.3,lz+.3,ly+.014,col('#ffe2a0',.28*Lt.night))}G=BT_DYN}
@@ -3063,7 +3094,7 @@ function facePortrait(cv2,s,a){
  const hb=headBatch(s,true),kid=a<13;
  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.bindFramebuffer(gl.FRAMEBUFFER,PFB);gl.viewport(0,0,PSZ,PSZ);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.disable(gl.BLEND);
  const eye=[1.3,.25,5.5],tgt=[0,kid?-.5:-.42,0];gl.uniformMatrix4fv(L.vp,false,new Float32Array(mmul(persp(.56,1,.5,30),lookAt(eye,tgt))));
- const ld=[-.45,.62,.66],l=Math.hypot(...ld);gl.uniform3fv(L.ld,ld.map(v=>v/l));gl.uniform3fv(L.lc,[.72,.68,.6]);gl.uniform3fv(L.sky,[.6,.6,.64]);gl.uniform3fv(L.gnd,[.36,.3,.26]);gl.uniform1f(L.night,0);gl.uniform1f(L.det,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);
+ const ld=[-.45,.62,.66],l=Math.hypot(...ld);gl.uniform3fv(L.ld,ld.map(v=>v/l));gl.uniform3fv(L.lc,[.72,.68,.6]);gl.uniform3fv(L.sky,[.6,.6,.64]);gl.uniform3fv(L.gnd,[.36,.3,.26]);gl.uniform1f(L.night,0);gl.uniform1f(L.det,0);gl.uniform4fv(L.sw,[0,1,0,0]);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);
  gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,0);setModel(ID4,ID3);hb.draw();gl.readPixels(0,0,PSZ,PSZ,gl.RGBA,gl.UNSIGNED_BYTE,PPX);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);
  const tc=ptmp.getContext('2d'),img=tc.createImageData(PSZ,PSZ),row=PSZ*4;for(let y=0;y<PSZ;y++)img.data.set(PPX.subarray((PSZ-1-y)*row,(PSZ-y)*row),y*row);tc.putImageData(img,0,0);
  const c=cv2.getContext('2d');sceneBg(c,120,120,s.id%7);
@@ -3075,7 +3106,7 @@ function previewHouse3D(cv2,d){if(!GL_OK)return false;if(PFB_OK===null){try{PFB_
  const fl=d.fl||1,hgt=fl*.48+.6,eye=[1.9+fl*.2,.9+hgt*.6,2.6+fl*.3],tgt=[0,hgt*.42,0];
  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.bindFramebuffer(gl.FRAMEBUFFER,PFB);gl.viewport(0,0,PSZ,PSZ);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.disable(gl.BLEND);
  gl.uniformMatrix4fv(L.vp,false,new Float32Array(mmul(persp(.62,1,.3,40),lookAt(eye,tgt))));const ld=[-.5,.7,.6],l=Math.hypot(...ld);gl.uniform3fv(L.ld,ld.map(v=>v/l));gl.uniform3fv(L.lc,[.78,.74,.66]);gl.uniform3fv(L.sky,[.55,.56,.6]);gl.uniform3fv(L.gnd,[.32,.28,.24]);
- gl.uniform1f(L.night,0);gl.uniform1f(L.det,1);gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);setModel(ID4,ID3);bt.draw();gl.readPixels(0,0,PSZ,PSZ,gl.RGBA,gl.UNSIGNED_BYTE,PPX);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);gl.deleteBuffer(bt.buf);
+ gl.uniform1f(L.night,0);gl.uniform1f(L.det,1);gl.uniform4fv(L.sw,[0,1,0,0]);gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);setModel(ID4,ID3);bt.draw();gl.readPixels(0,0,PSZ,PSZ,gl.RGBA,gl.UNSIGNED_BYTE,PPX);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);gl.deleteBuffer(bt.buf);
  const tc=ptmp.getContext('2d'),img=tc.createImageData(PSZ,PSZ),row=PSZ*4;for(let y=0;y<PSZ;y++)img.data.set(PPX.subarray((PSZ-1-y)*row,(PSZ-y)*row),y*row);tc.putImageData(img,0,0);
  const r=window.devicePixelRatio||1,w=cv2.clientWidth||240,h=cv2.clientHeight||170;cv2.width=w*r;cv2.height=h*r;const c=cv2.getContext('2d');c.setTransform(r,0,0,r,0,0);
  const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'#bfd8ea');g.addColorStop(.7,'#e8f0e6');g.addColorStop(1,'#a8c98a');c.fillStyle=g;c.fillRect(0,0,w,h);c.fillStyle='#8fbf6a';c.beginPath();c.ellipse(w/2,h*.86,w*.42,h*.1,0,0,7);c.fill();
@@ -3119,7 +3150,7 @@ function regionDiorama(r){if(!GL_OK)return null;const n=Math.max(4,Math.min(46,M
  G=g0;BY=by;BROT=br;bt.up();const eye=[3.6,3.4,5],tgt=[0,.2,.1];
  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.bindFramebuffer(gl.FRAMEBUFFER,PFB);gl.viewport(0,0,PSZ,PSZ);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.disable(gl.BLEND);
  gl.uniformMatrix4fv(L.vp,false,new Float32Array(mmul(persp(.78,1,.3,40),lookAt(eye,tgt))));const ld=[-.5,.75,.55],l=Math.hypot(...ld);gl.uniform3fv(L.ld,ld.map(v=>v/l));gl.uniform3fv(L.lc,[.82,.78,.68]);gl.uniform3fv(L.sky,[.56,.58,.62]);gl.uniform3fv(L.gnd,[.34,.3,.26]);
- gl.uniform1f(L.night,0);gl.uniform1f(L.det,1);gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,1);gl.uniform1f(L.tm,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);setModel(ID4,ID3);bt.draw();gl.readPixels(0,0,PSZ,PSZ,gl.RGBA,gl.UNSIGNED_BYTE,PPX);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);gl.deleteBuffer(bt.buf);
+ gl.uniform1f(L.night,0);gl.uniform1f(L.det,1);gl.uniform4fv(L.sw,[0,1,0,0]);gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,1);gl.uniform1f(L.tm,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);setModel(ID4,ID3);bt.draw();gl.readPixels(0,0,PSZ,PSZ,gl.RGBA,gl.UNSIGNED_BYTE,PPX);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);gl.deleteBuffer(bt.buf);
  const c2=document.createElement('canvas');c2.width=c2.height=PSZ;const tc=c2.getContext('2d'),img=tc.createImageData(PSZ,PSZ),row=PSZ*4;for(let y=0;y<PSZ;y++)img.data.set(PPX.subarray((PSZ-1-y)*row,(PSZ-y)*row),y*row);
  const o=document.createElement('canvas');o.width=o.height=PSZ;const oc=o.getContext('2d');const gr=oc.createLinearGradient(0,0,0,PSZ);gr.addColorStop(0,'#9cc8ea');gr.addColorStop(1,'#e8f2f8');oc.fillStyle=gr;oc.fillRect(0,0,PSZ,PSZ);tc.putImageData(img,0,0);oc.drawImage(c2,0,0);
  const url=o.toDataURL('image/jpeg',.86);DIOC.set(key,url);if(DIOC.size>60)DIOC.delete(DIOC.keys().next().value);return url}
@@ -3190,7 +3221,7 @@ function walkPhase(s,x,z){if(s._fx2!=null){const d=Math.hypot(x-s._fx2,z-s._fz2)
 function renderFig(s,yaw,opts){if(!GL_OK)return null;if(PFB_OK===null){try{PFB_OK=initPFB()}catch(e){PFB_OK=false}}if(!PFB_OK)return null;opts=opts||{};
  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.bindFramebuffer(gl.FRAMEBUFFER,PFB);gl.viewport(0,0,PSZ,PSZ);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.disable(gl.BLEND);
  const eye=opts.eye||[0,.55,3.3],tgt=opts.tgt||[0,.5,0];gl.uniformMatrix4fv(L.vp,false,new Float32Array(mmul(persp(opts.fov||.36,1,.3,30),lookAt(eye,tgt))));const ld=[-.4,.7,.7],l=Math.hypot(...ld);
- gl.uniform3fv(L.ld,ld.map(v=>v/l));gl.uniform3fv(L.lc,[.86,.78,.66]);gl.uniform3fv(L.sky,[.62,.64,.7]);gl.uniform3fv(L.gnd,[.4,.33,.28]);gl.uniform1f(L.night,0);gl.uniform1f(L.det,0);gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);
+ gl.uniform3fv(L.ld,ld.map(v=>v/l));gl.uniform3fv(L.lc,[.86,.78,.66]);gl.uniform3fv(L.sky,[.62,.64,.7]);gl.uniform3fv(L.gnd,[.4,.33,.28]);gl.uniform1f(L.night,0);gl.uniform1f(L.det,0);gl.uniform4fv(L.sw,[0,1,0,0]);gl.uniform1f(L.shOn,0);gl.uniform1f(L.day,0);gl.uniform3fv(L.eye,eye);gl.uniform3fv(L.fogc,[1,1,1]);
  if(opts.head){const hb=headBatch(opts.proxy||s,true);const M=mm(M4.RY(yaw),M4.RX(opts.tilt||0));setModel(M,nmOf(M,1));hb.draw()}else{const bk={act:s.act,task:s.task,talk:s.talk,iwalk:s.iwalk};s.act='idle';s.task=null;s.talk=null;s.iwalk=false;drawFigure(s,0,0,0,yaw,1,false);Object.assign(s,bk)}
  setModel(ID4,ID3);gl.readPixels(0,0,PSZ,PSZ,gl.RGBA,gl.UNSIGNED_BYTE,PPX);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);
  const tc=ptmp.getContext('2d'),img=tc.createImageData(PSZ,PSZ),row=PSZ*4;for(let y=0;y<PSZ;y++)img.data.set(PPX.subarray((PSZ-1-y)*row,(PSZ-y)*row),y*row);tc.putImageData(img,0,0);return ptmp}
@@ -3249,7 +3280,7 @@ function endCtrl(){const s=ctrlCit();if(s){setCtrl(s,false);toast(`${s.fn} hande
 
 // ---------- HUD ----------
 function hud(){
- $('clk').textContent=`${WD[wday()].slice(0,2)} ${clock()}`;$('yr').textContent=`${year()} · ${S.name}`;
+ $('clk').textContent=`${WD[wday()].slice(0,2)} ${clock()}`;$('yr').textContent=`${year()} · ${S.name} · ${SEASONS[seasonIdx()][1]} ${SEASONS[seasonIdx()][2]} ${seasonDay()}/${SEASON_DAYS}`;
  chips();
  const c=ctrlCit();$('ctrlbar').hidden=!c;
  $('feed').style.top=(c?$('ctrlbar').offsetHeight+18+(IM?54:0):IM?64:10)+'px';
@@ -3928,7 +3959,7 @@ function hvScene(ui){
  BY=0;gl.uniform1f(L.shOn,0);const b=hvB();if(!b){exitHouse();return}
  camMats();const Lt=lightNow();const dayish=Math.max(.55,1-Lt.night);
  gl.viewport(0,0,cv.width,cv.height);gl.clearColor(.16,.2,.16,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
- gl.uniformMatrix4fv(L.vp,false,new Float32Array(VPM));setModel(ID4,ID3);gl.uniform3fv(L.ld,[-.35,.85,.4]);gl.uniform3fv(L.lc,[.62*dayish+.1,.58*dayish+.1,.5*dayish+.12]);gl.uniform3fv(L.sky,[.5,.5,.52]);gl.uniform3fv(L.gnd,[.3,.27,.24]);gl.uniform1f(L.night,Lt.night);gl.uniform3fv(L.eye,EYE);gl.uniform3fv(L.fogc,[.16,.2,.16]);gl.uniform1f(L.det,1);
+ gl.uniformMatrix4fv(L.vp,false,new Float32Array(VPM));setModel(ID4,ID3);gl.uniform3fv(L.ld,[-.35,.85,.4]);gl.uniform3fv(L.lc,[.62*dayish+.1,.58*dayish+.1,.5*dayish+.12]);gl.uniform3fv(L.sky,[.5,.5,.52]);gl.uniform3fv(L.gnd,[.3,.27,.24]);gl.uniform1f(L.night,Lt.night);gl.uniform3fv(L.eye,EYE);gl.uniform3fv(L.fogc,[.16,.2,.16]);gl.uniform1f(L.det,1);gl.uniform4fv(L.sw,[0,1,0,0]);
  const PPH=postBegin();if(PPH){gl.clearColor(.16,.2,.16,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)}
  G=BT_DYN;G.n=0;const DT=BT_DT;DT.n=0;
  const p=b.plan,fl=p.floors[IM.f]||p.floors[0],A=planA(b),a=A.floors[IM.f]||A.floors[0];
