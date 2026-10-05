@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100503">
+<meta name="everstead-build" content="2026100504">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2182,8 +2182,12 @@ function progDaily(){let p=S.p.length*.4;const W2={schule:10,kontor:5,rathaus:5,
  for(const b of S.b)if(b.built>=1&&W2[b.t])p+=W2[b.t]*(S.p.some(q=>q.job===b.id)||b.t==='kirche'?1:.3);for(const s of S.p)p+=skLvl(s,'wissen')*.15;if(S.lux&&S.lux.buecher)p+=8;S.prog=(S.prog||0)+p;S.progLast=p;
  const R=ERA_REQ[eraOf()+1];if(R&&!S.eraLock&&eraReady()&&S._eraNote!==eraOf()){S._eraNote=eraOf();log(`⏳ ${S.name} ist bereit für die ${eraName(eraOf()+1)}! Öffne „⏳ Epoche“, um aufzubrechen.`);if(typeof toast==='function')toast(`⏳ Bereit für die ${eraName(eraOf()+1)}!`)}
  const bk=S.b.find(b=>b.t==='bank'&&b.built>=1);if(bk&&S.p.some(q=>q.job===bk.id)){const z=Math.min(60,Math.max(0,S.res.taler*.01));S.res.taler+=z;flow('in','Bankzinsen',z)}}
-function eraChecks(e){const R=ERA_REQ[e];if(!R)return[];const has=t=>S.b.some(b=>b.t===t&&b.built>=1);
- return[[`${R.pop} Einwohner`,S.p.length>=R.pop,`${S.p.length}/${R.pop}`],[`${R.prog} Fortschritt`,(S.prog||0)>=R.prog,`${Math.floor(S.prog||0)}/${R.prog}`]].concat(R.has.map(t=>[BT[t].n,has(t),has(t)?'vorhanden':'fehlt']))}
+const ERA_MONEY=[0,2500,8000,20000],ERA_MOOD=80,ERA_GEN=['des Mittelalters','der Renaissance','der Industriezeit','der Moderne'];
+function eraTypes(e){return Object.entries(BT).filter(([t,T])=>(T.era||0)===e&&T.cost).map(([t])=>t)}
+function missingTypes(e){const have=new Set(S.b.filter(b=>b.built>=1).map(b=>b.t));return eraTypes(e).filter(t=>!have.has(t))}
+function eraChecks(e){const R=ERA_REQ[e];if(!R)return[];const prev=e-1,all=eraTypes(prev).length,miss=missingTypes(prev).length,money=ERA_MONEY[e]||0,tal=Math.floor(S.res.taler||0);
+ return[[`Alle ${all} Gebäudearten ${ERA_GEN[prev]}`,miss===0,`${all-miss}/${all}`],[`Zufriedenheit mindestens ${ERA_MOOD} %`,S.mood>=ERA_MOOD,`${Math.round(S.mood)} %`],[`${money.toLocaleString('de-DE')} Taler in der Stadtkasse`,tal>=money,`${tal.toLocaleString('de-DE')}`],
+  [`${R.pop} Einwohner`,S.p.length>=R.pop,`${S.p.length}/${R.pop}`],[`${R.prog} Fortschritt`,(S.prog||0)>=R.prog,`${Math.floor(S.prog||0)}/${R.prog}`]]}
 function eraReady(){const c=eraChecks(eraOf()+1);return c.length&&c.every(x=>x[1])}
 function setEraStyle(){BT.haus.def={...(BT.haus.def||{}),f:ERAS[eraOf()].style,fl:eraOf()>=2?2:1}}
 function advanceEra(force){const e=eraOf()+1;if(!ERAS[e])return 'Die Moderne ist erreicht.';if(!force&&!eraReady())return 'Noch nicht alle Bedingungen erfüllt.';
@@ -2203,7 +2207,7 @@ function pEra(){const e=eraOf(),E=ERAS[e],nx=ERAS[e+1];let h=`<div class="eline"
  <div class="ecard"><span>${E.i}</span><div><b>${E.n}</b><span>${esc(E.d)} · Jahr ${year()}</span></div></div>
  <div class="stats"><div><b>${Math.floor(S.prog||0)}</b><span>Fortschritt</span></div><div><b>+${Math.round(S.progLast||0)}</b><span>pro Tag</span></div><div><b>${Math.round((eraProd()-1)*100)} %</b><span>Technik-Bonus</span></div></div>`;
  if(nx){const ch=eraChecks(e+1),ok=ch.every(x=>x[1]);h+=`<h3>Auf dem Weg zur ${nx.n} ${nx.i}</h3><ul class="why">${ch.map(([l,o,v])=>`<li>${o?'✅':'⬜'} ${esc(l)} <small>${v}</small></li>`).join('')}</ul>
-  <button class="wide eraBtn" data-a="eraadv" ${ok?'':'disabled'}>⏩ In die ${nx.n} aufbrechen</button>
+  ${(()=>{const m=missingTypes(e);return m.length?`<h4>Noch fehlende Gebäude (${m.length})</h4><div class="optl">${m.map(t=>`<button data-a="bizbuild" data-v="${t}">${BT[t].i} ${esc(BT[t].n)}</button>`).join('')}</div>`:''})()}<button class="wide eraBtn" data-a="eraadv" ${ok?'':'disabled'}>⏩ In die ${nx.n} aufbrechen</button>
   <button class="wide eraKeep" data-a="eralockt">${S.eraLock?'🔓 Hinweise auf neue Epochen wieder zeigen':'📌 In dieser Epoche bleiben'}</button>
   <h3>Das bringt die ${nx.n}</h3><div class="unl">${Object.entries(BT).filter(([,T])=>T.era===e+1).map(([,T])=>`<span>${T.i} ${T.n}</span>`).join('')}${Object.entries(VEH).filter(([,V])=>V.era===e+1).map(([,V])=>`<span>${V.n}</span>`).join('')}<span>🏠 ${FORMS[nx.style].n} als neuer Baustil</span><span>👗 Neue Mode</span><span>⚙️ +8 % Produktion</span></div>`}
  else h+=`<p class="hint">Die Moderne ist erreicht – ${S.name} hat sich vom mittelalterlichen Dorf zur modernen Stadt entwickelt.</p>`;
