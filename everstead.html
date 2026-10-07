@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100715">
+<meta name="everstead-build" content="2026100716">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2272,7 +2272,7 @@ precision highp float;
 precision mediump float;
 #endif
 varying vec4 vc;varying vec3 vn;varying vec3 vw;varying float ve;varying vec4 vl;
-uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform float shOn;uniform float tm;uniform float day;uniform float det;uniform vec4 sw;uniform sampler2D smap;uniform sampler2D dt0;uniform sampler2D dt1;uniform sampler2D dt2;uniform sampler2D dt3;uniform float txOn;
+uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform float shOn;uniform float tm;uniform float day;uniform float det;uniform vec4 sw;uniform sampler2D smap;uniform sampler2D dt0;uniform sampler2D dt1;uniform sampler2D dt2;uniform sampler2D dt3;uniform float txOn;uniform float txMat;
 float hsh(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vno(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hsh(i),hsh(i+vec2(1.,0.)),f.x),mix(hsh(i+vec2(0.,1.)),hsh(i+vec2(1.,1.)),f.x),f.y);}
 float unpack(vec4 v){return dot(v,vec4(1.,1./255.,1./65025.,1./16581375.));}
@@ -2289,14 +2289,14 @@ void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=
  if(det>.5&&ve>-.5&&ve<.5&&vc.a>.99){float fd=clamp(1.-dist/16.,0.,1.),fm=clamp(1.-dist/34.,0.,1.);float n1=vno(vw.xz*5.+vw.y*2.3);
   float mxc=max(base.r,max(base.g,base.b)),mnc=min(base.r,min(base.g,base.b)),lum=dot(base,vec3(.3,.59,.11)),sat=(mxc-mnc)/max(mxc,.001),ay=abs(N.y);
   float veg=smoothstep(.03,.1,base.g-max(base.r,base.b));vec2 fu=vec2(abs(N.x)>abs(N.z)?vw.z:vw.x,vw.y);vec3 tex=base;
-  if(txOn>.5){float fm2=clamp(1.-dist/60.,0.,1.);vec2 bg=vec2(0.);vec3 bT=vec3(1.,0.,0.),bB=vec3(0.,0.,1.);float bk=0.;
+  if(txOn>.5&&txMat>.5){float fm2=clamp(1.-dist/60.,0.,1.);vec2 bg=vec2(0.);vec3 bT=vec3(1.,0.,0.),bB=vec3(0.,0.,1.);float bk=0.;
    if(ay>.9){
-    if(veg>.5){bg=bmp(dt0,vw.xz*.62,vec3(1.,0.,0.));bk=3.;float g=texture2D(dt0,vw.xz*.62).r,g2=texture2D(dt0,vw.xz*.13+.37).r,g1=vno(vw.xz*.45),gp=vno(vw.xz*2.1+3.);
-     tex=base*vec3(.9,.93,.8)*(.8+.32*g1)*(1.+(g-.5)*1.25)*(1.+(g2-.5)*.6);tex=mix(tex,tex*vec3(1.12,1.05,.72),smoothstep(.55,.85,gp)*.4);spk=.03;}
+    if(veg>.5){bk=0.;float g=texture2D(dt0,vw.xz*.31).r,g2=texture2D(dt0,vw.xz*.09+.37).r,g1=vno(vw.xz*.45),gp=vno(vw.xz*2.1+3.);
+     tex=base*vec3(.9,.93,.8)*(.8+.32*g1)*(1.+(g-.5)*.55)*(1.+(g2-.5)*.45);tex=mix(tex,tex*vec3(1.12,1.05,.72),smoothstep(.55,.85,gp)*.4);spk=.03;}
     else if(sat<.14&&lum>.28&&lum<.78){bg=bmp(dt0,vw.xz*1.25,vec3(0.,0.,1.));bk=11.;float c=texture2D(dt0,vw.xz*1.25).b,c2=texture2D(dt0,vw.xz*.31+.5).b;tex=base*vec3(.94,.96,1.)*(1.+(c-.5)*1.7)*(1.+(c2-.5)*.35);
      tex=mix(tex,vec3(.2,.26,.11)*(.8+.4*vno(vw.xz*3.)),smoothstep(.3,.12,c)*.55);spk=.12*smoothstep(.45,.7,c);}
-    else if(lum>.66&&sat<.4){bg=bmp(dt1,vw.xz*.7,vec3(0.,1.,0.));bk=3.;float d=texture2D(dt1,vw.xz*.7).g;tex=base*(.9+.14*n1)*(1.+(d-.5)*1.1);spk=.02;}
-    else if(sat>.14&&lum>.28&&base.r>base.b){bg=bmp(dt0,vw.xz*.8,vec3(0.,1.,0.));bk=7.;float d=texture2D(dt0,vw.xz*.8).g,d2=texture2D(dt0,vw.xz*.21+.2).g;tex=base*(.86+.22*vno(vw.xz*2.6))*(1.+(d-.5)*1.5)*(1.+(d2-.5)*.4);spk=.03;}
+    else if(lum>.66&&sat<.4){bk=0.;float d=texture2D(dt1,vw.xz*.7).g;tex=base*(.92+.1*n1)*(1.+(d-.5)*.6);spk=.02;}
+    else if(sat>.14&&lum>.28&&base.r>base.b){bg=bmp(dt0,vw.xz*.5,vec3(0.,1.,0.));bk=2.5;float d=texture2D(dt0,vw.xz*.5).g,d2=texture2D(dt0,vw.xz*.21+.2).g;tex=base*(.86+.22*vno(vw.xz*2.6))*(1.+(d-.5)*.8)*(1.+(d2-.5)*.3);spk=.03;}
     else tex=base*(.93+.1*n1);}
    else if(ay>.28){vec2 tg=normalize(vec2(-N.z,N.x)+vec2(1e-5));float u=dot(vw.xz,tg),sv=vw.y/max(sqrt(1.-ay*ay),.3);bT=vec3(tg.x,0.,tg.y);bB=-normalize(vec3(0.,1.,0.)-N*N.y);
     if(veg>.5)tex=base*(.88+.2*n1);
@@ -2305,10 +2305,10 @@ void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=
     else{bg=bmp(dt3,vec2(u*2.4,-sv*2.6),vec3(1.,0.,0.));bk=11.;float r=texture2D(dt3,vec2(u*2.4,-sv*2.6)).r;tex=mix(vec3(dot(base,vec3(.3,.59,.11))),base,.8)*vec3(1.,.96,.94)*(1.+(r-.5)*1.55)*(.92+.14*vno(vec2(u,sv)*3.));
      tex=mix(tex,tex*vec3(.78,.9,.66),smoothstep(.68,.95,vno(vec2(u,vw.y)*4.3))*.4);spk=.08;}}
    else{bT=abs(N.x)>abs(N.z)?vec3(0.,0.,1.):vec3(1.,0.,0.);bB=vec3(0.,1.,0.);
-    if(lum>.58&&sat<.36){bg=bmp(dt3,fu*1.5,vec3(0.,1.,0.));bk=4.;float pl=texture2D(dt3,fu*1.5).g,p3=vno(fu*vec2(9.,2.)+9.);tex=base*(1.+(pl-.5)*1.15)*(.95+.08*vno(fu*3.6));tex=mix(tex,tex*vec3(.86,.82,.76),smoothstep(.62,.9,p3)*.35);spk=.03;}
-    else if(lum<.44&&base.r>base.b*1.2&&sat>.22){bg=bmp(dt2,vec2(fu.x*3.2,fu.y*.8),vec3(0.,0.,1.))*vec2(1.,.25);bk=6.;float w=texture2D(dt2,vec2(fu.x*3.2,fu.y*.8)).b;tex=base*(1.+(w-.5)*1.5);spk=.05;}
+    if(lum>.58&&sat<.36){bg=bmp(dt3,fu*1.5,vec3(0.,1.,0.));bk=2.;float pl=texture2D(dt3,fu*1.5).g,p3=vno(fu*vec2(9.,2.)+9.);tex=base*(1.+(pl-.5)*.6)*(.95+.08*vno(fu*3.6));tex=mix(tex,tex*vec3(.86,.82,.76),smoothstep(.62,.9,p3)*.35);spk=.03;}
+    else if(lum<.44&&base.r>base.b*1.2&&sat>.22){bg=bmp(dt2,vec2(fu.x*3.2,fu.y*.8),vec3(0.,0.,1.))*vec2(1.,.25);bk=3.;float w=texture2D(dt2,vec2(fu.x*3.2,fu.y*.8)).b;tex=base*(1.+(w-.5)*.85);spk=.05;}
     else if(base.r>base.g*1.3&&lum<.52&&sat>.38){bg=bmp(dt2,fu*3.6,vec3(1.,0.,0.));bk=10.;float b=texture2D(dt2,fu*3.6).r;tex=base*(1.+(b-.5)*1.6);spk=.04;}
-    else if(sat<.17&&lum>.26&&lum<.8){bg=bmp(dt1,fu*2.4,vec3(1.,0.,0.));bk=11.;float st=texture2D(dt1,fu*2.4).r;tex=base*(1.+(st-.5)*1.5);tex=mix(tex,tex*vec3(.8,.9,.7),smoothstep(.7,.95,vno(fu*3.))*.3);spk=.06;}
+    else if(sat<.17&&lum>.26&&lum<.8){bg=bmp(dt1,fu*2.4,vec3(1.,0.,0.));bk=11.;float st=texture2D(dt1,fu*2.4).r;tex=base*(1.+(st-.5)*1.2);tex=mix(tex,tex*vec3(.8,.9,.7),smoothstep(.7,.95,vno(fu*3.))*.3);spk=.06;}
     else tex=base*(.92+.1*n1);
     ao=mix(.62,1.,smoothstep(0.,.12,vw.y));}
    tex=mix(base*(.95+.1*n1),tex,fm2);N=normalize(N-(bg.x*bT+bg.y*bB)*bk*fm2);nd=dot(N,ld);d=max(nd,0.);}
@@ -2360,7 +2360,7 @@ let SP=null,SL={},SFB=null,STX=null,SSZ=2048,SH_OK=false;
 let P=null,L={};
 function initGL(){if(!gl)return false;const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
  P=gl.createProgram();gl.attachShader(P,mk(gl.VERTEX_SHADER,VS));gl.attachShader(P,mk(gl.FRAGMENT_SHADER,FS));['p','n','c','e'].forEach((a,i)=>gl.bindAttribLocation(P,i,a));gl.linkProgram(P);gl.useProgram(P);
- for(const a of['p','n','c','e'])L[a]=gl.getAttribLocation(P,a);for(const u of['vp','mdl','nm','ld','lc','sky','gnd','night','eye','fogc','lvp','smap','shOn','tm','day','det','sw','dt0','dt1','dt2','dt3','txOn'])L[u]=gl.getUniformLocation(P,u);for(let i=0;i<4;i++)gl.uniform1i(L['dt'+i],3+i);gl.uniform1f(L.txOn,0);
+ for(const a of['p','n','c','e'])L[a]=gl.getAttribLocation(P,a);for(const u of['vp','mdl','nm','ld','lc','sky','gnd','night','eye','fogc','lvp','smap','shOn','tm','day','det','sw','dt0','dt1','dt2','dt3','txOn','txMat'])L[u]=gl.getUniformLocation(P,u);gl.uniform1f(L.txMat,1);for(let i=0;i<4;i++)gl.uniform1i(L['dt'+i],3+i);gl.uniform1f(L.txOn,0);
  try{SP=gl.createProgram();gl.attachShader(SP,mk(gl.VERTEX_SHADER,SVS));gl.attachShader(SP,mk(gl.FRAGMENT_SHADER,SFS));gl.bindAttribLocation(SP,0,'p');gl.linkProgram(SP);for(const u of['lvp','mdl'])SL[u]=gl.getUniformLocation(SP,u);
   STX=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,STX);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,SSZ,SSZ,0,gl.RGBA,gl.UNSIGNED_BYTE,null);for(const[k,v]of[[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
   const rb=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,SSZ,SSZ);SFB=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,SFB);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,STX,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);
@@ -2369,7 +2369,7 @@ function initGL(){if(!gl)return false;const mk=(t,s)=>{const x=gl.createShader(t
 const GL_OK=(()=>{try{return initGL()}catch(e){console.error(e);return false}})();
 // ===== Foto-Texturen (Detailkarten) =====
 let FWNEW=true;const TEXPACK=[['grass','dirt','cobble'],['stone','sand','rock'],['brick','planks','timber'],['roof','plaster','thatch']];let DTX=[],DTX_OK=false;
-function bindDetail(){if(!DTX_OK)return;for(let i=0;i<4;i++){gl.activeTexture(gl.TEXTURE3+i);gl.bindTexture(gl.TEXTURE_2D,DTX[i])}gl.activeTexture(gl.TEXTURE0);gl.uniform1f(L.txOn,typeof ui!=='undefined'&&ui.gfx==='sparsam'?0:1)}
+function bindDetail(){if(!DTX_OK)return;for(let i=0;i<4;i++){gl.activeTexture(gl.TEXTURE3+i);gl.bindTexture(gl.TEXTURE_2D,DTX[i])}gl.activeTexture(gl.TEXTURE0);gl.uniform1f(L.txMat,1);gl.uniform1f(L.txOn,typeof ui!=='undefined'&&ui.gfx==='sparsam'?0:1)}
 (function loadDetail(){if(!GL_OK||typeof TEXB64==='undefined')return;const imgs={},ks=Object.keys(TEXB64);let left=ks.length;
  const done=()=>{try{const N=512,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d',{willReadFrequently:true});const an=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
   TEXPACK.forEach((ns,ti)=>{const out=new Uint8Array(N*N*3);ns.forEach((n,ch)=>{if(!imgs[n])return;x.clearRect(0,0,N,N);x.drawImage(imgs[n],0,0,N,N);const d=x.getImageData(0,0,N,N).data;for(let i=0;i<N*N;i++)out[i*3+ch]=d[i*4]});
@@ -2694,7 +2694,7 @@ function drawScene(ui){
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.useProgram(P);gl.viewport(0,0,cv.width,cv.height);gl.uniformMatrix4fv(L.lvp,false,new Float32Array(LV));LASTLV=LV;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX)}
  gl.uniform1f(L.shOn,shOn?1:0);
  const PP=postBegin();
- terDraw();BT_OPEN.draw();(cut?BT_INT:BT_EXT).draw();BT_DYN.draw();
+ terDraw();BT_OPEN.draw();if(cut)gl.uniform1f(L.txMat,0);(cut?BT_INT:BT_EXT).draw();gl.uniform1f(L.txMat,0);BT_DYN.draw();gl.uniform1f(L.txMat,1);
  gl.uniform1f(L.det,0);for(const[s,x,by,z]of faceList)drawFigure(s,x,by,z,s._hd||0,.192,false);setModel(ID4,ID3);gl.uniform1f(L.det,gfxLevel()>=1?1:0);
  gl.enable(gl.BLEND);gl.depthMask(false);BT_SH.draw();DT.draw();BT_DT2.draw();gl.depthMask(true);gl.disable(gl.BLEND);
  if(PP)postEnd(Lt,ui.mode?3:.86);
@@ -4230,7 +4230,7 @@ function furn3(f){const d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,R=f
 // ---- Szene ----
 function horse3s(x,z,ry,c){const T=(a,y,b)=>{const cs=Math.cos(ry),sn=Math.sin(ry);return TR(x+a*cs+b*sn,y,z-a*sn+b*cs,ry)};const hc=col(c),dk=col(shade(c,-.3));box(T(0,.95,0),.55,.6,1.5,hc);for(const[a,b]of[[-.18,-.55],[.18,-.55],[-.18,.55],[.18,.55]])box(T(a,0,b),.13,.95,.13,dk);box(TR(x+Math.sin(ry)*.75,1.3,z+Math.cos(ry)*.75,ry,-.5),.25,.75,.28,hc);box(T(0,1.85,1.05),.24,.28,.55,hc);box(T(0,1.6,.75),.06,.45,.3,dk);box(T(0,.9,-.8),.08,.55,.1,dk)}
 function hvScene(ui){
- BY=0;gl.uniform1f(L.shOn,0);bindDetail();const b=hvB();if(!b){exitHouse();return}
+ BY=0;gl.uniform1f(L.shOn,0);bindDetail();gl.uniform1f(L.txMat,0);const b=hvB();if(!b){exitHouse();return}
  camMats();const Lt=lightNow();const dayish=Math.max(.55,1-Lt.night);
  gl.viewport(0,0,cv.width,cv.height);gl.clearColor(.16,.2,.16,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  gl.uniformMatrix4fv(L.vp,false,new Float32Array(VPM));setModel(ID4,ID3);gl.uniform3fv(L.ld,[-.35,.85,.4]);gl.uniform3fv(L.lc,[.62*dayish+.12,.52*dayish+.1,.38*dayish+.1]);gl.uniform3fv(L.sky,[.5,.46,.42]);gl.uniform3fv(L.gnd,[.34,.26,.2]);gl.uniform1f(L.night,Lt.night);gl.uniform3fv(L.eye,EYE);gl.uniform3fv(L.fogc,[.16,.2,.16]);gl.uniform1f(L.det,1);gl.uniform4fv(L.sw,[0,1,0,0]);
