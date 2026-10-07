@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100716">
+<meta name="everstead-build" content="2026100717">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2246,11 +2246,11 @@ festDaily=function(){const d=day();if(d%2!==1){S.fest=null;return}const pref=[['
   S.fest={n:F2[0],i:F2[1],bid:site.id,d,kind:FEST_KIND(site.t)};log(`${F2[1]} Heute ab 16 Uhr: ${F2[0]} ${S.fest.kind==='strand'?'am Strand':S.fest.kind==='park'?'im Park':'auf dem Marktplatz'} – alle sind eingeladen!`);return}_festDailyS()};
 const _guestsS=guestsToday;guestsToday=function(){return Math.round(_guestsS()*[1.0,1.35,.9,.6][seasonIdx()])};
 // ---- Wettereffekte ----
-function seasonFX(){if(typeof gfxLevel==='function'&&gfxLevel()<1)return;const w=seasonWeights(),si=seasonIdx();const amt=w[si]*(si===1?0:1);if(amt<.2)return;const g=G;G=BT_DT;
- const n=Math.round((si===3?170:si===2?70:50)*amt),R=cam.fp?7:Math.min(14,cam.dist*.9+3),cx=cam.fp?cam.fp.x:cam.x,cz=cam.fp?cam.fp.z:cam.y,t=performance.now()/1000,top=cam.fp?3:Math.min(6,cam.dist*.45+1.5);
+function seasonFX(){if(typeof gfxLevel==='function'&&gfxLevel()<1)return;const w=seasonWeights(),si=seasonIdx();const amt=w[si]*(si===1||si===0?0:1);if(amt<.2)return;const g=G;G=BT_DT;
+ const n=Math.round((si===3?140:si===2?30:0)*amt),R=cam.fp?7:Math.min(14,cam.dist*.9+3),cx=cam.fp?cam.fp.x:cam.x,cz=cam.fp?cam.fp.z:cam.y,t=performance.now()/1000,top=cam.fp?3:Math.min(6,cam.dist*.45+1.5);
  for(let k=0;k<n;k++){const r1=cRandS(k*3.1),r2=cRandS(k*7.7),r3=cRandS(k*1.3),sp=si===3?.35+r3*.25:.45+r3*.3,ph=((t*sp*.35+r3*7)%1);
   const x=cx+(r1-.5)*2*R+Math.sin(t*.7+k)*.25*(si===3?1:2),z=cz+(r2-.5)*2*R+Math.cos(t*.5+k)*.2,y=top*(1-ph);
-  if(si===3)box(TR(x,y,z,t+k),.025,.025,.025,col('#ffffff',.9),0);else{const c=si===2?['#d9822e','#c0452a','#e6b13a','#a8642a'][k%4]:['#f4c6d4','#ffffff','#f7d9e4'][k%3];box(TR(x,y,z,t*2+k,t*1.5+k,t*1.1),.05,.004,.035,col(c,.95),0)}}G=g}
+  if(si===3)ell3(TR(x,y,z),.009,.009,.009,2,4,col('#ffffff',.9),1);else{const c=['#d9822e','#c0452a','#e6b13a','#a8642a'][k%4];box(TR(x,y,z,t*2+k,t*1.5+k,t*1.1),.018,.002,.013,col(c,.95),.3)}}G=g}
 function cRandS(k){const x=Math.sin(k*12.9898)*43758.5453;return x-Math.floor(x)}
 
 // ===== 3D-Renderer (WebGL, eigener Mini-Motor) =====
