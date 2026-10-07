@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026100714">
+<meta name="everstead-build" content="2026100715">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2279,6 +2279,7 @@ float unpack(vec4 v){return dot(v,vec4(1.,1./255.,1./65025.,1./16581375.));}
 float shade(){if(shOn<.5)return 1.;vec3 q=vl.xyz/vl.w*.5+.5;if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z>1.)return 1.;float s=0.;float a=hsh(gl_FragCoord.xy)*6.283;vec2 r1=vec2(cos(a),sin(a))*(1.9/2048.),r2=vec2(-r1.y,r1.x);
  s+=(q.z-.0022>unpack(texture2D(smap,q.xy+r1)))?0.:1.;s+=(q.z-.0022>unpack(texture2D(smap,q.xy-r1)))?0.:1.;s+=(q.z-.0022>unpack(texture2D(smap,q.xy+r2*.6)))?0.:1.;s+=(q.z-.0022>unpack(texture2D(smap,q.xy-r2*.6)))?0.:1.;return s*.25;}
 vec3 vor(vec2 p){vec2 i=floor(p),f=fract(p);float d1=8.,d2=8.,id=0.;for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(float(x),float(y));vec2 o=vec2(hsh(i+g),hsh(i+g+17.3));vec2 r=g+o*.8+.1-f;float dd=dot(r,r);if(dd<d1){d2=d1;d1=dd;id=hsh(i+g+3.7);}else if(dd<d2)d2=dd;}return vec3(sqrt(d1),sqrt(d2),id);}
+vec2 bmp(sampler2D s,vec2 uv,vec3 m){float e=1./512.;float h0=dot(texture2D(s,uv).rgb,m),hx=dot(texture2D(s,uv+vec2(e,0.)).rgb,m),hy=dot(texture2D(s,uv+vec2(0.,e)).rgb,m);return vec2(hx-h0,hy-h0);}
 vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
 void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=d>0.?shade():1.;vec3 V=normalize(eye-vw);float dist=length(vw-eye);
  vec3 base=vc.rgb;float ao=1.;float spk=.07;if(ve<-1.5&&txOn>.5){float rk=texture2D(dt1,vec2(vw.x+vw.z,vw.y)*.22).b;base*=1.+(rk-.5)*1.1;}
@@ -2288,29 +2289,29 @@ void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=
  if(det>.5&&ve>-.5&&ve<.5&&vc.a>.99){float fd=clamp(1.-dist/16.,0.,1.),fm=clamp(1.-dist/34.,0.,1.);float n1=vno(vw.xz*5.+vw.y*2.3);
   float mxc=max(base.r,max(base.g,base.b)),mnc=min(base.r,min(base.g,base.b)),lum=dot(base,vec3(.3,.59,.11)),sat=(mxc-mnc)/max(mxc,.001),ay=abs(N.y);
   float veg=smoothstep(.03,.1,base.g-max(base.r,base.b));vec2 fu=vec2(abs(N.x)>abs(N.z)?vw.z:vw.x,vw.y);vec3 tex=base;
-  if(txOn>.5){float fm2=clamp(1.-dist/60.,0.,1.);
+  if(txOn>.5){float fm2=clamp(1.-dist/60.,0.,1.);vec2 bg=vec2(0.);vec3 bT=vec3(1.,0.,0.),bB=vec3(0.,0.,1.);float bk=0.;
    if(ay>.9){
-    if(veg>.5){float g=texture2D(dt0,vw.xz*.62).r,g2=texture2D(dt0,vw.xz*.13+.37).r,g1=vno(vw.xz*.45),gp=vno(vw.xz*2.1+3.);
+    if(veg>.5){bg=bmp(dt0,vw.xz*.62,vec3(1.,0.,0.));bk=3.;float g=texture2D(dt0,vw.xz*.62).r,g2=texture2D(dt0,vw.xz*.13+.37).r,g1=vno(vw.xz*.45),gp=vno(vw.xz*2.1+3.);
      tex=base*vec3(.9,.93,.8)*(.8+.32*g1)*(1.+(g-.5)*1.25)*(1.+(g2-.5)*.6);tex=mix(tex,tex*vec3(1.12,1.05,.72),smoothstep(.55,.85,gp)*.4);spk=.03;}
-    else if(sat<.14&&lum>.28&&lum<.78){float c=texture2D(dt0,vw.xz*1.25).b,c2=texture2D(dt0,vw.xz*.31+.5).b;tex=base*vec3(.94,.96,1.)*(1.+(c-.5)*1.7)*(1.+(c2-.5)*.35);
+    else if(sat<.14&&lum>.28&&lum<.78){bg=bmp(dt0,vw.xz*1.25,vec3(0.,0.,1.));bk=11.;float c=texture2D(dt0,vw.xz*1.25).b,c2=texture2D(dt0,vw.xz*.31+.5).b;tex=base*vec3(.94,.96,1.)*(1.+(c-.5)*1.7)*(1.+(c2-.5)*.35);
      tex=mix(tex,vec3(.2,.26,.11)*(.8+.4*vno(vw.xz*3.)),smoothstep(.3,.12,c)*.55);spk=.12*smoothstep(.45,.7,c);}
-    else if(lum>.66&&sat<.4){float d=texture2D(dt1,vw.xz*.7).g;tex=base*(.9+.14*n1)*(1.+(d-.5)*1.1);spk=.02;}
-    else if(sat>.14&&lum>.28&&base.r>base.b){float d=texture2D(dt0,vw.xz*.8).g,d2=texture2D(dt0,vw.xz*.21+.2).g;tex=base*(.86+.22*vno(vw.xz*2.6))*(1.+(d-.5)*1.5)*(1.+(d2-.5)*.4);spk=.03;}
+    else if(lum>.66&&sat<.4){bg=bmp(dt1,vw.xz*.7,vec3(0.,1.,0.));bk=3.;float d=texture2D(dt1,vw.xz*.7).g;tex=base*(.9+.14*n1)*(1.+(d-.5)*1.1);spk=.02;}
+    else if(sat>.14&&lum>.28&&base.r>base.b){bg=bmp(dt0,vw.xz*.8,vec3(0.,1.,0.));bk=7.;float d=texture2D(dt0,vw.xz*.8).g,d2=texture2D(dt0,vw.xz*.21+.2).g;tex=base*(.86+.22*vno(vw.xz*2.6))*(1.+(d-.5)*1.5)*(1.+(d2-.5)*.4);spk=.03;}
     else tex=base*(.93+.1*n1);}
-   else if(ay>.28){vec2 tg=normalize(vec2(-N.z,N.x)+vec2(1e-5));float u=dot(vw.xz,tg),sv=vw.y/max(sqrt(1.-ay*ay),.3);
+   else if(ay>.28){vec2 tg=normalize(vec2(-N.z,N.x)+vec2(1e-5));float u=dot(vw.xz,tg),sv=vw.y/max(sqrt(1.-ay*ay),.3);bT=vec3(tg.x,0.,tg.y);bB=-normalize(vec3(0.,1.,0.)-N*N.y);
     if(veg>.5)tex=base*(.88+.2*n1);
-    else if(base.r>base.b*1.45&&base.g>base.r*.68&&lum>.36){float t=texture2D(dt3,vec2(u*1.9,-sv*1.7)).b;tex=base*(1.+(t-.5)*1.5)*(.88+.2*vno(vec2(u*3.,sv*2.)));
+    else if(base.r>base.b*1.45&&base.g>base.r*.68&&lum>.36){bg=bmp(dt3,vec2(u*1.9,-sv*1.7),vec3(0.,0.,1.));bk=8.;float t=texture2D(dt3,vec2(u*1.9,-sv*1.7)).b;tex=base*(1.+(t-.5)*1.5)*(.88+.2*vno(vec2(u*3.,sv*2.)));
      tex=mix(tex,tex*vec3(.78,.84,.72),smoothstep(.6,.92,vno(vec2(u*2.5,vw.y*3.)))*.45);spk=.02;}
-    else{float r=texture2D(dt3,vec2(u*2.4,-sv*2.6)).r;tex=mix(vec3(dot(base,vec3(.3,.59,.11))),base,.8)*vec3(1.,.96,.94)*(1.+(r-.5)*1.55)*(.92+.14*vno(vec2(u,sv)*3.));
+    else{bg=bmp(dt3,vec2(u*2.4,-sv*2.6),vec3(1.,0.,0.));bk=11.;float r=texture2D(dt3,vec2(u*2.4,-sv*2.6)).r;tex=mix(vec3(dot(base,vec3(.3,.59,.11))),base,.8)*vec3(1.,.96,.94)*(1.+(r-.5)*1.55)*(.92+.14*vno(vec2(u,sv)*3.));
      tex=mix(tex,tex*vec3(.78,.9,.66),smoothstep(.68,.95,vno(vec2(u,vw.y)*4.3))*.4);spk=.08;}}
-   else{
-    if(lum>.58&&sat<.36){float pl=texture2D(dt3,fu*1.5).g,p3=vno(fu*vec2(9.,2.)+9.);tex=base*(1.+(pl-.5)*1.15)*(.95+.08*vno(fu*3.6));tex=mix(tex,tex*vec3(.86,.82,.76),smoothstep(.62,.9,p3)*.35);spk=.03;}
-    else if(lum<.44&&base.r>base.b*1.2&&sat>.22){float w=texture2D(dt2,vec2(fu.x*3.2,fu.y*.8)).b;tex=base*(1.+(w-.5)*1.5);spk=.05;}
-    else if(base.r>base.g*1.3&&lum<.52&&sat>.38){float b=texture2D(dt2,fu*3.6).r;tex=base*(1.+(b-.5)*1.6);spk=.04;}
-    else if(sat<.17&&lum>.26&&lum<.8){float st=texture2D(dt1,fu*2.4).r;tex=base*(1.+(st-.5)*1.5);tex=mix(tex,tex*vec3(.8,.9,.7),smoothstep(.7,.95,vno(fu*3.))*.3);spk=.06;}
+   else{bT=abs(N.x)>abs(N.z)?vec3(0.,0.,1.):vec3(1.,0.,0.);bB=vec3(0.,1.,0.);
+    if(lum>.58&&sat<.36){bg=bmp(dt3,fu*1.5,vec3(0.,1.,0.));bk=4.;float pl=texture2D(dt3,fu*1.5).g,p3=vno(fu*vec2(9.,2.)+9.);tex=base*(1.+(pl-.5)*1.15)*(.95+.08*vno(fu*3.6));tex=mix(tex,tex*vec3(.86,.82,.76),smoothstep(.62,.9,p3)*.35);spk=.03;}
+    else if(lum<.44&&base.r>base.b*1.2&&sat>.22){bg=bmp(dt2,vec2(fu.x*3.2,fu.y*.8),vec3(0.,0.,1.))*vec2(1.,.25);bk=6.;float w=texture2D(dt2,vec2(fu.x*3.2,fu.y*.8)).b;tex=base*(1.+(w-.5)*1.5);spk=.05;}
+    else if(base.r>base.g*1.3&&lum<.52&&sat>.38){bg=bmp(dt2,fu*3.6,vec3(1.,0.,0.));bk=10.;float b=texture2D(dt2,fu*3.6).r;tex=base*(1.+(b-.5)*1.6);spk=.04;}
+    else if(sat<.17&&lum>.26&&lum<.8){bg=bmp(dt1,fu*2.4,vec3(1.,0.,0.));bk=11.;float st=texture2D(dt1,fu*2.4).r;tex=base*(1.+(st-.5)*1.5);tex=mix(tex,tex*vec3(.8,.9,.7),smoothstep(.7,.95,vno(fu*3.))*.3);spk=.06;}
     else tex=base*(.92+.1*n1);
     ao=mix(.62,1.,smoothstep(0.,.12,vw.y));}
-   tex=mix(base*(.95+.1*n1),tex,fm2);}
+   tex=mix(base*(.95+.1*n1),tex,fm2);N=normalize(N-(bg.x*bT+bg.y*bB)*bk*fm2);nd=dot(N,ld);d=max(nd,0.);}
   else if(ay>.9){
    if(veg>.5){float g1=vno(vw.xz*.45),g2=vno(vw.xz*2.1+3.),g3=vno(vw.xz*11.+7.),bl=vno(vw.xz*vec2(36.,8.)+g3*3.);
     tex=base*vec3(.9,.93,.8)*(.78+.34*g1);tex=mix(tex,tex*vec3(1.12,1.05,.72),smoothstep(.55,.85,g2)*.4);tex*=mix(1.,.8+.32*g3,fm);tex*=mix(1.,.88+.2*bl,fd*fd);spk=.03;}
@@ -2367,7 +2368,7 @@ function initGL(){if(!gl)return false;const mk=(t,s)=>{const x=gl.createShader(t
  gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);return true}
 const GL_OK=(()=>{try{return initGL()}catch(e){console.error(e);return false}})();
 // ===== Foto-Texturen (Detailkarten) =====
-const TEXPACK=[['grass','dirt','cobble'],['stone','sand','rock'],['brick','planks','timber'],['roof','plaster','thatch']];let DTX=[],DTX_OK=false;
+let FWNEW=true;const TEXPACK=[['grass','dirt','cobble'],['stone','sand','rock'],['brick','planks','timber'],['roof','plaster','thatch']];let DTX=[],DTX_OK=false;
 function bindDetail(){if(!DTX_OK)return;for(let i=0;i<4;i++){gl.activeTexture(gl.TEXTURE3+i);gl.bindTexture(gl.TEXTURE_2D,DTX[i])}gl.activeTexture(gl.TEXTURE0);gl.uniform1f(L.txOn,typeof ui!=='undefined'&&ui.gfx==='sparsam'?0:1)}
 (function loadDetail(){if(!GL_OK||typeof TEXB64==='undefined')return;const imgs={},ks=Object.keys(TEXB64);let left=ks.length;
  const done=()=>{try{const N=512,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d',{willReadFrequently:true});const an=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
@@ -2483,9 +2484,49 @@ function terDrawS(){for(let k=0;k<CHB.length;k++)if(CHB[k]&&Math.hypot((k%chN())
 // ---- Gebäude ----
 const WIN=col('#3b3024'),TIM=col('#2e1a0e'),DOOR=col('#45230e');
 const FOOT={fachwerk:[.66,.56],lang:[.84,.56],rund:[.5,.5],buerger:[.66,.58]};
+
+// ===== Fachwerkhaus nach Vorschau-Modell (Gefache, Streben, Vorkragung, Dachüberstand) =====
+function fwHouse(d,cx,cz,s,bld){const u=.1*s,fl=d.fl||1,w=6.6*u,dd=5.6*u,pl=.6*u,fh=3*u,jt=.3*u,wc=col(d.wc),rc=col(d.rc||'#7d2a18'),id=bld?bld.id:0;
+ const P=(x,y,z)=>ap(TR(x,y,z),0,0,0),STN=col('#a49a88'),LW=col('#b98a5a'),gableFront=bld?id%3===1:false;
+ box(TR(cx,0,cz),w+.3*u,pl,dd+.3*u,STN);
+ const face=(fx,fz,alongX,sg,width,y0,h,win,door,boxes)=>{const bays=Math.max(3,Math.round(width/(1.45*u))),bay=width/bays,db=bays>>1,ry=alongX?0:Math.PI/2;
+  const at=(a,y,o)=>alongX?[fx+a,y,fz+sg*(o||0)]:[fx+sg*(o||0),y,fz+a];const B=(a,y,o,bw,bh,bd,c,rz)=>{const q=at(a,y,o);box(TR(q[0],q[1],q[2],ry,0,rz||0),bw,bh,bd,c)};
+  const o=.05*u;B(0,y0,o,width+.1*u,.22*u,.16*u,TIM);B(0,y0+h-.24*u,o,width+.1*u,.22*u,.16*u,TIM);
+  for(let i=0;i<=bays;i++)B(-width/2+i*bay,y0,o,.2*u,h,.16*u,TIM);
+  for(let i=0;i<bays;i++){if(door&&i===db)continue;B(-width/2+(i+.5)*bay,y0+.85*u,o,bay-.1*u,.16*u,.14*u,TIM)}
+  const ang=Math.atan2(bay,h-.3*u),L=Math.hypot(bay,h-.3*u),rl=alongX?-ang:ang;
+  B(-width/2+.05*u,y0+.15*u,o,.17*u,L,.13*u,TIM,rl);B(width/2-.05*u,y0+.15*u,o,.17*u,L,.13*u,TIM,-rl);
+  if(win)for(let i=1;i<bays-1;i++){if(door&&i===db)continue;const a=-width/2+(i+.5)*bay,ww=Math.min(.9*u,bay-.45*u);B(a,y0+1.0*u,0,ww,1.1*u,.025,WIN,0);
+   if(boxes){const q=at(a,y0+.72*u,.2*u),pal=[['#e0547a','#f4f1ea'],['#d8402a','#f2d33d'],['#a99ae0','#f4f1ea'],['#f08a3a','#f2d33d']][(id+i)%4];box(TR(q[0],q[1],q[2],ry),ww+.2*u,.24*u,.26*u,col('#6b4428'));
+    for(let k=0;k<7;k++){const t=-ww/2+k/6*ww,qq=at(a+t,y0+.98*u,.2*u+(k%2?.03:-.03)*u);ell3(TR(qq[0],qq[1],qq[2]),.11*u,.09*u,.1*u,3,5,col(k%3?'#4a7a32':'#3d6a2a'));ell3(TR(qq[0],qq[1]+.09*u,qq[2]),.06*u,.045*u,.06*u,2,4,col(pal[k%2]))}}}
+  if(door){const a=-width/2+(db+.5)*bay;B(a,y0,0,Math.min(1.15*u,bay-.25*u),2.15*u,.03,DOOR,0);B(a,y0+2.15*u,o,bay-.1*u,.18*u,.18*u,TIM)}};
+ for(let f=0;f<fl;f++){const y0=pl+f*fh,ext=f*jt,fw=w+2*ext,fd=dd+2*ext;box(TR(cx,y0,cz),fw,fh,fd,wc);
+  const bx=f>=1||id%2===0;face(cx,cz+fd/2,true,1,fw,y0,fh,true,f===0,bx);face(cx,cz-fd/2,true,-1,fw,y0,fh,true,false,false);
+  face(cx+fw/2,cz,false,1,fd,y0,fh,f>0,false,false);face(cx-fw/2,cz,false,-1,fd,y0,fh,f>0,false,false);
+  box(TR(cx,y0+fh-.05*u,cz),fw+.12*u,.16*u,fd+.12*u,TIM)}
+ const top=pl+fl*fh,ext=jt*(fl-1),hs=(gableFront?w:dd)/2+ext,hl=(gableFront?dd:w)/2+ext,pitch=.9,rise=hs*Math.tan(pitch),eo=.6*u,go=.4*u,th=.22*u;
+ // Dachplatten mit Überstand
+ const sl=Math.hypot(hs+eo,rise+eo*Math.tan(pitch)),ry=gableFront?Math.PI/2:0;
+ for(const sd of[-1,1]){const bm=sd*(hs+eo)/2,ym=top+(rise-eo*Math.tan(pitch))/2;const mx=gableFront?cx+bm:cx,mz=gableFront?cz:cz+bm;
+  const nx=gableFront?sd*Math.sin(pitch):0,nz=gableFront?0:sd*Math.sin(pitch),ny=Math.cos(pitch);
+  box(TR(mx,ym,mz,ry,sd*pitch),hl*2+go*2,th,sl,rc)}
+ {const rc2=col(shade(d.rc||'#7d2a18',-.25));box(TR(cx,top+rise-.02*u,cz,ry),hl*2+go*2,.2*u,.42*u,rc2)}
+ // Giebel
+ for(const e of[-1,1]){const g=(a,b,y)=>gableFront?P(cx+a,y,cz+e*hl+b):P(cx+e*hl+b,y,cz+a);const ctr=gableFront?P(cx,top,cz):P(cx,top,cz);
+  tri(g(-hs,0,top),g(hs,0,top),g(0,0,top+rise),wc,0,ctr);
+  const kp=gableFront?[cx,top,cz+e*(hl+.05*u)]:[cx+e*(hl+.05*u),top,cz];box(TR(kp[0],kp[1],kp[2],gableFront?0:Math.PI/2),.2*u,rise,.14*u,TIM);
+  box(TR(kp[0],top+rise*.45,kp[2],gableFront?0:Math.PI/2),hs*1.05,.18*u,.14*u,TIM);
+  box(TR(kp[0],top+rise*.12,kp[2],gableFront?0:Math.PI/2),.6*u,.7*u,.025,WIN,1)}
+ // Schornstein
+ {const ca=gableFront?[cx+hs*.35,cz+hl*.4]:[cx+hl*.4,cz+hs*.35];box(TR(ca[0],top-.5*u,ca[1]),.75*u,hs*1.2+1.4*u,.75*u,col('#8a4a38'));box(TR(ca[0],top-.5*u+hs*1.2+1.4*u,ca[1]),.95*u,.18*u,.95*u,STN);
+  if(bld&&bld.id>0&&(G===BT_EXT||G===BT_OPEN)){const q=rotXZ(ca[0],ca[1]);SMOKE.push({x:q[0],y:BY+top+hs*1.2+1.1*u,z:q[1],b:bld})}}
+ // Laterne und Stufe
+ box(TR(cx+1.0*u,pl+2.2*u-.28*u,cz+dd/2+.25*u),.18*u,.28*u,.18*u,col('#ffd890'),1);box(TR(cx+1.0*u,pl+2.2*u,cz+dd/2+.25*u),.26*u,.04*u,.26*u,col('#2b2b2e'));
+ box(TR(cx,0,cz+dd/2+.55*u),1.6*u,.25*u,.7*u,STN);
+ return top+rise+.2*u}
 function houseMesh(d,cx,cz,s,bld){
  const f=d.f,fl=d.fl||1,[fw,fd]=FOOT[f]||FOOT.fachwerk,w=fw*s,dd=fd*s,fh=.3*s,H=fl*fh,wc=col(d.wc),rc=col(d.rc||'#7a3b2a');let deco=d.deco||[];if(bld&&bld.id%3!==1&&!deco.includes('blumen')&&f!=='rund')deco=[...deco,'blumen'];if(bld&&bld.id%4===0&&!deco.includes('topf'))deco=[...deco,'topf'];let top=H;
- const st0=styleMesh(d,cx,cz,s,f,w,dd,fh,H,fl,wc,rc);if(st0!=null)top=st0;
+ const st0=f==='fachwerk'&&FWNEW?fwHouse(d,cx,cz,s,bld):styleMesh(d,cx,cz,s,f,w,dd,fh,H,fl,wc,rc);if(st0!=null){top=st0;if(f==='fachwerk'&&FWNEW)deco=deco.filter(k=>k!=='blumen')}
  else if(f==='rund'){cyl(TR(cx,0,cz),w/2,w/2,H,10,wc);cone(TR(cx,H,cz),w/2+.07*s,.42*s,10,rc);top=H+.42*s;
   box(TR(cx,0,cz+w/2-.01),.12*s,.18*s,.03,DOOR);box(TR(cx-w*.32,H*.45,cz+w*.36,-.6),.08*s,.08*s,.03,WIN,1);box(TR(cx+w*.32,H*.45,cz+w*.36,.6),.08*s,.08*s,.03,WIN,1)}
  else{box(TR(cx,0,cz),w,H,dd,wc);
@@ -3264,7 +3305,7 @@ if(!HMESH.bauernhof)HMESH.bauernhof=function(b,cx,cz){const t=houseMesh(b.d,cx-.
 // ===== Wohnhäuser wie auf den Bildern =====
 const _hmDress=houseMesh;
 houseMesh=function(d,cx,cz,s,bld){const shut=bld&&['fachwerk','buerger','lang'].includes(d.f);const prev=SHUTTERS;if(shut)SHUTTERS=['#2f5f3a','#2f4f7a','#6a2a2a','#3d6a5a'][bld.id%4];let t;try{t=_hmDress(d,cx,cz,s,bld)}finally{SHUTTERS=prev}
- if(!shut)return t;const fp=FOOT[d.f]||FOOT.fachwerk,w=fp[0]*s,dd=fp[1]*s,stone=col('#a49a88');box(TR(cx,0,cz),w+.03*s,.11*s,dd+.03*s,stone);for(let k=0;k<6;k++)box(TR(cx-w/2+(k+.5)*w/6,.11*s,cz+dd/2+.016*s),w/6-.01,.004,.008,col('#8a8070'));
+ if(!shut||d.f==='fachwerk'&&FWNEW)return t;const fp=FOOT[d.f]||FOOT.fachwerk,w=fp[0]*s,dd=fp[1]*s,stone=col('#a49a88');box(TR(cx,0,cz),w+.03*s,.11*s,dd+.03*s,stone);for(let k=0;k<6;k++)box(TR(cx-w/2+(k+.5)*w/6,.11*s,cz+dd/2+.016*s),w/6-.01,.004,.008,col('#8a8070'));
  const H=(d.fl||1)*.3*s;box(TR(cx+w*.28,H*.8,cz-dd*.12),.08*s,.42*s,.08*s,col('#958a7a'));box(TR(cx+w*.28,H*.8+.42*s,cz-dd*.12),.1*s,.025*s,.1*s,col('#6e665a'));return t};
 let SHUTTERS=null;
 const _boxShut=box;box=function(T,w,h,d,c,e){_boxShut(T,w,h,d,c,e);if(c!==WIN||!SHUTTERS||h<.03)return;const fz=d<w,ww=fz?w:d,th=Math.min(w,d)+.01,sc=col(SHUTTERS);
