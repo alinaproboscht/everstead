@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110201">
+<meta name="everstead-build" content="2026110203">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2264,15 +2264,15 @@ const hiddenIn=s=>s.inside&&s.act!=='walk'&&(()=>{const b=bById.get(s.inside);re
 // ---- Shader ----
 const VS=`attribute vec3 p;attribute vec3 n;attribute vec4 c;attribute float e;
 uniform mat4 vp;uniform mat4 mdl;uniform mat3 nm;uniform mat4 lvp;
-varying vec4 vc;varying vec3 vn;varying vec3 vw;varying float ve;varying vec4 vl;
-void main(){vec4 wp=mdl*vec4(p,1.);gl_Position=vp*wp;vn=nm*n;vw=wp.xyz;vc=c;ve=e;vl=lvp*wp;}`;
+varying vec4 vc;varying vec3 vn;varying vec3 vw;varying float ve;varying vec4 vl;varying vec3 vo;
+void main(){vec4 wp=mdl*vec4(p,1.);gl_Position=vp*wp;vn=nm*n;vw=wp.xyz;vc=c;ve=e;vl=lvp*wp;vo=p;}`;
 const FS=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
 precision mediump float;
 #endif
-varying vec4 vc;varying vec3 vn;varying vec3 vw;varying float ve;varying vec4 vl;
-uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform float shOn;uniform float tm;uniform float day;uniform float det;uniform vec4 sw;uniform sampler2D smap;uniform sampler2D dt0;uniform sampler2D dt1;uniform sampler2D dt2;uniform sampler2D dt3;uniform float txOn;uniform float txMat;uniform sampler2D lfT;uniform float fig;
+varying vec4 vc;varying vec3 vn;varying vec3 vw;varying float ve;varying vec4 vl;varying vec3 vo;
+uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform float shOn;uniform float tm;uniform float day;uniform float det;uniform vec4 sw;uniform sampler2D smap;uniform sampler2D dt0;uniform sampler2D dt1;uniform sampler2D dt2;uniform sampler2D dt3;uniform float txOn;uniform float txMat;uniform sampler2D lfT;uniform float fig;uniform vec3 hcol;
 float hsh(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vno(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hsh(i),hsh(i+vec2(1.,0.)),f.x),mix(hsh(i+vec2(0.,1.)),hsh(i+vec2(1.,1.)),f.x),f.y);}
 float unpack(vec4 v){return dot(v,vec4(1.,1./255.,1./65025.,1./16581375.));}
@@ -2288,7 +2288,25 @@ void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=
  else if(vc.a>.9985&&vc.a<.9995){if(vw.y<.16)base=vec3(.36,.25,.17);else if(vw.y<1.08){base=vec3(.56,.41,.27)*(.92+.1*vno(vec2(vw.x+vw.z,vw.y*4.)*3.));float pn=fract((vw.x+vw.z)*1.1);base*=mix(.82,1.,smoothstep(0.,.04,pn)*smoothstep(1.,.96,pn));if(vw.y>1.)base=vec3(.46,.33,.21);}
   else{base*=.92+.1*vno(vec2(vw.x+vw.z,vw.y)*2.)+.04*vno(vec2(vw.x+vw.z,vw.y)*13.);float dt2=smoothstep(.82,.97,sin(vw.y*16.)*sin((vw.x+vw.z)*16.));base=mix(base,base*1.06+vec3(.03,.02,.0),dt2*.4);}}
  float skn=0.;if(fig>.5){float mxc=max(base.r,max(base.g,base.b)),mnc=min(base.r,min(base.g,base.b));float st=(mxc-mnc)/max(mxc,.001);skn=step(base.b,base.g)*step(base.g,base.r)*smoothstep(.18,.26,st)*(1.-smoothstep(.55,.62,st))*smoothstep(.3,.42,mxc);
-  float wv=vno(vec2(vw.x+vw.z,vw.y)*38.);base*=mix(1.+(wv-.5)*.1,1.,skn);spk=mix(.025,.06,skn);}
+  skn*=step(.995,vc.a);
+  if(vc.a>.986&&vc.a<.988){skn=1.;float stb=step(vc.a,.987);vec3 h=vo;float ax=abs(h.x),fz=smoothstep(.15,.45,h.z),sm=(vc.a-.9871+stb*.001)/.0004-1.;
+   float bc=.295+.04*(1.-pow((ax-.29)/.19,2.)),bw=.022-.012*smoothstep(.22,.46,ax),bm=smoothstep(.012,0.,abs(h.y-bc)-bw)*smoothstep(.07,.12,ax)*smoothstep(.5,.43,ax)*fz;
+   float bh=vno(vec2(h.x*90.,h.y*30.));base=mix(base,hcol,bm*(.75+.25*bh));
+   float ly=h.y+.525,lw=.16-.03*smoothstep(0.,.05,abs(ly)),lm=smoothstep(.03,0.,max(ax-lw,0.)+max(abs(ly+.003)-.045+.015*(ax/.16)*(ax/.16),0.))*fz;
+   float ml=-.525+sm*.075*(ax/.16)*(ax/.16);float mline=smoothstep(.009,.002,abs(h.y-ml))*smoothstep(.18,.13,ax)*fz;
+   vec3 lipc=base*vec3(1.02,.7,.66);base=mix(base,lipc,lm*.85);base=mix(base,base*vec3(.5,.32,.3),mline*.8);
+   base=mix(base,base*vec3(1.04,.82,.78),.32*exp(-pow((ax-.44)/.16,2.))*exp(-pow((h.y+.17)/.15,2.))*fz);
+   base*=1.-.13*exp(-pow((ax-.3)/.13,2.))*exp(-pow((h.y-.1)/.09,2.))*fz;
+   base=mix(base,base*vec3(1.03,.86,.82),.25*exp(-pow(ax/.06,2.))*exp(-pow((h.y+.29)/.06,2.))*fz);
+   float nst=smoothstep(.024,.008,length(vec2(ax-.042,(h.y+.338)*1.5)))*fz;base*=1.-.55*nst;
+   base*=1.-.12*exp(-pow(ax/.12,2.))*exp(-pow((h.y+.6)/.03,2.))*fz;
+   if(stb>.5){float rg=smoothstep(-.12,-.3,h.y)*smoothstep(-.2,.1,h.z)*(1.-lm)*(1.-smoothstep(.04,.0,abs(h.y+.44)-.0)*smoothstep(.2,.1,ax)*0.)*smoothstep(.62,.5,ax+max(0.,-h.z));float sp=vno(h.xy*vec2(160.,160.)+h.z*90.);base=mix(base,mix(base*.82,hcol*.9,.5),rg*(.28+.3*sp));}}float wv=vno(vec2(vw.x+vw.z,vw.y)*38.);base*=mix(1.+(wv-.5)*.1,1.,skn);
+  float fa=vc.a,fdd=clamp(1.-dist/7.,0.,1.);vec2 fu2=vec2(vo.x+vo.z*.7,vo.y);
+  if(fa>.99&&fa<.991){vec2 q=fu2*vec2(46.,32.);vec2 ci=floor(q);vec2 cf=fract(q)-.5;cf.x+=.5*step(.5,fract(ci.y*.5))*sign(cf.x)*0.;float sh2=abs(cf.x)-.28*cos(cf.y*3.1416);float ln=smoothstep(.07,.0,abs(sh2));float bl=smoothstep(.12,.0,length(cf*vec2(1.4,1.))-.12);
+   vec3 gd=mix(base*1.65,vec3(.78,.62,.3),.35);base=mix(base*(.92+.1*vno(fu2*60.)),mix(base*1.35,gd,.35),(ln*.42+bl*.32)*fdd);spk=.09;}
+  else if(fa>.991&&fa<.992){float w1=vno(fu2*vec2(140.,40.)),w2=vno(fu2*9.+3.);base*=(.9+.16*w2)*(1.+(w1-.5)*.22*fdd);spk=.02;}
+  else if(fa>.992&&fa<.993){float f1=vno(fu2*vec2(90.,55.)+vo.z*20.),f2=vno(fu2*vec2(25.,14.));base*=(.72+.5*f1*fdd+.2*f2);spk=0.;N=normalize(N+(f1-.5)*.5*normalize(vec3(N.z,0.,-N.x)+1e-4));}
+  else if(fa>.989&&fa<.99){vec2 q=fu2*vec2(46.,34.);float wb=sin(q.x*3.1416+step(.5,fract(q.y*.5))*3.1416)*sin(q.y*3.1416);base*=.78+.35*smoothstep(-.3,.6,wb)*fdd+.1*(1.-fdd);spk=.04;}spk=mix(.025,.06,skn);}
  if(fig<.5&&det>.5&&ve>-.5&&ve<.5&&vc.a>.99){float fd=clamp(1.-dist/16.,0.,1.),fm=clamp(1.-dist/34.,0.,1.);float n1=vno(vw.xz*5.+vw.y*2.3);
   float mxc=max(base.r,max(base.g,base.b)),mnc=min(base.r,min(base.g,base.b)),lum=dot(base,vec3(.3,.59,.11)),sat=(mxc-mnc)/max(mxc,.001),ay=abs(N.y);
   float veg=smoothstep(.03,.1,base.g-max(base.r,base.b));vec2 fu=vec2(abs(N.x)>abs(N.z)?vw.z:vw.x,vw.y);vec3 tex=base;
@@ -2356,7 +2374,7 @@ void main(){vec3 N=normalize(vn);float nd=dot(N,ld);float d=max(nd,0.);float sh=
   vec3 hw=normalize(ld+V);col+=lc*pow(max(dot(wn,hw),0.),220.)*1.6*sh*day;}
  if(ve>1.5)col=vc.rgb*1.2;else{col=mix(col,vec3(1.,.82,.5),max(ve,0.)*night);col=aces(col*1.08);}
  float sdv=max(dot(-V,ld),0.);vec3 fcol=fogc+lc*(pow(sdv,8.)*.25+pow(sdv,64.)*.2)*day;
- float fog=clamp((dist-30.)/80.,0.,ve<-1.5?.58:.94);gl_FragColor=vec4(mix(col,ve<-1.5?fcol*vec3(.86,.93,1.04):fcol,fog),vc.a);}`;
+ float fog=clamp((dist-30.)/80.,0.,ve<-1.5?.58:.94);gl_FragColor=vec4(mix(col,ve<-1.5?fcol*vec3(.86,.93,1.04):fcol,fog),fig>.5?1.:vc.a);}`;
 // ---- Himmel als Shader: Atmosphäre, Sonne, Wolken, Sterne (folgt der Blickrichtung) ----
 const SKYFS=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
@@ -2402,7 +2420,7 @@ let SP=null,SL={},SFB=null,STX=null,SSZ=2048,SH_OK=false;
 let P=null,L={};
 function initGL(){if(!gl)return false;const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
  P=gl.createProgram();gl.attachShader(P,mk(gl.VERTEX_SHADER,VS));gl.attachShader(P,mk(gl.FRAGMENT_SHADER,FS));['p','n','c','e'].forEach((a,i)=>gl.bindAttribLocation(P,i,a));gl.linkProgram(P);gl.useProgram(P);
- for(const a of['p','n','c','e'])L[a]=gl.getAttribLocation(P,a);for(const u of['vp','mdl','nm','ld','lc','sky','gnd','night','eye','fogc','lvp','smap','shOn','tm','day','det','sw','dt0','dt1','dt2','dt3','txOn','txMat','lfT','fig'])L[u]=gl.getUniformLocation(P,u);gl.uniform1f(L.txMat,1);gl.uniform1i(L.lfT,7);for(let i=0;i<4;i++)gl.uniform1i(L['dt'+i],3+i);gl.uniform1f(L.txOn,0);
+ for(const a of['p','n','c','e'])L[a]=gl.getAttribLocation(P,a);for(const u of['vp','mdl','nm','ld','lc','sky','gnd','night','eye','fogc','lvp','smap','shOn','tm','day','det','sw','dt0','dt1','dt2','dt3','txOn','txMat','lfT','fig','hcol'])L[u]=gl.getUniformLocation(P,u);gl.uniform1f(L.txMat,1);gl.uniform1i(L.lfT,7);for(let i=0;i<4;i++)gl.uniform1i(L['dt'+i],3+i);gl.uniform1f(L.txOn,0);
  try{SP=gl.createProgram();gl.attachShader(SP,mk(gl.VERTEX_SHADER,SVS));gl.attachShader(SP,mk(gl.FRAGMENT_SHADER,SFS));gl.bindAttribLocation(SP,0,'p');gl.linkProgram(SP);for(const u of['lvp','mdl'])SL[u]=gl.getUniformLocation(SP,u);
   STX=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,STX);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,SSZ,SSZ,0,gl.RGBA,gl.UNSIGNED_BYTE,null);for(const[k,v]of[[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
   const rb=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,SSZ,SSZ);SFB=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,SFB);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,STX,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);
@@ -2435,7 +2453,7 @@ Batch.prototype.v=function(x,y,z,nx,ny,nz,c,e){if(VOVR){c=VOVR;e=.4}if(this.n+ST
 Batch.prototype.up=function(){gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.bufferData(gl.ARRAY_BUFFER,this.a.subarray(0,this.n),gl.DYNAMIC_DRAW);this.cnt=this.n/STR};
 Batch.prototype.draw=function(){if(!this.cnt)return;gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);const s=STR*4;
  gl.enableVertexAttribArray(L.p);gl.vertexAttribPointer(L.p,3,gl.FLOAT,false,s,0);gl.enableVertexAttribArray(L.n);gl.vertexAttribPointer(L.n,3,gl.FLOAT,false,s,12);
- gl.enableVertexAttribArray(L.c);gl.vertexAttribPointer(L.c,4,gl.FLOAT,false,s,24);gl.enableVertexAttribArray(L.e);gl.vertexAttribPointer(L.e,1,gl.FLOAT,false,s,40);gl.drawArrays(gl.TRIANGLES,0,this.cnt)};
+ gl.enableVertexAttribArray(L.c);gl.vertexAttribPointer(L.c,4,gl.FLOAT,false,s,24);gl.enableVertexAttribArray(L.e);gl.vertexAttribPointer(L.e,1,gl.FLOAT,false,s,40);if(this.hc){gl.uniform3fv(L.hcol,this.hc);gl.uniform1f(L.fig,1)}gl.drawArrays(gl.TRIANGLES,0,this.cnt);if(this.hc&&!FIG_ON)gl.uniform1f(L.fig,0)};let FIG_ON=false;
 Batch.prototype.drawS=function(){if(!this.cnt)return;gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,STR*4,0);gl.drawArrays(gl.TRIANGLES,0,this.cnt)};
 const BT_TER=new Batch(),BT_OPEN=new Batch(),BT_EXT=new Batch(),BT_INT=new Batch(),BT_SH=new Batch(),BT_DYN=new Batch(),BT_DT=new Batch();
 // ---- Farben & Geometrie ----
@@ -3242,7 +3260,7 @@ const rotN=(T,x,y,z)=>{const R=T.R;return[R[0]*x+R[3]*y+R[6]*z,R[1]*x+R[4]*y+R[7
 // Ellipsoid (auch Teilflächen) mit weichen Normalen
 let ELLQ=1;
 function ell3(T,rx,ry,rz,la,lo,c,o){if(typeof o==='number')o={e:o};o=o||{};if(ELLQ>1){la=Math.round(la*ELLQ);lo=Math.round(lo*ELLQ)}const th0=o.th0||0,th1=o.th1==null?Math.PI:o.th1,ph0=o.ph0||0,ph1=o.ph1==null?Math.PI*2:o.ph1,P=[];
- for(let i=0;i<=la;i++){const th=th0+(th1-th0)*i/la,row=[];for(let j=0;j<=lo;j++){const ph=ph0+(ph1-ph0)*j/lo,sx=Math.sin(th)*Math.sin(ph),sy=Math.cos(th),sz=Math.sin(th)*Math.cos(ph);
+ for(let i=0;i<=la;i++){const th=th0+(th1-th0)*(o.tw?o.tw(i/la):i/la),row=[];for(let j=0;j<=lo;j++){const ph=ph0+(ph1-ph0)*(o.pw?o.pw(j/lo):j/lo),sx=Math.sin(th)*Math.sin(ph),sy=Math.cos(th),sz=Math.sin(th)*Math.cos(ph);
   let x=sx*rx,y=sy*ry,z=sz*rz;if(o.def){const d=o.def(x,y,z,th,ph);x=d[0];y=d[1];z=d[2]}let nx=sx/rx,ny=sy/ry,nz=sz/rz;const l=Math.hypot(nx,ny,nz)||1;
   row.push({p:ap(T,x,y,z),n:rotN(T,nx/l,ny/l,nz/l),th,ph,x,y,z,c:o.colf?o.colf(x,y,z,th,ph):c})}P.push(row)}
  if(o.def){for(let i=0;i<=la;i++)for(let j=0;j<=lo;j++){const g=(ii,jj)=>{ii=Math.max(0,Math.min(la,ii));if(ph1-ph0>6.28){jj=((jj%lo)+lo)%lo}else jj=Math.max(0,Math.min(lo,jj));return P[ii][jj]};
@@ -3265,12 +3283,17 @@ function buildHead(s,bust){
  const L=s.look||genLook(s.g),a=s.dead?deadAge(s):ageOf(s),kid=a<13,adult=a>=16,mood=s.dead?55:(s.mood||60);
  const skinH=SKINS[L.skin],skin=col(skinH),skinD=col(shade(skinH,-.12)),hairH=s.dead?mix(HAIRS[L.hair],'#d8d4cc',clamp((a-48)/22,0,1)):hairOf(s),hair=col(hairH),hairD=col(shade(hairH,-.25));
  const fw=L.fw*(kid?.98:1),jaw=kid?.1:s.g==='f'?.2:.26,T0=TR(0,0,0);
- const style=kid?(s.g==='f'?(L.style==='dutt'?'zopf':L.style==='haube'?'lang':L.style):(L.style==='hut'?'kurz':L.style)):(L.style==='haube'&&s.id%2===0?'zopf':L.style);
+ const richH=!s.dead&&!kid&&s.g==='m'&&isRich(s)&&(typeof eraOf!=='function'||eraOf()===0);
+ const style=richH?'barett':kid?(s.g==='f'?(L.style==='dutt'?'zopf':L.style==='haube'?'lang':L.style):(L.style==='hut'?'kurz':L.style)):(L.style==='haube'&&s.id%2===0?'zopf':L.style);
  const Gs=t=>Math.exp(-t*t),exF=.3*fw;
+ const sst=(a,b,t)=>{t=Math.min(1,Math.max(0,(t-a)/(b-a)));return t*t*(3-2*t)},ns=[.9,1,1.1][L.nose||0]*(kid?.8:1),fem=s.g==='f';
  const headDef=(x,y,z)=>{if(y<0){const t=Math.min(1,-y/1.05);x*=1-jaw*Math.pow(t,1.6);if(z<0)z*=1-.1*t*t;if(z>0&&t>.75)z+=.06*(t-.75)/.25}
   if(z>0){const fr=Math.min(1,Math.max(0,z/.92-.1)/.5),ax=Math.abs(x),sg=x<0?-1:1;
-   z+=fr*(.05*Gs((y-.3)/.09)*Gs(x/.6)-.085*Gs((ax-exF)/.15)*Gs((y-.1)/.11)+.045*Gs(x/.09)*Gs((y-.1)/.13)+.05*Gs(x/.3)*Gs((y+.47)/.2)+.06*Gs(x/.22)*Gs((y+.88)/.13));
-   const cb=fr*Gs((ax-.47*fw)/.16)*Gs((y+.13)/.15);x+=sg*.035*cb;z+=.035*cb;x-=sg*.035*Gs((y-.32)/.2)*Gs((z-.35)/.25)}
+   const tN=sst(.14,-.29,y),nw=(.045+.035*tN)*ns*(fem?.92:1),nose=(.02+.16*Math.pow(tN,1.5))*ns*Gs(x/nw)*sst(-.4,-.31,y)*sst(.2,.1,y)+.045*ns*Gs(Math.hypot(x,(y+.295)*1.15)/(.062*ns))+.04*ns*Gs(Math.hypot(ax-.072*ns,y+.315)/(.045*ns));
+   z+=fr*(.03*Gs((y-.33)/.1)*Gs(x/.55)-.07*Gs((ax-exF)/.14)*Gs((y-.1)/.1)+.025*Gs(x/.1)*Gs((y-.13)/.1)+nose
+    +.04*Gs(x/.28)*Gs((y+.5)/.17)+(fem?.026:.02)*Gs(x/.15)*Gs((y+.485)/.032)+(fem?.032:.026)*Gs(x/.13)*Gs((y+.565)/.034)
+    +.055*Gs(x/.2)*Gs((y+.86)/.12)-.012*Gs(ax/.06)*Gs((y+.4)/.05));
+   const cb=fr*Gs((ax-.47*fw)/.16)*Gs((y+.13)/.15);x+=sg*.03*cb;z+=.03*cb;x-=sg*.035*Gs((y-.32)/.2)*Gs((z-.35)/.25)}
   return[x,y,z]};
  const surf=(x,y)=>{const q=1-(x/(.86*fw))**2-(y/1.05)**2;return headDef(x,y,.92*Math.sqrt(Math.max(0,q)))[2]};
  const blushC=(x,y,z)=>{if(z<.2)return skin;const t=Math.round(Math.min(1,.35*Gs((Math.abs(x)-.45)/.2)*Gs((y+.2)/.2)+.25*Gs(x/.1)*Gs((y+.3)/.1))*20)/20;return t>0?col(mix(skinH,'#d4806e',t)):skin};
@@ -3280,58 +3303,43 @@ function buildHead(s,bust){
   ell3(TR(0,-2.05,-.08),kid?1.3:1.62,.78,.78,14,24,clc,{th1:Math.PI*.6});
   if(s.g==='f'&&!kid){ell3(TR(0,-1.95,.02),.75,.22,.62,8,14,col('#f1ebe0'),{th1:Math.PI*.5,ph0:-1.1,ph1:1.1});for(let k=0;k<3;k++)for(const sgn of[-1,1])box(TR(sgn*.07,-1.86-k*.14,.66,0,0,sgn*.9),.025,.18,.03,cld)}
   else ell3(TR(0,-1.92,.02),.62,.2,.6,8,14,col('#e8dfcf'),{th1:Math.PI*.5,ph0:-.9,ph1:.9})}
- else cyl(TR(0,-1.3,0),.3,.28,.5,10,skinD);
+ else cyl(TR(0,-1.3,0),.3,.28,.5,10,skin);
  // Kopf, Ohren
- ell3(T0,.86*fw,1.05,.92,22,30,skin,{def:headDef,colf:blushC});
+ const smile=s.dead?0:mood>85?.9:mood>66?.55:mood>40?.2:-.35,stubF=s.g==='m'&&a>=19&&L.beard===1&&!s.dead,faceC=col(skinH,(stubF?.9861:.9871)+(smile+1)*.0004);
+ ell3(T0,.86*fw,1.05,.92,34,50,faceC,{def:headDef,ph0:-Math.PI,ph1:Math.PI,pw:u=>{const v=2*u-1,a=Math.abs(v);return .5+.5*Math.sign(v)*(.35*a+.65*Math.pow(a,2.2))},tw:t=>t-.1*Math.sin(2*Math.PI*t)});
  for(const sx of[-1,1]){ell3(TR(sx*.84*fw,-.02,.0,sx*.25),.08,.22,.15,6,8,skinD);ell3(TR(sx*.87*fw,-.02,.01,sx*.25),.04,.15,.09,5,6,col(shade(skinH,-.22)))}
  // Augen (in Augenhöhlen, mit Lidern)
- const er=kid?.13:.118,ey=.1,ex=exF,ez=surf(exF,.1)-er*.6,lidC=col(shade(skinH,-.06)),lash=col(s.g==='f'&&adult?'#1e1612':shade(hairH,-.35));
- const lidTop=s.dead?Math.PI*.97:mood<35?Math.PI*.42:Math.PI*.33;
+ const er=kid?.13:.118,ey=.1,ex=exF,ez=surf(exF,.1)-er*.66,lidC=col(shade(skinH,-.06)),lash=col(s.g==='f'&&adult?'#1e1612':shade(hairH,-.35));
+ const lidTop=s.dead?Math.PI*.97:mood<35?Math.PI*.46:Math.PI*.39;
  for(const sx of[-1,1]){const x=sx*ex,E0=TR(x,ey,ez);ell3(E0,er,er,er,10,12,col('#e6dfd4'));
   if(!s.dead){const look=sx*-.02;ell3(TR(x+look,ey-.005,ez+er*.84),er*.56,er*.56,er*.22,7,12,col(EYES[L.eye]));ell3(TR(x+look,ey-.005,ez+er*.97),er*.22,er*.22,er*.1,5,8,col('#0c0a09'));ell3(TR(x+look+.025,ey+.025,ez+er*1.0),er*.08,er*.08,er*.04,3,5,col('#ffffff'))}
   ell3(E0,er*1.1,er*1.1,er*1.1,9,12,lidC,{th1:lidTop,ph0:-Math.PI*.62,ph1:Math.PI*.62});
   ell3(E0,er*1.115,er*1.115,er*1.115,3,12,lash,{th0:lidTop-.13,th1:lidTop,ph0:-Math.PI*.5,ph1:Math.PI*.5});
-  ell3(E0,er*1.08,er*1.08,er*1.08,5,12,lidC,{th0:Math.PI*.7,th1:Math.PI,ph0:-Math.PI*.6,ph1:Math.PI*.6})}
- // Brauen (gebogen, auf dem Brauenbogen)
- const sad=mood<38,bt=.03+.018*(L.brow||1),brc=col(mix(hairH,'#2e2018',.45));
- for(const sx of[-1,1])for(let k=0;k<9;k++){const u=(k-4)/4,bx=sx*(ex+u*.13),by=.29+(sad?-.05*u*sx*sx*(u>0?-1:1)*.6:.035*(1-u*u))+(sad&&u*1<0?.02:0),bz=.92-.08*Math.abs(u)*(u*sx>0?1:.6)-(Math.abs(bx)>.45?.05:0);
-  box(TR(bx,by,surf(bx,by)+.01,sx*.35+u*.35*sx,0,sx*(sad?-.18:.08)+u*-.15),.07,bt*(1-.35*Math.max(0,u)),.035,brc)}
- // Nase
- const ns=[.9,1,1.12][L.nose||0]*(kid?.82:1);
- const nz=surf(0,-.12);ell3(TR(0,-.08*ns,nz-.075),.06*ns,.25*ns,.1*ns,8,10,skin,{def:(x,y,z)=>[x*(1+(y<0?.5*(-y/(.24*ns)):0)),y,z+(y<0?.09*ns*(-y/(.24*ns)):0)]});
- ell3(TR(0,-.285*ns,nz+.05*ns),.055*ns,.052*ns,.058*ns,7,9,col(mix(skinH,'#d4806e',.12)));
- for(const sx of[-1,1]){ell3(TR(sx*.065*ns,-.3*ns,nz-.012),.04*ns,.036*ns,.045*ns,6,7,skin);ell3(TR(sx*.04*ns,-.335*ns,nz+.035*ns),.022*ns,.01,.016,4,5,col(shade(skinH,-.5)))}
- // Mund (Mimik)
- const smile=s.dead?0:mood>85?.9:mood>66?.55:mood>40?.2:-.35,lipH=mix(skinH,'#9a4a44',s.g==='f'&&adult?.42:.26),mw=kid?.14:.17,my=-.52,mz=surf(0,-.52)-.02;
- ell3(TR(0,my+.03,mz),mw,.035,.04,5,10,col(lipH));ell3(TR(0,my-.04,mz-.004),mw*.82,.042,.045,5,10,col(mix(lipH,skinH,.25)));
- const N=8;for(let i=0;i<N;i++){const x0=-mw+2*mw*i/N,x1=-mw+2*mw*(i+1)/N,yf=x=>my+smile*.11*Math.pow(x/mw,2),y0=yf(x0),y1=yf(x1),cx=(x0+x1)/2,ang=Math.atan2(y1-y0,x1-x0),zz=mz+.03-Math.abs(cx)*.3;
-  box(TR(cx,(y0+y1)/2-.008,zz,cx*.8,0,ang),Math.hypot(x1-x0,y1-y0)+.006,.016,.03,col(shade(lipH,-.5)))}
- if(adult&&!kid)for(const sx of[-1,1])box(TR(sx*.27,-.36,.78,sx*.6,0,sx*-.5),.16,.012,.02,col(shade(skinH,-.08)));
+  ell3(E0,er*1.08,er*1.08,er*1.08,5,12,lidC,{th0:Math.PI*.64,th1:Math.PI,ph0:-Math.PI*.6,ph1:Math.PI*.6})}
  // Schmuck & Sommersprossen
  if(s.g==='f'&&a>=14)for(const sx of[-1,1]){ell3(TR(sx*.86*fw,-.28,.06),.05,.05,.05,4,6,col('#d9b04a'));ell3(TR(sx*.86*fw,-.4,.06),.04,.07,.03,4,6,col('#3fa0a0'))}
- if(L.freck)for(let i=0;i<10;i++){const sx=i%2?1:-1;ell3(TR(sx*(.25+((i*7)%5)*.05),-.08-((i*3)%4)*.04,.8),.022,.022,.01,3,4,col(shade(skinH,-.3)))}
  if(bust&&s.g==='f'&&a>=14){ell3(TR(0,-1.42,.42),.42,.05,.3,4,10,col('#d9b04a'),{th0:Math.PI*.45,th1:Math.PI*.55})}
  // Bart (Dicke läuft zum Rand hin weich aus, Strähnen statt Schale)
  if(s.g==='m'&&a>=19&&L.beard){const b=L.beard,hcB=[col(shade(hairH,-.22)),hair,col(shade(hairH,.12))],sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
-  const mouthD=(x,y)=>Math.hypot(x/.2,(y+.52)/.075);
-  const beard=(reg,thick,stub)=>ell3(T0,.86*fw,1.05,.92,26,40,hair,{def:(x,y,z,th,ph)=>{const h=headDef(x,y,z),e=sm(reg(h[0],h[1],h[2],th,ph)/.35)*sm((mouthD(h[0],h[1])-1)/.9);const rr=1+.006+thick*e*(stub?1:(1+.18*Math.sin(ph*38+th*3)));return[h[0]*rr,h[1]*rr-(stub?0:thick*e*.6*Math.max(0,h[2])),h[2]*rr]},
+  const mouthD=(x,y)=>Math.hypot(x/.19,(y+.525)/.07);
+  const beard=(reg,thick,stub)=>ell3(T0,.86*fw,1.05,.92,34,50,hair,{ph0:-Math.PI,ph1:Math.PI,pw:u=>{const v=2*u-1,a=Math.abs(v);return .5+.5*Math.sign(v)*(.35*a+.65*Math.pow(a,2.2))},tw:t=>t-.1*Math.sin(2*Math.PI*t),def:(x,y,z,th,ph)=>{const h=headDef(x,y,z),e=sm(reg(h[0],h[1],h[2],th,ph)/.35)*sm((mouthD(h[0],h[1])-1)/.9);const rr=1+.006+thick*e*(stub?1:(1+.18*Math.sin(ph*38+th*3)));return[h[0]*rr,h[1]*rr-(stub?0:thick*e*.6*Math.max(0,h[2])),h[2]*rr]},
    inside:q=>reg(q.x,q.y,q.z,q.th,q.ph)>0&&mouthD(q.x,q.y)>1.02,
    colf:(x,y,z,th,ph)=>{const e=Math.min(1,reg(x,y,z,th,ph)/.3);if(stub){const t=Math.round(Math.min(.24,e*.3)*20)/20;return col(mix(skinH,hairH,t))}if(e<.35)return col(mix(hairH,skinH,.45-e));const v=Math.sin(ph*19+th*4);return v>.5?hcB[2]:v<-.5?hcB[0]:hair}});
   const full=(x,y,z,th,ph)=>Math.min(th-1.72,1.85-Math.abs(wrapA(ph)))*(z<-.2?0:1)+(z<-.2?-1:0);
   const goat=(x,y,z)=>z<.2?-1:1-Math.hypot(x/.34,(y+.78)/.42);
-  const must=()=>{const my=-.43;for(const sx of[-1,1])ell3(TR(sx*.1,my,surf(sx*.1,my)-.005,sx*.3,0,sx*-.32),.135,.042,.05,5,10,hair,{colf:(x,y)=>x*sx>.08?hcB[0]:hair})};
-  if(b===1)beard(full,.004,true);
-  else if(b===2){beard(goat,.07,false);must()}
+  const must=()=>{const my=-.43;for(const sx of[-1,1])ell3(TR(sx*.095,my,surf(sx*.095,my)-.014,sx*.3,0,sx*-.3),.13,.032,.045,6,12,hcB[0],{colf:(x,y)=>x*sx>.07?col(shade(hairH,-.35)):hcB[0]})};
+
+  if(b===2){beard(goat,.07,false);must()}
   else if(b===3){beard(full,.1,false);must()}
   else if(b===4)must()}
  // Haare & Kopfbedeckung
  const hcs=[col(shade(hairH,-.2)),hair,col(shade(hairH,.12))];
  const cap=(front,back,sc,c,vol)=>{const strand=c===hair,lm=ph=>{const f=Math.abs(wrapA(ph));return front+(back-front)*(1-Math.cos(f))/2+(strand?.04*Math.sin(ph*9+L.hair*1.7)+.02*Math.sin(ph*23+1):0)},N=34;
-  ell3(T0,.86*fw,1.05,.92,24,52,c,{def:(x,y,z,th,ph)=>{const e=Math.min(1,Math.max(0,(lm(ph)-th)/.3)),top=Math.max(0,Math.cos(th));const off=((sc-1)*(.03+.97*e*e*(3-2*e))+(vol==null?.07:vol)*top*e)*(strand?1+.25*Math.sin(ph*N+Math.sin(th*4)*1.2)*(.3+.7*(1-top)):1);const h=headDef(x,y,z),rr=1+off;return[h[0]*rr,h[1]*rr,h[2]*rr]},
+  ell3(T0,.86*fw,1.05,.92,30,64,c,{ph0:-Math.PI,ph1:Math.PI,pw:u=>{const v=2*u-1,a=Math.abs(v);return .5+.5*Math.sign(v)*(.4*a+.6*Math.pow(a,2))},def:(x,y,z,th,ph)=>{const e=Math.min(1,Math.max(0,(lm(ph)-th)/.3)),top=Math.max(0,Math.cos(th));const off=((sc-1)*(.03+.97*e*e*(3-2*e))+(vol==null?.07:vol)*top*e)*(strand?1+.15*Math.sin(ph*N+Math.sin(th*4)*1.2)*(.3+.7*(1-top)):1);const h=headDef(x,y,z),rr=1+off;return[h[0]*rr,h[1]*rr,h[2]*rr]},
    inside:q=>q.th<lm(q.ph),colf:strand?(x,y,z,th,ph)=>{const e=(lm(ph)-th)/.3;if(e<.3)return col(mix(hairH,skinH,e<.12?.75:.4));const v=Math.sin(ph*N*.5+th*2+Math.sin(ph*7)*2);return v>.55?hcs[2]:v<-.55?hcs[0]:hair}:null})};
  switch(style){
   case 'kurz':cap(.88,1.85,1.07,hair,.1);break;
-  case 'scheitel':cap(.85,1.85,1.07,hair,.1);ell3(TR(-.25,.66,.38,0,.25),.4,.14,.28,6,12,hair,{colf:(x,y,z)=>x>.1?hcs[2]:hair});break;
+  case 'scheitel':cap(.85,1.85,1.075,hair,.13);break;
   case 'locken':cap(.9,1.95,1.07,hair);for(let i=0;i<34;i++){const th=.15+((i*.618)%1)*1.35,ph=i*2.4,f=Math.abs(wrapA(ph));if(th>(.95+(1.8-.95)*(1-Math.cos(f))/2))continue;
    const r=1.04;ell3(TR(Math.sin(th)*Math.sin(ph)*.86*fw*r,Math.cos(th)*1.05*r,Math.sin(th)*Math.cos(ph)*.92*r),.17,.17,.17,4,6,i%3?hair:hairD)}break;
   case 'lang':cap(.82,2.1,1.08,hair,.1);curtain(1.05,2*Math.PI-1.05,.3,-1.7,.98,1.2,hair,16,hcs);break;
@@ -3339,13 +3347,14 @@ function buildHead(s,bust){
   case 'dutt':cap(.82,2.05,1.07,hair,.06);ell3(TR(0,.62,-.66),.34,.32,.3,10,14,hair,{def:(x,y,z,th,ph)=>{const k=1+.06*Math.sin(ph*12+th*6);return[x*k,y*k,z*k]},colf:(x,y,z,th,ph)=>Math.sin(ph*6+th*5)>.4?hcs[2]:hair});break;
   case 'haube':cap(.82,2.1,1.06,hair,.04);curtain(1.2,2*Math.PI-1.2,.2,-1.2,1.0,1.1,hair,10,hcs);ell3(T0,.86*fw*1.15,1.05*1.15,.92*1.15,18,26,col('#f4efe6'),{def:headDef,inside:q=>{const fr=Math.abs(wrapA(q.ph));return q.th<.95+(1.9-.95)*(1-Math.cos(fr))/2&&q.th<1.6}});ell3(T0,.86*fw*1.15,1.05*1.15,.92*1.15,18,26,col('#c9bca4'),{def:headDef,inside:q=>{const f=Math.abs(wrapA(q.ph));const lim=.7+(2.5-.7)*(1-Math.cos(f))/2;return q.th<lim&&q.th>lim-.18}});break;
   case 'kopftuch':curtain(1.2,2*Math.PI-1.2,.2,-1.5,1.0,1.15,hair,12,hcs);cap(.7,2.2,1.12,col('#a8323a'));for(let i=0;i<9;i++){const ph=-1.1+i*.275;ell3(TR(Math.sin(ph)*.98*fw,.58-Math.abs(ph)*.12,Math.cos(ph)*.9),.05,.05,.02,4,6,col('#d9b04a'))}ell3(TR(-.7,-.1,-.6),.25,.45,.2,5,8,col('#a8323a'));break;
+  case 'barett':{cap(.95,1.75,1.04,hair,.02);const bc=['#6b1f2a','#24345a','#1e1e22','#4a2a4a'][s.id%4];ell3(TR(.08,.66,-.02,0,-.05,-.16),1.12,.3,1.08,10,22,col(bc,.9915),{th1:Math.PI*.62,def:(x,y,z,th,ph)=>{const k=1+.05*Math.sin(ph*9);return[x*k,y,z*k]}});lathe(TR(.02,.5,0,0,-.05,-.1),[[0,.9*fw,.94],[.14,.9*fw,.95]],22,col(shade(bc,-.3)));ell3(TR(-.62,.82,.25,0,0,.6),.06,.32,.05,4,6,col('#f2efe6'));break}
   case 'hut':cap(.95,1.7,1.05,hair,.02);cyl(TR(0,.5,0),.86,.8,.55,16,col('#5a4030'));cyl(TR(0,.55,0,0,-.08),1.45,1.45,.05,20,col('#5a4030'));cyl(TR(0,.62,0),.87,.86,.12,16,col('#8a3a2a'));break;
  }
 }
 // ---- Puffer-Cache für Köpfe ----
 const HEADS=new Map();
-function headBatch(s,bust){const a=s.dead?deadAge(s):ageOf(s),key=(ELLQ>1?'Q':'')+(bust?'B':'H')+s.id+'|'+s.col+'|'+ageBucket(a)+'|'+(s.dead?'d':moodBucket(s.mood||60))+'|'+(s.married?1:0);
- let b=HEADS.get(key);if(b)return b;b=new Batch();const g0=G;G=b;buildHead(s,bust);G=g0;b.up();HEADS.set(key,b);
+function headBatch(s,bust){const a=s.dead?deadAge(s):ageOf(s),key=(ELLQ>1?'Q':'')+(bust?'B':'H')+s.id+'|'+s.col+'|'+ageBucket(a)+'|'+(s.dead?'d':moodBucket(s.mood||60))+'|'+(s.married?1:0)+'|'+(!s.dead&&isRich(s)?'r':'');
+ let b=HEADS.get(key);if(b)return b;b=new Batch();const g0=G;G=b;buildHead(s,bust);G=g0;b.up();{const L2=s.look||{},hh=s.dead?HAIRS[L2.hair||0]:hairOf(s),bh=mix(hh,'#2a1c14',.45);b.hc=[parseInt(bh.slice(1,3),16)/255,parseInt(bh.slice(3,5),16)/255,parseInt(bh.slice(5,7),16)/255]}HEADS.set(key,b);
  if(HEADS.size>160){const k=HEADS.keys().next().value;const o=HEADS.get(k);gl.deleteBuffer(o.buf);HEADS.delete(k)}return b}
 const ID4=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],ID3=[1,0,0,0,1,0,0,0,1];
 function setModel(m,n){gl.uniformMatrix4fv(L.mdl,false,new Float32Array(m));gl.uniformMatrix3fv(L.nm,false,new Float32Array(n))}
@@ -3560,7 +3569,7 @@ const FIGC=new Map();
 function partBatch(key,fn){let b=FIGC.get(key);if(b)return b;b=new Batch();const g0=G,by=BY,br=BROT;G=b;BY=0;BROT=null;try{fn()}catch(e){console.error(e)}G=g0;BY=by;BROT=br;b.up();FIGC.set(key,b);
  if(FIGC.size>900){const k=FIGC.keys().next().value;gl.deleteBuffer(FIGC.get(k).buf);FIGC.delete(k)}return b}
 // Körperteile (Einheit: Körpergröße 1; Gelenk im Ursprung)
-function figParts(s){if(FIGNEW)return figParts2(s);const o=outfit(s),f=o.g==='f'&&!o.kid,bs=bellyStage(s),key=s.id+'|'+s.col+'|'+(o.kid?1:0)+'|'+o.job+'|'+o.g+'|b'+bs+'|e'+o.era,c=col,sk=c(o.skin);
+function figParts(s){if(FIGNEW)return (typeof eraOf==='function'?eraOf():0)===0?figParts3(s):figParts2(s);const o=outfit(s),f=o.g==='f'&&!o.kid,bs=bellyStage(s),key=s.id+'|'+s.col+'|'+(o.kid?1:0)+'|'+o.job+'|'+o.g+'|b'+bs+'|e'+o.era,c=col,sk=c(o.skin);
  const K=k=>key+'|'+k;
  return{o,f,
   thigh:partBatch(K('th'),()=>{cyl(TR(0,-.24,0),.04,.05,.24,8,c(f?'#3a3030':o.trou))}),
@@ -3588,6 +3597,66 @@ function lathe(T,rings,seg,c,o){o=o||{};seg=Math.max(6,Math.round(seg*(ELLQ>1?EL
  for(const[ci,oi]of[[0,1],[R-1,R-2]]){if(!(ci===0?o.cap0:o.cap1))continue;const dir=rings[ci][0]>=rings[oi][0]?1:-1;const[y,,,ox,oz]=rings[ci],cp=ap(T,ox||0,y,oz||0),cn=rotN(T,0,dir,0),cc=V[ci][0].c;for(let j=0;j<seg;j++){const a=V[ci][j],b=V[ci][j+1];
   G.v(cp[0],cp[1],cp[2],cn[0],cn[1],cn[2],cc,0);G.v(a.p[0],a.p[1],a.p[2],cn[0],cn[1],cn[2],a.c,0);G.v(b.p[0],b.p[1],b.p[2],cn[0],cn[1],cn[2],b.c,0)}}}
 const FIGNEW=true;
+// ---- Mittelalterliche Gewänder (Stand, Muster, Pelz) ----
+function isRich(s){if(ageOf(s)<16)return false;const j=s.job&&bById.get(s.job),jt=j?j.t:'';return (s.money||0)>=90||jt==='rathaus'||jt==='kraemer'||jt==='markt'}
+const FAB={dam:.9905,wool:.9915,fur:.9925,wick:.9895};
+function figParts3(s){const o=outfit(s),f=o.g==='f'&&!o.kid,kid=o.kid,bs=bellyStage(s),rich=isRich(s)&&!kid,priest=o.job==='kirche',v=k=>hashI(s.id*13+s.col,k);
+ const key='G'+s.id+'|'+s.col+'|'+(kid?1:0)+'|'+o.job+'|'+o.g+'|b'+bs+'|r'+(rich?1:0)+'|q'+ELLQ,K=k=>key+'|'+k,c=col,sk=c(o.skin);
+ const fab=(h,t)=>col(h,FAB[t]);
+ const RICH=['#6b1f2a','#24345a','#2e4a32','#4a2a4a','#5a3a1a'],FURS=['#e9e2d4','#8a6a4a','#5a4636','#d8cdb8'];
+ const dressC=f?(rich?RICH[v(1)%5]:o.bod):null,tunC=priest?'#26262c':rich?RICH[v(2)%5]:o.vest,furC=FURS[v(3)%4],skirtC=f?(rich?dressC:o.skirt):null;
+ const chem=o.modern?o.bod:'#efe8da',hose=f?'#4a3a34':o.trou,fz=(a,b)=>(ph,t)=>1+a*t*Math.sin(ph*b+Math.sin(ph*3.)*1.3),fo=(ph,t)=>1+.012*Math.sin(ph*7+t*5);
+ const robe=!f&&!kid&&(rich||priest),mt=rich?'dam':'wool',basket=f&&!rich&&(o.job==='bauernhof'||o.job==='markt'||o.job==='holz')&&v(9)%2===0,cape=!rich&&!kid&&(f?!!o.shawl:!!o.cloak);
+ const W=f?[[-.015,.072,.055],[.05,.074,.057],[.11,.086,.066,0,.006],[.15,.094,.069,0,.008],[.2,.101,.061],[.228,.102,.056],[.252,.088,.049],[.272,.064,.041],[.286,.034,.03]]
+          :[[-.015,.078,.058],[.05,.08,.06],[.13,.092,.065],[.19,.103,.063],[.225,.106,.059],[.25,.094,.053],[.27,.07,.045],[.284,.043,.036],[.292,.032,.029]];
+ const sc=(r,k,y0,y1)=>r.filter(q=>q[0]>=y0&&q[0]<=y1).map(([y,rx,rz,ox,oz])=>[y,rx*k,rz*k,ox||0,oz||0]),cut=(r,y,k)=>{const i=r.findIndex(q=>q[0]>y);const a=r[i-1],b=r[i],t=(y-a[0])/(b[0]-a[0]);return[y,(a[1]+(b[1]-a[1])*t)*k,(a[2]+(b[2]-a[2])*t)*k,0,((a[4]||0)+((b[4]||0)-(a[4]||0))*t)]};
+ const upTo=(k,top)=>{const B=sc(W,k,-1,top-.001);B.push(cut(W,top,k));return B};
+ return{o,f,
+  thigh:partBatch(K('th'),()=>{lathe(TR(0,0,0),f?[[.02,.042,.045],[-.08,.04,.043],[-.18,.034,.036],[-.245,.03,.032]]:[[.03,.05,.054],[-.04,.049,.052],[-.12,.044,.047],[-.2,.038,.041],[-.25,.035,.038]],12,c(hose),{fold:(ph,t)=>1+.025*Math.sin(ph*5+t*4)})}),
+  shin:partBatch(K('sh'),()=>{lathe(TR(0,0,0),[[.01,.034,.037],[-.05,.037,.042,0,-.004],[-.11,.031,.034],[-.19,.024,.026],[-.215,.024,.026]],12,c(hose));
+   const bt=c(o.boot);lathe(TR(0,0,0),f||robe?[[-.185,.028,.03],[-.215,.029,.032],[-.235,.03,.034]]:[[-.08,.041,.043],[-.12,.037,.04],[-.2,.03,.033],[-.235,.032,.036]],12,bt,{cap0:true});
+   lathe(TR(0,-.236,.02,0,Math.PI/2),[[-.05,.001,.001],[-.045,.022,.013],[-.02,.028,.018],[.02,.029,.02],[.05,.024,.018],[.072,.014,.011],[.078,.002,.002]],12,bt,{fold:ph=>{const z=Math.cos(ph);return z>.2?.75+.25*(1-z)/.8:1}});
+   lathe(TR(0,-.253,.02,0,Math.PI/2),[[-.048,.02,.003],[.07,.015,.003]],10,c(shade(o.boot,-.45)))}),
+  pelvis:partBatch(K('pv'),()=>{
+   if(f){const hem=-.475,fl=fz(.07,9),SK=[[.05,.074,.056,0,.004],[.0,.09,.074],[-.07,.115,.098],[-.2,.142,.126],[hem*.75,.168,.154],[hem,.188,.174]];
+    lathe(TR(0,0,0),SK,24,fab(skirtC,mt),{fold:fl});lathe(TR(0,0,0),[[hem+.03,.186*1.012,.172*1.012],[hem-.001,.19*1.012,.176*1.012]],24,rich?fab(furC,'fur'):c(shade(skirtC,-.25)),{fold:fl});
+    if(o.apron&&!rich){const ar=(y,r)=>[y,r*1.06,r*1.06,0,.006];lathe(TR(0,0,0),[ar(.035,.076),ar(-.06,.108),ar(-.2,.136),ar(hem*.8+.02,.15)],10,fab(o.apron,'wool'),{ph0:-.8,ph1:.8,fold:fz(.04,7)})}
+    if(rich){lathe(TR(.025,0,.082,0,.1),[[.0,.012,.004],[-.22,.012,.004]],6,c('#3a2418'));ell3(TR(.025,-.225,.104),.014,.02,.008,4,6,c('#c9a24a'))}}
+   else{lathe(TR(0,0,0),[[.05,.084,.062],[.0,.088,.066],[-.045,.087,.067],[-.075,.072,.058],[-.09,.04,.035]],18,c(o.trou),{cap1:true});
+    if(robe){const RB=[[.05,.088,.066],[0,.1,.08],[-.12,.128,.11],[-.26,.15,.132],[-.41,.168,.15]];lathe(TR(0,0,0),RB,24,fab(tunC,priest?'wool':'dam'),{ph0:.17,ph1:Math.PI*2-.17,fold:fz(.05,8)});
+     lathe(TR(0,0,0),RB.map(([y,a,b])=>[y,a*.96,b*.96]),6,c(priest?'#1c1c20':'#2a2018'),{ph0:-.2,ph1:.2});
+     if(!priest)for(const e of[1,-1])lathe(TR(0,0,0),RB.map(([y,a,b])=>[y,a*1.035,b*1.035]),3,fab(furC,'fur'),{ph0:e>0?.15:Math.PI*2-.36,ph1:e>0?.36:Math.PI*2-.15})}
+    else{const TU=[[.05,.088,.066],[0,.098,.076],[-.1,.12,.098],[-.2,.133,.112]];lathe(TR(0,0,0),TU,22,fab(tunC,'wool'),{fold:fz(.06,8)});lathe(TR(0,0,0),[[-.18,.132*1.012,.11*1.012],[-.201,.134*1.012,.113*1.012]],22,c(shade(tunC,-.25)),{fold:fz(.06,8)})}}
+   const bw=f?.078:robe?.092:.1;lathe(TR(0,0,0),[[.042,bw,bw*.76],[.014,bw*1.02,bw*.78]],18,c(rich?'#3a2418':o.belt));box(TR(0,.014,bw*.78),.024,.026,.006,c('#c9a24a'));
+   if(!f&&!kid&&!priest)lathe(TR(.085,-.045,.03),[[.03,.018,.014],[-.0,.026,.018],[-.04,.024,.016],[-.05,.01,.008]],8,c(rich?'#6b3a22':'#6b4a2e'),{cap1:true})}),
+  torso:partBatch(K('to'),()=>{
+   lathe(TR(0,0,0),W,f?22:20,c(chem),{fold:fo});
+   if(f){const top=.238;lathe(TR(0,0,0),upTo(1.03,top),22,fab(dressC,mt),{fold:fo});lathe(TR(0,0,0),[cut(W,top-.006,1.04),cut(W,top+.004,1.035)],22,rich?fab(furC,'fur'):c(shade(dressC,-.28)));
+    if(!o.modern&&!rich)for(let i=0;i<6;i++){const y=.02+i*.032;box(TR(-.01,y,.068,0,0,.7),.003,.024,.003,c('#2a2018'));box(TR(.01,y,.068,0,0,-.7),.003,.024,.003,c('#2a2018'))}
+    if(rich)for(let i=0;i<5;i++)ell3(TR(0,.03+i*.045,.071),.006,.006,.004,3,5,c('#d9b04a'))}
+   else{const top=robe?.27:.255;lathe(TR(0,0,0),upTo(1.03,.2),20,fab(tunC,robe&&!priest?'dam':'wool'),{fold:fo});
+    lathe(TR(0,0,0),[cut(W,.2,1.03),cut(W,.23,1.03),cut(W,.25,1.03),cut(W,top,1.03)],20,fab(tunC,robe&&!priest?'dam':'wool'),{ph0:robe?.0:.13,ph1:robe?Math.PI*2:Math.PI*2-.13});
+    if(!robe)lathe(TR(0,0,0),[cut(W,top-.004,1.045),cut(W,top+.004,1.035)],20,c(shade(tunC,-.25)),{ph0:.13,ph1:Math.PI*2-.13});
+    if(robe&&!priest){lathe(TR(0,0,0),[[.31,.044,.04],[.292,.085,.07],[.268,.13,.092],[.235,.148,.1],[.2,.142,.1],[.17,.118,.088]],22,fab(furC,'fur'),{ph0:.2,ph1:Math.PI*2-.2,fold:(ph,t)=>1+.05*Math.sin(ph*11)});
+     for(const e of[1,-1])lathe(TR(0,0,0),upTo(1.06,.2).map(q=>q),3,fab(furC,'fur'),{ph0:e>0?.1:Math.PI*2-.3,ph1:e>0?.3:Math.PI*2-.1})}
+    if(priest)lathe(TR(0,0,0),[[.3,.04,.036],[.285,.075,.06],[.26,.11,.08],[.23,.115,.078]],18,c('#26262c'),{cap0:true})}
+   if(f&&bs)ell3(TR(0,.03,.04+bs*.012),.068+bs*.008,.068+bs*.012,.04+bs*.028,7,10,fab(dressC,mt));
+   if(o.strap&&!robe)box(TR(-.04,.1,.064,0,0,-.62),.018,.3,.008,c('#4a3020'));
+   if(o.apron&&!f&&!robe)lathe(TR(0,0,0),[[.11,.09,.066,0,.004],[.0,.086,.064,0,.004]],8,fab(o.apron,'wool'),{ph0:-.8,ph1:.8});
+   if(cape){const cc=f?o.shawl:o.cloak;lathe(TR(0,0,0),[[.3,.046,.04],[.283,.09,.062],[.258,.128,.082],[.215,.142,.094],[.17,.138,.096],[.14,.13,.094]],20,fab(cc,'wool'),{ph0:.28,ph1:Math.PI*2-.28,fold:fz(.06,9)});
+    if(!f)ell3(TR(0,.29,-.065),.07,.05,.05,6,8,fab(cc,'wool'))}
+   if(basket){lathe(TR(0,.1,-.135),[[-.085,.06,.055],[-.06,.068,.06],[.04,.078,.07],[.09,.082,.074]],14,col('#a8834e',FAB.wick),{cap0:true});lathe(TR(0,.1,-.135),[[.085,.074,.066],[.09,.074,.066]],14,c('#3a2a18'));for(const e of[-1,1])box(TR(e*.055,.12,.0,0,-.15),.012,.2,.01,c('#6b4a2e'));for(let i=0;i<6;i++)ell3(TR(-.03+((i*37)%7)*.01,.2,-.135+((i*13)%5-2)*.012),.03,.025,.03,4,6,c(i%2?'#f2efe6':'#e8dfc8'))}
+   if(o.collar)lathe(TR(0,0,0),[[.272,.07,.052],[.3,.06,.048],[.31,.05,.04]],16,c('#f8f6f0'));
+   lathe(TR(0,0,0),[[.28,.031,.029,0,-.002],[.31,.029,.027,0,.0],[.345,.027,.025,0,.004]],12,sk)}),
+  uarm:partBatch(K('ua'),()=>{
+   if(robe&&!priest)lathe(TR(0,0,0),[[.045,.012,.012],[.034,.045,.047],[.0,.062,.064],[-.06,.068,.07],[-.12,.058,.06],[-.155,.046,.048]],16,fab(tunC,'dam'),{cap0:true,fold:(ph,t)=>1+.06*Math.sin(ph*7+t*6)*Math.sin(t*3.14)});
+   else{const cc=f?dressC:robe?tunC:tunC;lathe(TR(0,0,0),[[.045,.01,.01],[.036,.032,.034],[.012,.042,.044],[-.05,.039,.041],[-.1,.034,.036],[-.155,.031,.033]],14,fab(cc,f?mt:'wool'),{cap0:true,fold:(ph,t)=>1+.03*Math.sin(ph*5+t*6)*t})}}),
+  farm:partBatch(K('fa'),()=>{lathe(TR(0,0,0),[[.01,.029,.03],[-.04,.029,.031],[-.1,.024,.026],[-.135,.019,.021],[-.15,.018,.019]],12,sk);
+   const sl=robe&&!priest?[[.015,.044,.046],[-.05,.041,.043],[-.105,.036,.038]]:[[.015,.032,.034],[-.05,.031,.033],[-.11,.026,.028],[-.128,.024,.026]],slc=f?dressC:tunC;
+   lathe(TR(0,0,0),sl,12,fab(slc,robe&&!priest?'dam':f?mt:'wool'),{fold:(ph,t)=>1+.035*Math.sin(ph*5+t*5)});
+   const cy=sl[sl.length-1][0];lathe(TR(0,0,0),[[cy+.012,sl[sl.length-1][1]*1.06,sl[sl.length-1][2]*1.06],[cy-.004,sl[sl.length-1][1]*1.08,sl[sl.length-1][2]*1.08]],12,rich?fab(furC,'fur'):c(shade(slc,-.25)));
+   lathe(TR(0,-.15,.002),[[.0,.015,.018],[-.015,.013,.024],[-.035,.01,.023],[-.05,.0075,.018],[-.056,.003,.008]],10,sk,{cap0:true});
+   lathe(TR(0,-.158,.02,0,.5),[[0,.0075,.0075],[-.024,.0055,.0055],[-.029,.002,.002]],6,sk)})}}
 function figParts2(s){const o=outfit(s),f=o.g==='f'&&!o.kid,bs=bellyStage(s),key='N'+s.id+'|'+s.col+'|'+(o.kid?1:0)+'|'+o.job+'|'+o.g+'|b'+bs+'|e'+o.era+'|q'+ELLQ,c=col,sk=c(o.skin),K=k=>key+'|'+k;
  const hose=f?'#4a3a34':o.trou,chem=o.modern?o.bod:'#f1ebe0',fz=(a,b)=>(ph,t)=>1+a*t*Math.sin(ph*b+Math.sin(ph*3.)*1.3);
  return{o,f,
@@ -3643,7 +3712,7 @@ function poseOf(s,inHouse){if(ageOf(s)<1){return{hy:0,lean:0,thL:-.3,thR:-.3,knL
   if(k==='interact'||k==='social'||s.talk){P.shR=-.5+.25*Math.sin(t*2.5+s.id);P.elR=-.9;P.head=.08*Math.sin(t*1.7)}}
  P.shL+=.04*Math.sin(t*1.3+s.id);P.shR+=.04*Math.sin(t*1.3+s.id+1);if(!P.lie&&!walking&&a!=='do'||(a==='do'&&(k==='interact'||k==='social'||k==='buy'||k==='visit'))){const id=s.id;P.hx=(P.hx||0)+.01*Math.sin(t*.45+id);P.tw=(P.tw||0)+.06*Math.sin(t*.31+id*2.1);P.hyaw=(P.hyaw||0)+.45*Math.sin(t*.21+id*1.7)*Math.max(0,Math.sin(t*.13+id));P.thL+=.05*Math.sin(t*.45+id);P.thR-=.03*Math.sin(t*.45+id);P.hy+=.004*Math.sin(t*1.7+id)}return P}
 // Zeichnen einer Figur (Welt- oder Hauskoordinaten)
-function drawFigure(s,x,y,z,yaw,size,inHouse){gl.uniform1f(L.fig,1);try{drawFigure0(s,x,y,z,yaw,size,inHouse)}finally{gl.uniform1f(L.fig,0)}}
+function drawFigure(s,x,y,z,yaw,size,inHouse){gl.uniform1f(L.fig,1);FIG_ON=true;try{drawFigure0(s,x,y,z,yaw,size,inHouse)}finally{FIG_ON=false;gl.uniform1f(L.fig,0)}}
 function drawFigure0(s,x,y,z,yaw,size,inHouse){if(s.talk&&s.talk.with&&hAbs()<s.talk.until){const p=pById.get(s.talk.with);if(p&&p._fx2!=null){const mD=inHouse?1.15:.14,dx=x-p._fx2,dz=z-p._fz2,d=Math.hypot(dx,dz);if(d<mD&&d<(inHouse?7:1.2)){const ux=d>1e-3?dx/d:Math.sin(s.id),uz=d>1e-3?dz/d:Math.cos(s.id);x+=ux*(mD-d)/2;z+=uz*(mD-d)/2}}if(p&&p._fx2!=null&&Math.hypot(p._fx2-x,p._fz2-z)<(inHouse?7:1.2)&&Math.hypot(p._fx2-x,p._fz2-z)>.01)yaw=Math.atan2(p._fx2-x,p._fz2-z)}const pr=figParts(s),P=poseOf(s,inHouse),prop=propOf(s),kid=pr.o.kid,a=ageOf(s),k=a<1?.3+a*.15:kid?.62+a/13*.3:1,sc=size*k,f=pr.f;
  if(!(s.talk&&s.talk.with&&hAbs()<s.talk.until)&&!P.lie&&s.act==='do')actPose(s,P,inHouse);
  const base=P.lie?mm(M4.T(x,y+.07*sc,z),M4.RY(yaw),M4.RX(-Math.PI/2),M4.T(0,-.5,0)):mm(M4.T(x,y,z),M4.RY(yaw));
@@ -3651,9 +3720,9 @@ function drawFigure0(s,x,y,z,yaw,size,inHouse){if(s.talk&&s.talk.with&&hAbs()<s.
  const hip=.5+P.hy,hx=P.hx||0,tw=P.tw||0,waist=mm(M4.T(hx,hip+.02,0),M4.RY(tw)),lean=M4.RX(P.lean),pv=mm(M4.T(hx,hip,0),M4.RY(-tw*.5));
  for(const[sd,th,kn]of[[-1,P.thL,P.knL],[1,P.thR,P.knR]]){const hipJ=mm(pv,M4.T(sd*.05,0,0),M4.RX(th));D(pr.thigh,hipJ);D(pr.shin,mm(hipJ,M4.T(0,-.24,0),M4.RX(kn)))}
  const tor=mm(waist,lean);D(pr.pelvis,pv);D(pr.torso,mm(tor,M4.T(0,.02,0)));
- for(const[sd,shq,el,sp]of[[-1,P.shL,P.elL,P.spL],[1,P.shR,P.elR,P.spR]]){const shJ=mm(tor,M4.T(sd*.105,.25,0),M4.RZ(sd*sp),M4.RX(shq)),fa=mm(shJ,M4.T(0,-.15,0),M4.RX(el));D(pr.uarm,shJ);D(pr.farm,fa);if(sd===1&&prop&&!P.lie)drawProp(prop,W(mm(fa,M4.T(0,-.17,0))),sc)}
+ for(const[sd,shq,el,sp]of[[-1,P.shL,P.elL,P.spL],[1,P.shR,P.elR,P.spR]]){const shJ=mm(tor,M4.T(sd*.098,.238,0),M4.RZ(sd*sp),M4.RX(shq)),fa=mm(shJ,M4.T(0,-.15,0),M4.RX(el));D(pr.uarm,shJ);D(pr.farm,fa);if(sd===1&&prop&&!P.lie)drawProp(prop,W(mm(fa,M4.T(0,-.17,0))),sc)}
  if(typeof ui!=='undefined'&&ui.sel&&ui.sel.k==='s'&&ui.sel.id===s.id&&!P.lie){const mc=s.mood>65?'#4fd16a':s.mood>40?'#e8c43a':'#e0503a';const cb=partBatch('crys|'+mc,()=>{cone(TR(0,0,0),.035,.06,4,col(mc));cone(TR(0,0,0,0,Math.PI),.035,.06,4,col(mc))});const CM=W(mm(M4.T(0,1.13+.015*Math.sin(S.t*3),0),M4.RY(S.t*1.5)));setModel(CM,nmOf(CM,sc));cb.draw()}
- const hs=(kid?.07:.059),H=mm(tor,M4.T(0,.4,0),M4.RY((P.hyaw||0)-tw*.7),M4.RX(P.head),M4.S(hs)),HM=W(H);setModel(HM,nmOf(HM,sc*hs));headBatch(s,false).draw()}
+ const hs=(kid?.072:.0625),H=mm(tor,M4.T(0,.392,0),M4.RY((P.hyaw||0)-tw*.7),M4.RX(P.head),M4.S(hs)),HM=W(H);setModel(HM,nmOf(HM,sc*hs));headBatch(s,false).draw()}
 function walkPhase(s,x,z){if(s._fx2!=null){const d=Math.hypot(x-s._fx2,z-s._fz2);s._wph=(s._wph||0)+d*(s._wscale||14)}s._fx2=x;s._fz2=z}
 // ---- Charakterblatt ----
 function renderFig(s,yaw,opts){if(!GL_OK)return null;if(PFB_OK===null){try{PFB_OK=initPFB()}catch(e){PFB_OK=false}}if(!PFB_OK)return null;opts=opts||{};
