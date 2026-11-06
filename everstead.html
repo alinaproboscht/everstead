@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110502">
+<meta name="everstead-build" content="2026110503">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -399,7 +399,7 @@ const bName=b=>b?(b.d&&b.d.name)||BT[b.t].n:'';
 const jobTitle=s=>{const b=s.job&&bById.get(s.job);if(!b)return ageOf(s)<16?'Kind':ageOf(s)>=65?'Im Ruhestand':'Ohne Arbeit';if(b.built<1)return (s.g==='f'?'Bauhelferin':'Bauhelfer')+(s.tmpJob?' (vorübergehend)':'');const j=F(b).job;return j?j[s.g==='f'?0:1]:'Helfer'};
 function log(txt,sid){S.log.unshift({d:day(),h:clock(),txt});if(S.log.length>200)S.log.pop();hooks.feed(txt,sid)}
 function mem(s,txt){s.mem.unshift(`${WD[wday()].slice(0,2)} ${clock()}: ${txt}`);if(s.mem.length>8)s.mem.pop()}
-function index(){if(S&&!S._bathV){S._bathV=1;let n=0;for(const b of S.b)try{if(ensureBath(b))n++}catch(e){}if(n)setTimeout(()=>{try{toast(`🚿 ${n} Wohnhäuser haben ein Badezimmer bekommen.`)}catch(e){}},2500)}bById=new Map();pById=new Map();occ.fill(0);for(const b of S.b){bById.set(b.id,b);const z=BT[b.t]&&BT[b.t].sz||1;for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=b.id}for(const s of S.p)pById.set(s.id,s);bDirty=true}
+function index(){if(S&&(S._bathV||0)<2){S._bathV=2;let n=0;for(const b of S.b)try{if(ensureBath(b))n++}catch(e){}if(n)setTimeout(()=>{try{toast(`🚿 ${n} Gebäude haben ein Badezimmer bekommen.`)}catch(e){}},2500)}bById=new Map();pById=new Map();occ.fill(0);for(const b of S.b){bById.set(b.id,b);const z=BT[b.t]&&BT[b.t].sz||1;for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=b.id}for(const s of S.p)pById.set(s.id,s);bDirty=true}
 const afford=c=>Object.entries(c||{}).every(([k,n])=>S.res[k]>=n);
 const pay=c=>{for(const[k,n]of Object.entries(c||{})){S.res[k]-=n;if(k==='taler')flow('out','Bauen & Einrichten',n);else flow('cons',k,n)}};
 const beds=b=>b.built>=1?(b.plan?F(b).beds:(b.t==='haus'?3*(b.d.fl||1):(BT[b.t].beds||0))):0;
@@ -628,7 +628,7 @@ function socialTick(s,dh){if(!s.inside||rnd()>dh*1.5)return;const o=S.p.filter(p
 // ===== Gebäude =====
 function addB(t,x,y,d){const T=BT[t];const b={id:S.nid++,t,x,y,built:0,prog:0,stock:0,owner:0,st:''};if(T.def||d)b.d=Object.assign({wc:null,rc:null,deco:[],name:''},T.def?{f:T.def.f,fl:T.def.fl}:{},d||{});
  if(b.d){const Fm=FORMS[b.d.f];if(!b.d.wc)b.d.wc=Fm.walls[0];if(!b.d.rc)b.d.rc=Fm.roofs[0];b.d.deco=[...(b.d.deco||[])];delete b.d.plan}
- if(PLAN_TYPES[t]){b.plan=clonePlan((d&&d.plan)||TEMPLATES[t]);syncExterior(b)}
+ if(PLAN_TYPES[t]){b.plan=clonePlan((d&&d.plan)||TEMPLATES[t]);try{ensureBath(b)}catch(e){}syncExterior(b)}
  S.b.push(b);bById.set(b.id,b);const z=szOf(t);for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++){occ[(y+dy)*W+x+dx]=b.id;hooks.tile((y+dy)*W+x+dx)}pcache.clear();bDirty=true;return b}
 function syncExterior(b){if(!b.plan||!b.d)return;const n=planFloors(b.plan);if(FORMS[b.d.f].maxF<n){b.d.f='fachwerk';b.d.wc=FORMS.fachwerk.walls[0];b.d.rc=FORMS.fachwerk.roofs[0]}b.d.fl=Math.min(3,n);b._fx=null}
 function removeB(b){S.b=S.b.filter(q=>q!==b);bById.delete(b.id);const z=szOf(b.t);for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=0;pcache.clear();for(const s of S.p){if(s.job===b.id)s.job=0;if(s.home===b.id)s.home=0;if(s.inside===b.id){s.inside=0;s.y=b.y+1.2;s.task=null;s.act='idle'}}hooks.tile(b.y*W+b.x)}
@@ -791,15 +791,31 @@ const PLAN_TYPES={haus:1,baeckerei:1,taverne:1,rathaus:1};
 const planHasBath=p=>!!p&&p.floors.some(fl=>fl.furn.some(f=>f.t==='schwall'||f.t==='zuber'));
 function fitFurn(fl,t,cands){for(const[x,y,r]of cands){const f={t,x,y,r:r||0},[w,h]=fsize(f);let ok=x>=0&&y>=0&&x+w<=PW&&y+h<=PH;const rm=ok?roomAt(fl,x,y):-1;if(rm<0)continue;
   for(let dy=0;dy<h&&ok;dy++)for(let dx=0;dx<w&&ok;dx++){if(roomAt(fl,x+dx,y+dy)!==rm||furnAt(fl,x+dx,y+dy)>=0)ok=false}if(ok){fl.furn.push(f);return true}}return false}
-function ensureBath(b){if(b.t!=='haus'||!b.plan||planHasBath(b.plan))return false;const p=b.plan;
- for(let fi=0;fi<p.floors.length;fi++){const fl=p.floors[fi];const rooms=fl.rooms.map((R,i)=>[R,i]).filter(([R])=>!R.o&&R.w*R.h>=10).sort((a,c)=>a[0].w*a[0].h-c[0].w*c[0].h);
+const MOVABLE=new Set(['truhe','regal','fass','stuhl','bank','tisch','kommode','topf','kerze','vase','spiegel','teppich','fell','lehnstuhl','buecher','holzstapel','heu','mehl','wiege','schrank','baum','beet','steinblock','umkleide','stand']);
+function bathHut(fl){// kleines Bad (3×2) in eine Freifläche setzen; der Rest bleibt offene Fläche
+ for(const R of fl.rooms.filter(R=>R.o&&R.w>=4&&R.h>=4).sort((a,c)=>c.w*c.h-a.w*a.h)){
+  for(const[cx,cy]of[[R.x+R.w-3,R.y+R.h-2],[R.x,R.y+R.h-2],[R.x+R.w-3,R.y],[R.x,R.y]]){const H2={x:cx,y:cy,w:3,h:2};
+   const blk=fl.furn.filter(f=>{const[w,h]=fsize(f);return f.x<H2.x+3&&f.x+w>H2.x&&f.y<H2.y+2&&f.y+h>H2.y});if(blk.some(f=>!MOVABLE.has(f.t)))continue;for(const f of blk)fl.furn.splice(fl.furn.indexOf(f),1);
+   const top=cy===R.y,left=cx===R.x,parts=[];if(top){parts.push({x:R.x,y:R.y+2,w:R.w,h:R.h-2});parts.push(left?{x:R.x+3,y:R.y,w:R.w-3,h:2}:{x:R.x,y:R.y,w:R.w-3,h:2})}
+   else{parts.push({x:R.x,y:R.y,w:R.w,h:R.h-2});parts.push(left?{x:R.x+3,y:R.y+R.h-2,w:R.w-3,h:2}:{x:R.x,y:R.y+R.h-2,w:R.w-3,h:2})}
+   const i=fl.rooms.indexOf(R);fl.rooms.splice(i,1,...parts.map(q=>({...q,mat:R.mat,o:true})));fl.rooms.push({...H2,mat:'holz'});
+   const dk=top?`h:${cx+1}:${cy+2}`:`h:${cx+1}:${cy}`;fl.edges[dk]='door';
+   fitFurn(fl,'schwall',[[cx+(left?0:2),cy+(top?0:1)],[cx+(left?2:0),cy+(top?0:1)]]);fitFurn(fl,'waschtisch',[[cx+(left?1:0),cy+(top?0:1),0],[cx,cy+(top?0:1),0],[cx+1,cy+(top?0:1),0]]);
+   for(const f of blk){const C=[];for(const q of parts)for(let y=q.y;y<q.y+q.h;y++)for(let x=q.x;x<q.x+q.w;x++)C.push([x,y,f.r]);C.sort((u,v)=>Math.hypot(u[0]-f.x,u[1]-f.y)-Math.hypot(v[0]-f.x,v[1]-f.y));fitFurn(fl,f.t,C)}
+   for(const k of Object.keys(fl.edges))if(!isWall(fl,k))delete fl.edges[k];return true}}return false}
+const BATH_PREF={lager:0,flur:1,leer:1,stube:2,schlaf:3,kueche:4};
+function ensureBath(b){if(!b.plan||planHasBath(b.plan)||!b.plan.floors.some(fl=>fl.rooms.length))return false;const p=b.plan;
+ if(p.floors[0].rooms.length&&p.floors[0].rooms.every(R=>R.o)){if(bathHut(p.floors[0])){p.v=(p.v||1)+1;b._pa=null;return true}}
+ let A0=null;try{A0=analyze(p)}catch(e){}
+ for(let fi=0;fi<p.floors.length;fi++){const fl=p.floors[fi];const ty=i=>{const t=A0&&A0.floors[fi]&&A0.floors[fi].rooms[i]&&A0.floors[fi].rooms[i].type;return t in BATH_PREF?BATH_PREF[t]:6};const rooms=fl.rooms.map((R,i)=>[R,i]).filter(([R])=>R.w*R.h>=10&&!R.o).sort((a,c)=>ty(a[1])-ty(c[1])||a[0].w*a[0].h-c[0].w*c[0].h);
   for(const[R]of rooms){for(const side of['b','r','t','l']){const hor=side==='b'||side==='t';if((hor?R.h:R.w)<5||(hor?R.w:R.h)<2)continue;
     const S2=side==='b'?{x:R.x,y:R.y+R.h-2,w:R.w,h:2}:side==='t'?{x:R.x,y:R.y,w:R.w,h:2}:side==='r'?{x:R.x+R.w-2,y:R.y,w:2,h:R.h}:{x:R.x,y:R.y,w:2,h:R.h};
     const inStrip=f=>{const[w,h]=fsize(f);return f.x<S2.x+S2.w&&f.x+w>S2.x&&f.y<S2.y+S2.h&&f.y+h>S2.y};const crossing=fl.furn.filter(inStrip);
-    if(crossing.some(f=>f.t==='treppe'||f.t.includes('bett')))continue;
+    if(crossing.some(f=>!MOVABLE.has(f.t)))continue;
+    {let extDoor=false;for(const[k,t]of Object.entries(fl.edges)){if(t!=='door')continue;const[o,a,c]=k.split(':'),A=+a,C=+c;if(o==='h'){if(A>=S2.x&&A<S2.x+S2.w&&(C===S2.y||C===S2.y+S2.h)&&edgeSides(fl,k).some(v=>v<0))extDoor=true}else{if(C>=S2.y&&C<S2.y+S2.h&&(A===S2.x||A===S2.x+S2.w)&&edgeSides(fl,k).some(v=>v<0))extDoor=true}}if(extDoor)continue}
     const moved=[];for(const f of crossing){fl.furn.splice(fl.furn.indexOf(f),1);moved.push(f)}
     if(side==='b')R.h-=2;else if(side==='t'){R.y+=2;R.h-=2}else if(side==='r')R.w-=2;else{R.x+=2;R.w-=2}
-    fl.rooms.push({...S2,mat:R.mat||'fachwerk'});
+    fl.rooms.push({...S2,mat:R.o?'holz':(R.mat||'fachwerk')});
     // Tür zwischen Raum und Bad an einer freien Stelle
     let door=null;const L2=hor?S2.w:S2.h;for(let k=0;k<L2&&!door;k++){const cx=hor?S2.x+k:(side==='r'?S2.x-1:S2.x+2),cy=hor?(side==='b'?S2.y-1:S2.y+2):S2.y+k,bx=hor?S2.x+k:(side==='r'?S2.x:S2.x+1),by=hor?(side==='b'?S2.y:S2.y+1):S2.y+k;
      if(furnAt(fl,cx,cy)<0&&furnAt(fl,bx,by)<0)door=hor?`h:${S2.x+k}:${side==='b'?S2.y:S2.y+2}`:`v:${side==='r'?S2.x:S2.x+2}:${S2.y+k}`}
@@ -809,6 +825,7 @@ function ensureBath(b){if(b.t!=='haus'||!b.plan||planHasBath(b.plan))return fals
     for(const f of moved)if(!fitFurn(fl,f.t,fl.rooms.flatMap(Q=>{const c=[];for(let y=Q.y;y<Q.y+Q.h;y++)for(let x=Q.x;x<Q.x+Q.w;x++)c.push([x,y,f.r]);return c})))S.res.bretter=(S.res.bretter||0)+1;
     for(const k of Object.keys(fl.edges))if(!isWall(fl,k))delete fl.edges[k];
     p.v=(p.v||1)+1;b._pa=null;return true}}}
+ for(const fl of p.floors)if(bathHut(fl)){p.v=(p.v||1)+1;b._pa=null;return true}
  return false}
 const Rm=(x,y,w,h,mat)=>({x,y,w,h,mat:mat||'fachwerk'}),Fu=(t,x,y,r)=>({t,x,y,r:r||0});
 const TEMPLATES={
@@ -1176,6 +1193,7 @@ function careOptions(s,add,h,n){
  const home=s.home&&bById.get(s.home),bath=nearest(s,b=>BT[b.t].bath);
  const hb=home&&planHasBath(home.plan);if(n.y<72){if(hb)add((100-n.y)*1.5+18,{k:home.plan.floors.some(fl=>fl.furn.some(f=>f.t==='zuber'))&&rnd()<.35?'bathe':'shower',bid:home.id,home:1});
   else{if(bath&&h>=9&&h<21&&s.money>=1)add((100-n.y)*1.1,{k:pick(['bathe','shower','groom']),bid:bath.id});if(home&&n.y<60)add((100-n.y)*1.25+10,{k:'wash',bid:home.id})}}
+ {const jb=s.job&&bById.get(s.job);if(jb&&jb!==home&&jb.plan&&planHasBath(jb.plan)&&s.inside===jb.id&&n.y<45)add((100-n.y)*1.3,{k:'wash',bid:jb.id})}
  if(bath&&h>=9&&h<21&&s.money>=1&&n.y<85&&s.look&&rnd()<.15)add(30+(100-n.y)*.4,{k:'groom',bid:bath.id})
  if(s.sick){const hl=nearest(s,b=>BT[b.t].heal);if(hl&&h>=7&&h<20)add(95+s.sick.sev*10,{k:'heal',bid:hl.id});else if(home)add(70,{k:'nap',bid:home.id})}}
 function careArrive(s,b,k){const T=BT[b.t];
