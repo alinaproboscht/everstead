@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110708">
+<meta name="everstead-build" content="2026110711">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2866,7 +2866,7 @@ function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],
 }
 let sig='';
 function bsig(){return (S.era||0)+'#'+(S.decoV||0)+'#'+S.b.map(b=>b.id+':'+b.x+','+b.y+','+(b.rot||0)+':'+(b.built>=1?1:0)+':'+(b.d?b.d.f+b.d.fl+b.d.wc+b.d.rc+(b.d.deco||[]).join(''):'')+':'+(b.plan?b.plan.v:0)).join('|')}
-function buildStatic(){SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42}}
+function buildStatic(){MKR.clear();SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42}}
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
@@ -2889,7 +2889,7 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;uniform sampler2D tx;uniform sampler2D smap;uniform float shOn;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform vec4 sw;uniform float day;
+varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;uniform sampler2D tx;uniform sampler2D smap;uniform float shOn;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform vec4 sw;uniform float day;uniform float indoor;
    float unpack(vec4 q){return dot(q,vec4(1.,1./255.,1./65025.,1./16581375.));}
    float shade(){if(shOn<.5)return 1.;vec3 q=vl.xyz/vl.w*.5+.5;if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z>1.)return 1.;float s=0.;vec2 o=vec2(1.5/2048.,0.);
     s+=(q.z-.003>unpack(texture2D(smap,q.xy+o)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy-o)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy+o.yx)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy-o.yx)))?0.:1.;return s*.25;}
@@ -2901,54 +2901,65 @@ varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;un
     float n1=vn(w.xz*3.1),n2=vn(w.xz*11.7),nz=n1*.65+n2*.35;
     float low=1.-smoothstep(.03,.065,lp.y);
     // Bodenplatte: ausgefranster Rand, damit das Gelände durchscheint
-    if(low>.5&&r+(nz-.5)*.34>.8)discard;
+    if(indoor<.5&&low>.5&&r+(nz-.5)*.34>.8)discard;
     vec3 N=normalize(nn);vec3 base=pow(texture2D(tx,v).rgb,vec3(1.08));
     // Rand der Bodenplatte in die Wiese übergehen lassen
     vec3 grass=vec3(.31,.47,.2)*(.9+.2*n2);float edge=low*smoothstep(.45,.8,r+(n1-.5)*.2);float gg=smoothstep(.0,.06,base.g-max(base.r,base.b));
-    base=mix(base,grass*(.8+.4*dot(base,vec3(.33))/max(dot(grass,vec3(.33)),.01)*.5),low*(1.-gg)*mix(.38,.85,edge));
+    base=mix(base,grass*(.8+.4*dot(base,vec3(.33))/max(dot(grass,vec3(.33)),.01)*.5),low*(1.-gg)*mix(.38,.85,edge)*(1.-indoor));
     // Pflanzen am Modell folgen den Jahreszeiten wie die Landschaft
     float veg=smoothstep(.015,.07,base.g-max(base.r,base.b));
-    if(veg>0.){float tn=vn(floor(w.xz*1.7)*.73+.5);vec3 aut=mix(mix(vec3(.86,.5,.14),vec3(.76,.24,.1),tn),vec3(.92,.74,.2),step(.62,tn));aut=mix(base,aut,low>.5?.45:.75);
+    if(veg>0.&&indoor<.5){float tn=vn(floor(w.xz*1.7)*.73+.5);vec3 aut=mix(mix(vec3(.86,.5,.14),vec3(.76,.24,.1),tn),vec3(.92,.74,.2),step(.62,tn));aut=mix(base,aut,low>.5?.45:.75);
      float lu=dot(base,vec3(.3,.5,.2));vec3 win=mix(vec3(lu)*vec3(.9,.86,.76),base*.7+vec3(.06,.05,.03),.4);vec3 spr=base*vec3(1.,1.03,.94);
      base=mix(base,spr*sw.x+base*sw.y+aut*sw.z+win*sw.w,veg);}
     // Schnee auf Dächern und Boden im Winter
-    base=mix(base,vec3(.66,.69,.75)*(.93+.08*n2),sw.w*smoothstep(.32,.75,N.y)*.9);
+    base=mix(base,vec3(.66,.69,.75)*(.93+.08*n2),sw.w*smoothstep(.32,.75,N.y)*.9*(1.-indoor));
     // Kontaktschatten: Mauern werden zum Boden hin dunkler
-    float ao=mix(.64,1.,smoothstep(.02,.16,lp.y))*mix(1.,.9,low*(1.-edge));
+    float ao=indoor>.5?mix(.72,1.,smoothstep(.0,.35,lp.y)):mix(.64,1.,smoothstep(.02,.16,lp.y))*mix(1.,.9,low*(1.-edge));
     float nd=dot(N,ld),sh=nd>0.?shade():1.;vec3 amb=mix(gnd,sky,N.y*.5+.5)*ao;float wrap=max(nd*.86+.14,0.)*(nd>0.?1.:.3);
     vec3 col=base*(amb*.66+lc*1.04*wrap*mix(.18,1.,sh));
     vec3 V=normalize(eye-w);col+=lc*pow(1.-max(dot(N,V),0.),4.)*.05*day*sh;
     // Nachts: warmes Licht aus Fenstern (dunkle, bläuliche Glasflächen)
     float gls=smoothstep(.05,.0,abs(N.y))*smoothstep(.2,.05,dot(base,vec3(.33)))*step(base.r,base.b+.02)*step(.12,lp.y);
-    col+=vec3(1.,.72,.38)*gls*night*.9*step(.45,hs(floor(w.xz*4.)+floor(w.y*4.)));
+    col+=vec3(1.,.72,.38)*gls*night*.9*(1.-indoor)*step(.45,hs(floor(w.xz*4.)+floor(w.y*4.)));
     col=aces(col*1.08);float dist=length(w-eye);
     float sdv=max(dot(-V,ld),0.);vec3 fcol=fogc+lc*(pow(sdv,8.)*.25+pow(sdv,64.)*.2)*day;
     col=mix(col,fcol,clamp((dist-30.)/80.,0.,.94));gl_FragColor=vec4(col,1.);}`));
   gl.bindAttribLocation(p,0,'p');gl.bindAttribLocation(p,1,'n');gl.bindAttribLocation(p,2,'u');gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('glb link');
-  const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night','mnv','mxv','sw','day'])U[k]=gl.getUniformLocation(p,k);
+  const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night','mnv','mxv','sw','day','indoor'])U[k]=gl.getUniformLocation(p,k);
   const mb=(a)=>{const B=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,B);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return B};
   const H={p,U,pb:mb(pos),nb:mb(new Int8Array(dec(M.nm))),ub:mb(new Uint16Array(dec(M.uv))),ib:gl.createBuffer(),cnt:M.i,tex:null,mn:M.mn,mx:M.mx};
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(dec(M.ix)),gl.STATIC_DRAW);
   const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.activeTexture(gl.TEXTURE0);H.tex=t;bDirty=true};im.src=M.tex;
   HGM[key]=H;return H}catch(e){console.warn('Hausmodell',e);HG_FAIL=true;return null}}
 // Modellmatrix: Grundfläche füllt das Grundstück, Unterkante auf Bodenhöhe
-function hgMat(b){const K=glbKey(b),H=HGM[K],z=szOf(b.t),s=z*.98*MDEF[K].sc/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=b.x+z/2,cz=b.y+z/2,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s-.004*z,
+// Marktplatz füllt den ganzen gepflasterten Platz rund um den Markt (inkl. Brunnen)
+const MKR=new Map();let MKFIT=false;
+function marktRect(b){if(MKR.has(b.id))return MKR.get(b.id);
+ const z=szOf(b.t);let x0=b.x,y0=b.y,x1=b.x+z-1,y1=b.y+z-1;
+ const ok=(x,y)=>{if(x<0||y<0||x>=W||y>=H)return false;const i=y*W+x,o=occ[i];if(o){const q=bById.get(o);return !!q&&(q===b||q.t==='brunnen')}return S.road[i]>=1};
+ const row=(y,a,c)=>{for(let x=a;x<=c;x++)if(!ok(x,y))return false;return true},colm=(x,a,c)=>{for(let y=a;y<=c;y++)if(!ok(x,y))return false;return true};
+ for(let it=0;MKFIT&&it<40;it++){let g=false;
+  if(x1-x0<9&&colm(x0-1,y0,y1)){x0--;g=true}if(x1-x0<9&&colm(x1+1,y0,y1)){x1++;g=true}
+  if(y1-y0<9&&row(y0-1,x0,x1)){y0--;g=true}if(y1-y0<9&&row(y1+1,x0,x1)){y1++;g=true}if(!g)break}
+ const r={x0,y0,x1:x1+1,y1:y1+1,cx:(x0+x1+1)/2,cy:(y0+y1+1)/2,sz:Math.min(x1+1-x0,y1+1-y0)};MKR.set(b.id,r);return r}
+function underMarkt(b){if(b.t!=='brunnen')return false;for(const m of S.b){if(m.t!=='markt'||!useGlb(m))continue;const r=marktRect(m);if(b.x>=r.x0&&b.x<r.x1&&b.y>=r.y0&&b.y<r.y1)return true}return false}
+function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,z=MR?MR.sz:szOf(b.t),s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):MDEF[K].sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:b.x+z/2,cz=MR?MR.cy:b.y+z/2,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s-.004*z,
  ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
 const hgList=()=>S.b.filter(useGlb);
-function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const s=szOf(b.t)*.98*MDEF[K].sc/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s}
+function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):szOf(b.t)*MDEF[K].sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s}
 function hgDraw(Lt,shOn,cut){for(const key of GLBK){const H=hgInit(key);if(!H||!H.tex)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDraw1(H,L2,Lt,shOn)}}
 function hgDraw1(H,L2,Lt,shOn){const U=H.U;gl.useProgram(H.p);
  for(const k of['n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);gl.enableVertexAttribArray(0);gl.enableVertexAttribArray(1);gl.enableVertexAttribArray(2);
  gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.nb);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.ub);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
- gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);gl.uniform3fv(U.mnv,H.mn);gl.uniform3fv(U.mxv,H.mx);gl.uniform4fv(U.sw,seasonWeights());gl.uniform1f(U.day,Lt.day==null?1:Lt.day);
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);gl.uniform3fv(U.mnv,H.mn);gl.uniform3fv(U.mxv,H.mx);gl.uniform4fv(U.sw,seasonWeights());gl.uniform1f(U.day,Lt.day==null?1:Lt.day);gl.uniform1f(U.indoor,Lt.indoor?1:0);
  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.uniform1i(U.tx,2);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.uniform1i(U.smap,0);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
- for(const b of L2){gl.uniformMatrix4fv(U.mdl,false,new Float32Array(hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}
+ for(const b of L2){gl.uniformMatrix4fv(U.mdl,false,new Float32Array(b.M||hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}
  gl.disable(gl.CULL_FACE);gl.disableVertexAttribArray(2);gl.useProgram(P);for(const k of['n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
 function hgDrawS(cut){for(const key of GLBK){const H=hgInit(key);if(!H)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDrawS1(H,L2)}}
 function hgDrawS1(H,L2){gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
  for(const b of L2){gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4))}
 function buildStatic0(){BT_OPEN.n=0;BT_EXT.n=0;BT_INT.n=0;BT_SH.n=0;SMOKE=[];
- for(const b of S.b){if(b.built<1)continue;BY=hgtAt(b.y*W+b.x)*HS;setRot(b);G=b.plan&&b.d?BT_EXT:BT_OPEN;if(useGlb(b)&&hgInit(glbKey(b))){b._top=hgTop(b)+hgtAt(b.y*W+b.x)*HS}else b._top=bldMesh(b);if(b.plan&&b.d){G=BT_INT;interiorMesh(b)}
+ for(const b of S.b){if(b.built<1)continue;BY=hgtAt(b.y*W+b.x)*HS;setRot(b);G=b.plan&&b.d?BT_EXT:BT_OPEN;if(useGlb(b)&&hgInit(glbKey(b))){b._top=hgTop(b)+hgtAt(b.y*W+b.x)*HS}else if(underMarkt(b)){b._top=hgtAt(b.y*W+b.x)*HS+.4}else b._top=bldMesh(b);if(b.plan&&b.d){G=BT_INT;interiorMesh(b)}
   if(b.d&&!SH_OK){const z=szOf(b.t);G=BT_SH;gq(b.x+.12,b.y+.18,b.x+z+.02,b.y+z,.006,col('#000000',.16))}BY=0;BROT=null}
  G=BT_OPEN;for(const d of S.deco||[]){const i=Math.floor(d.y)*W+Math.floor(d.x);BY=(i>=0&&i<W*H?hgtAt(i)*HS:0);try{plant3(d)}catch(e){}}BY=0;
  BT_OPEN.up();BT_EXT.up();BT_INT.up();BT_SH.up()}
@@ -5076,6 +5087,16 @@ function itxDraw(Lt,dayish,wins){const H=itxInit();if(!H){ITX.q={};return}const 
  ITX.q={};for(let i=0;i<4;i++)gl.disableVertexAttribArray(i);gl.useProgram(P);for(const k of['p','n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
 const FLOORK={bad:'tiles',wasch:'tiles',sauna:'boards',barbier:'tiles',heil:'tiles',kueche:'terra',back:'terra',werk:'flags',lager:'flags',stall:'flags',schank:'flags',verkauf:'planks',flur:'flags'};
 const WALLK={fachwerk:'timber',stein:'stone',lehm:'lehm',holz:'boards'};
+// ===== Möbel als 3D-Modelle (GLB) =====
+const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',over:1.08},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
+function fgUse(f){const m=FGM[f.t];if(!m||HG_FAIL)return false;if(!HGD[m.k]){mLoad(m.k);return false}return !!hgInit(m.k)}
+function fgMat(f){const m=FGM[f.t],H=HGM[m.k],d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,th=m.ry+f.r*Math.PI/2,sw=Math.abs(Math.sin(m.ry))>.5;
+ const ex=H.mx[0]-H.mn[0],ey=H.mx[1]-H.mn[1],ez=H.mx[2]-H.mn[2],Wl=d.w*.92,Dl=d.h*.92,ax=sw?Dl:Wl,az=sw?Wl:Dl;let sx,sy,sz;
+ if(m.fit==='stretch'){sx=ax/ex;sz=az/ez;sy=Math.sqrt(sx*sz)}else if(m.fit==='h'){sx=sy=sz=m.h/ey}else{sx=sy=sz=Math.min(ax/ex,az/ez)*(m.over||1)}
+ const c=Math.cos(th),sn=Math.sin(th),mx=(H.mn[0]+H.mx[0])/2*sx,mz=(H.mn[2]+H.mx[2])/2*sz;
+ return[c*sx,0,-sn*sx,0, 0,sy,0,0, sn*sz,0,c*sz,0, cx-(mx*c+mz*sn),-H.mn[1]*sy,cz-(-mx*sn+mz*c),1]}
+function fgDraw(list,Lt0){if(!list.length)return;const by={};for(const f of list){const k=FGM[f.t].k;(by[k]=by[k]||[]).push({M:fgMat(f)})}
+ for(const k in by){const H=hgInit(k);if(H&&H.tex)hgDraw1(H,by[k],Lt0,false)}}
 // ---- Szene ----
 function horse3s(x,z,ry,c){const T=(a,y,b)=>{const cs=Math.cos(ry),sn=Math.sin(ry);return TR(x+a*cs+b*sn,y,z-a*sn+b*cs,ry)};const hc=col(c),dk=col(shade(c,-.3));box(T(0,.95,0),.55,.6,1.5,hc);for(const[a,b]of[[-.18,-.55],[.18,-.55],[-.18,.55],[.18,.55]])box(T(a,0,b),.13,.95,.13,dk);box(TR(x+Math.sin(ry)*.75,1.3,z+Math.cos(ry)*.75,ry,-.5),.25,.75,.28,hc);box(T(0,1.85,1.05),.24,.28,.55,hc);box(T(0,1.6,.75),.06,.45,.3,dk);box(T(0,.9,-.8),.08,.55,.1,dk)}
 function hvScene(ui){
@@ -5099,7 +5120,7 @@ function hvScene(ui){
   else if(t==='open'){}
   else if(t==='window'&&!near){seg(0,1+th,0,1.2,wc);seg(0,.8,1.2,1.3,col('#bfe2f2'),.5);seg(0,1+th,2.5,H2-2.5,wc);seg(-.45,.1,1.2,1.3,wc);seg(.45,.1,1.2,1.3,wc)}
   else seg(0,1+th,0,H2,wc)}
- fl.furn.forEach(f=>{furn3(f);furnDeco(f)});cozyDecor(b,fl,a,IM.f);cozyLamps(b,fl,a);
+ const FGL=[];fl.furn.forEach(f=>{if(fgUse(f)){FGL.push(f);return}furn3(f);furnDeco(f)});cozyDecor(b,fl,a,IM.f);cozyLamps(b,fl,a);
  // Personen
  const act=activeP(),faces=[];
  for(const s of S.p){if(s.inside!==b.id||s.away||s.act==='walk'||!s.ip||s.ip.f!==IM.f){s._iv=null;continue}
@@ -5110,7 +5131,7 @@ function hvScene(ui){
   s.act=wasWalk;s._iv=[x,1.2*k,z];
   if(s===act||s.ctrl){G=DT;for(let i=0;i<20;i++){const a1=i/20*Math.PI*2,a2=(i+1)/20*Math.PI*2,r1=.55,r2=.7;quad([x+Math.cos(a1)*r1,.02,z+Math.sin(a1)*r1],[x+Math.cos(a2)*r1,.02,z+Math.sin(a2)*r1],[x+Math.cos(a2)*r2,.02,z+Math.sin(a2)*r2],[x+Math.cos(a1)*r2,.02,z+Math.sin(a1)*r2],col(s.ctrl?'#f0c85a':'#ffffff',.9))}}
   G=DT;gq(x-.35,z-.25,x+.35,z+.25,.01,col('#000000',.2))}
- SOFTBOX=false;BT_DYN.up();DT.up();BT_DYN.draw();itxDraw(Lt,dayish,ITW);
+ SOFTBOX=false;BT_DYN.up();DT.up();BT_DYN.draw();itxDraw(Lt,dayish,ITW);fgDraw(FGL,{ld:[-.35,.85,.4],lc:[.62*dayish+.12,.52*dayish+.1,.38*dayish+.1],sky:[.5,.46,.42],gnd:[.34,.26,.2],fog:[.16,.2,.16],night:Lt.night,day:dayish,indoor:1});
  gl.uniform1f(L.det,0);for(const[s,x,y,z,hd]of faces)drawFigure(s,x,y,z,hd,2.25,true);gl.uniform1f(L.det,1);flushSprites([1.02,.98,.92],null);
  setModel(ID4,ID3);gl.enable(gl.BLEND);gl.depthMask(false);DT.draw();gl.depthMask(true);gl.disable(gl.BLEND);
  if(PPH){const tl=cam.dist;cam.dist=0;postEnd(Lt,.9);cam.dist=tl}

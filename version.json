@@ -1,7 +1,7 @@
 {
-  "build": 2026110708,
+  "build": 2026110711,
   "file": "everstead.html",
-  "notes": "Update 41: Marktplatz als 3D-Modell",
+  "notes": "Update 44: Erste 3D-Möbel – Bett, Herdzeile, Stuhl, Esstisch",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -10,6 +10,22 @@
     {
       "file": "m_chalet.json",
       "size": 1288339
+    },
+    {
+      "file": "m_fbett.json",
+      "size": 1251323
+    },
+    {
+      "file": "m_fherd.json",
+      "size": 1389052
+    },
+    {
+      "file": "m_fstuhl.json",
+      "size": 1307510
+    },
+    {
+      "file": "m_ftisch.json",
+      "size": 1372908
     },
     {
       "file": "m_gut.json",
