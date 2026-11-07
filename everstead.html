@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110705">
+<meta name="everstead-build" content="2026110706">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -4935,7 +4935,7 @@ function furn3(f){const d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,R=f
   case 'kommode':{box(T(0,0,0),w*.9,1.05,h*.55,col('#6b4226'));box(T(0,1.05,0),w*.94,.06,h*.6,wood);for(let k=0;k<3;k++){box(T(0,.18+k*.3,h*.276),w*.82,.24,.02,col('#7a4a2a'));box(T(0,.3+k*.3,h*.29),.14,.04,.03,col('#c9a24a'))}cyl(T(-.4,1.11,0),.08,.06,.3,8,col('#3d6b8a'));ell3(T(.35,1.15,0),.12,.08,.1,4,6,col('#e8dcc0'));break}
   case 'lehnstuhl':{box(T(0,0,0),.7,.45,.7,dark);box(T(0,.45,.02),.64,.12,.62,col('#8a2a2a'));box(T(0,.45,-.32),.7,1.05,.1,dark);box(T(0,.6,-.26),.56,.75,.06,col('#8a2a2a'));for(const sx of[-1,1])box(T(sx*.33,.45,0),.08,.3,.66,dark);break}
   case 'buecher':{const W=w*.92;box(T(0,0,-.1),W,2.2,.4,dark);for(let k=0;k<4;k++){box(T(0,.05+k*.54,0),W*.96,.05,.42,wood);let x0=-W*.44;for(let i=0;x0<W*.4;i++){const bw=.07+((i*7+k*3)%4)*.025,bh=.32+((i*5+k)%3)*.07;box(T(x0+bw/2,.1+k*.54,0,0,0,(i+k)%9===0?.25:0),bw,bh,.3,col(['#7a2a2a','#2f4a6a','#3d5a3a','#8a6a2a','#5a3a5a','#c9b48a'][(i*3+k)%6]));x0+=bw+.01}}break}
-  case 'teppich':{box(T(0,0,0),w*.92,.025,h*.92,col('#7a2430'));box(T(0,.026,0),w*.78,.008,h*.78,col('#a8423a'));box(T(0,.035,0),w*.5,.006,h*.5,col('#d8b46a'));box(T(0,.04,0),w*.36,.005,h*.36,col('#2f4a6a'));break}
+  case 'teppich':{box(T(0,0,0),w*.92,.025,h*.92,col('#7a2430'));if(IM){const Tm=T(0,0,0),q=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,c])=>ap(Tm,a*w*.46,.027,c*h*.46));itxQ('rug',q,[0,1,0],[[0,0],[1,0],[1,1],[0,1]])}else{box(T(0,.026,0),w*.78,.008,h*.78,col('#a8423a'))}break}
   case 'fell':{ell3(T(0,0,0),w*.42,.03,h*.4,4,12,col('#e8dfc8'),{def:(x,y,z,th,ph)=>{const k=1+.12*Math.sin(ph*7);return[x*k,Math.max(y,0),z*k]}});ell3(T(0,.02,0),w*.3,.02,h*.26,3,10,col('#d8ccb0'));break}
   case 'kerze':{cyl(T(0,0,0),.18,.14,.06,8,col('#3a3a3a'));cyl(T(0,.06,0),.04,.03,1.2,6,col('#3a3a3a'));box(T(0,1.24,0),.5,.04,.04,col('#3a3a3a'));for(const sx of[-.24,0,.24]){cyl(T(sx,1.28,0),.035,.035,.22,6,col('#f2ead8'));ell3(T(sx,1.55,0),.025,.05,.025,3,5,col('#ffd36a'),{e:1})}break}
   case 'topf':{cyl(T(0,0,0),.2,.26,.36,10,col('#b0603a'));cyl(T(0,.34,0),.27,.27,.05,10,col('#9a4f30'));ell3(T(0,.7,0),.38,.36,.38,6,10,col('#3f7a3a'));ell3(T(.15,.88,.1),.22,.22,.22,5,8,col('#4f8a42'));ell3(T(-.15,.8,-.1),.2,.2,.2,5,8,col('#5a9a48'));break}
@@ -4975,6 +4975,107 @@ function plantAt(t,gx,gy){const x=Math.floor(gx),y=Math.floor(gy);if(x<0||y<0||x
  const P=PLANT[t];if(occ[i])return 'Hier steht ein Gebäude.';if(S.map[i]===3)return 'Im Wasser wächst das nicht.';if(S.road[i])return 'Nicht auf Wegen.';
  if(S.deco.some(d=>Math.hypot(d.x-gx,d.y-gy)<(P.g==='baum'?.35:.14)))return 'Zu dicht an einer anderen Pflanze.';
  if(!afford(P.cost))return 'Nicht genug Taler.';pay(P.cost);S.deco.push({t,x:Math.round(gx*100)/100,y:Math.round(gy*100)/100,r:Math.round(Math.random()*628)/100});S.decoV=(S.decoV||0)+1;bDirty=true;return null}
+// ===== Gemalte Innenraum-Oberflächen (Böden, Wände, Teppiche) =====
+const ITX={tex:{},prog:null,fail:false,q:{}};
+function itxRng(s){return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+// kachelbare Wertrausch-Funktion (Periode in Gitterzellen)
+function itxNoise(seed,per){const R=itxRng(seed),g=new Float32Array(per*per);for(let i=0;i<g.length;i++)g[i]=R();
+ return(x,y)=>{x=((x%per)+per)%per;y=((y%per)+per)%per;const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),x1=(ix+1)%per,y1=(iy+1)%per;
+  const a=g[iy*per+ix],b=g[iy*per+x1],c=g[y1*per+ix],d=g[y1*per+x1];return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy}}
+function itxFbm(seed,base,oct){const N=[];for(let o=0;o<oct;o++)N.push(itxNoise(seed+o*17,base<<o));return(u,v)=>{let s=0,a=.5,t=0;for(let o=0;o<oct;o++){s+=N[o](u*(base<<o),v*(base<<o))*a;t+=a;a*=.5}return s/t}}
+const ITS=512;
+function itxPaint(kind){const S=ITS,cv=document.createElement('canvas');cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S),D=im.data;
+ const put=(i,r,g,b)=>{D[i]=r<0?0:r>255?255:r;D[i+1]=g<0?0:g>255?255:g;D[i+2]=b<0?0:b>255?255:b;D[i+3]=255};
+ const R=itxRng(kind.length*977+13),F=itxFbm(kind.length*31+5,4,5),Fh=itxFbm(kind.length*53+9,16,3);
+ if(kind==='planks'){ // Eichendielen, versetzt, mit Maserung, Fugen und Nägeln
+  const rows=5,rh=S/rows,segs=[];for(let r=0;r<rows;r++){let x=-R()*S,L=[];while(x<S){const l=S*(.38+R()*.42);L.push([x,l,R(),R()]);x+=l}segs.push(L)}
+  const G=itxNoise(77,8);
+  for(let y=0;y<S;y++){const r=Math.floor(y/rh),fy=(y-r*rh)/rh;for(let x=0;x<S;x++){const i=(y*S+x)*4;let sg=segs[r][0];for(const s of segs[r])if(((x-s[0])%S+S)%S<s[1]&&x>=s[0]-S)sg=s;
+   const lx=(((x-sg[0])%S)+S)%S,tone=sg[2],u=x/S,v=y/S;
+   const grain=Math.sin((fy*rh*.9+G(u*8+sg[3]*3,v*8)*14+F(u,v)*10)*1.2+sg[3]*20)*.5+.5,fine=Fh(u*2,v*2);
+   let br=.78+tone*.28+grain*.1-fine*.12+(F(u+sg[3],v)-.5)*.18;
+   let rr=150*br,gg=104*br,bb=62*br;
+   const edge=Math.min(fy,1-fy)*rh,end=Math.min(lx,sg[1]-lx);
+   if(edge<1.6||end<1.6){rr*=.38;gg*=.36;bb*=.34}else if(edge<4){const k=.86+edge*.035;rr*=k;gg*=k;bb*=k}
+   if((Math.abs(lx-10)<2.2||Math.abs(lx-sg[1]+10)<2.2)&&Math.abs(fy-.5)*rh>rh*.28&&Math.abs(fy-.5)*rh<rh*.36){rr*=.45;gg*=.45;bb*=.45}
+   put(i,rr,gg,bb)}}}
+ else if(kind==='tiles'||kind==='terra'){ // Fliesen (Bad) bzw. Terrakotta
+  const n=kind==='tiles'?4:6,ts=S/n,TV=[];for(let k=0;k<n*n;k++)TV.push([R(),R()]);
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=(y*S+x)*4,tx=Math.floor(x/ts),ty=Math.floor(y/ts),fx=x-tx*ts,fy=y-ty*ts,e=Math.min(fx,fy,ts-fx,ts-fy),t=TV[ty*n+tx],u=x/S,v=y/S;
+   const m=F(u,v),f=Fh(u,v);let b=.9+t[0]*.12+(m-.5)*.16-f*.06;
+   let col=kind==='tiles'?[214,206,190]:[176,98,64];if(kind==='tiles'&&t[1]>.82)col=[150,168,170];
+   let rr=col[0]*b,gg=col[1]*b,bb=col[2]*b;
+   if(e<2.5){rr=kind==='tiles'?150:120;gg=kind==='tiles'?142:104;bb=kind==='tiles'?128:88}else if(e<7){const k=.9+e*.014;rr*=k;gg*=k;bb*=k}
+   put(i,rr,gg,bb)}}
+ else if(kind==='flags'){ // unregelmäßige Steinplatten (Voronoi, kachelbar)
+  const P=[];for(let k=0;k<26;k++){const p=[R()*S,R()*S,R()];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)P.push([p[0]+dx*S,p[1]+dy*S,p[2]])}
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){let d1=1e9,d2=1e9,t=0;for(const p of P){const d=(p[0]-x)**2+(p[1]-y)**2;if(d<d1){d2=d1;d1=d;t=p[2]}else if(d<d2)d2=d}
+   const e=Math.sqrt(d2)-Math.sqrt(d1),u=x/S,v=y/S,m=F(u,v),f=Fh(u,v),i=(y*S+x)*4;let b=.82+t*.22+(m-.5)*.2-f*.08;
+   let rr=158*b,gg=150*b,bb=134*b;if(e<4){rr=92;gg=84;bb=72}else if(e<10){const k=.86+e*.014;rr*=k;gg*=k;bb*=k}put(i,rr,gg,bb)}}
+ else if(kind==='plaster'||kind==='lehm'){ // Kalkputz bzw. Lehmputz
+  const base=kind==='plaster'?[208,194,166]:[176,138,98];
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=(y*S+x)*4,u=x/S,v=y/S,m=F(u,v),f=Fh(u,v),st=kind==='lehm'?Math.sin(u*40+m*9)*.03:0;
+   const tr=Math.sin((u*3+v*1.3+m*2.5)*26)*Math.sin((v*2.1-u*.7+f)*19)*.025,b=.95+(m-.5)*.08-f*.04+st+tr+(R()-.5)*.025;put(i,base[0]*b,base[1]*b,base[2]*b)}}
+ else if(kind==='timber'){ // Fachwerk innen: Putzfelder mit dunklen Eichenbalken
+  const G=itxNoise(33,8);
+  const beam=(u,v)=>{const bw=.055;if(v<.07||v>.95||Math.abs(v-.48)<.03)return 1;if(u<bw/2||u>1-bw/2||Math.abs(u-.5)<bw/2)return 1;
+   if(u>.5&&v>.48&&v<.95){const d=Math.abs((u-.5)/.5-(v-.48)/.47);if(d<.06)return 1}return 0};
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=(y*S+x)*4,u=x/S,v=1-y/S,m=F(u,v),f=Fh(u,v);
+   if(beam(u,v)){const gr=Math.sin((u+v)*60+G(u*8,v*8)*8)*.5+.5,b=.72+gr*.14-f*.12+(m-.5)*.12;put(i,96*b,64*b,40*b)}
+   else{let b=.88+(m-.5)*.14-f*.05;const ed=Math.min(...[.01,.02,.03].map(o=>beam(u+o,v)||beam(u-o,v)||beam(u,v+o)||beam(u,v-o)?o:1));if(ed<1)b*=.86+ed*4;put(i,224*b,212*b,186*b)}}}
+ else if(kind==='stone'){ // Bruchsteinmauer
+  const rows=7,rh=S/rows,RW=[];for(let r=0;r<rows;r++){let x=R()*-60,L=[];while(x<S){const w=50+R()*80;L.push([x,w,R()]);x+=w}RW.push(L)}
+  for(let y=0;y<S;y++){const r=Math.floor(y/rh),fy=y-r*rh;for(let x=0;x<S;x++){const i=(y*S+x)*4;let s=RW[r][0];for(const q of RW[r])if(x>=q[0]&&x<q[0]+q[1])s=q;
+   const lx=x-s[0],e=Math.min(fy,rh-fy,lx,s[1]-lx),u=x/S,v=y/S,m=F(u,v),f=Fh(u,v);let b=.8+s[2]*.26+(m-.5)*.2-f*.12;
+   let rr=150*b,gg=140*b,bb=124*b;if(e<3.5){rr=118;gg=110;bb=96}else if(e<9){const k=.84+e*.018;rr*=k;gg*=k;bb*=k}put(i,rr,gg,bb)}}}
+ else if(kind==='boards'){ // Holzwand: waagerechte Bretter
+  const n=8,bh=S/n,TV=[];for(let k=0;k<n;k++)TV.push(R());const G=itxNoise(55,8);
+  for(let y=0;y<S;y++){const r=Math.floor(y/bh),fy=(y-r*bh)/bh;for(let x=0;x<S;x++){const i=(y*S+x)*4,u=x/S,v=y/S,gr=Math.sin((fy*bh*.8+G(u*8,v*8)*12)*1.1+TV[r]*30)*.5+.5,f=Fh(u,v);
+   let b=.74+TV[r]*.2+gr*.1-f*.12;let rr=128*b,gg=88*b,bb=54*b;const e=Math.min(fy,1-fy)*bh;if(e<1.8){rr*=.4;gg*=.4;bb*=.4}else if(e<5){const k=.86+e*.03;rr*=k;gg*=k;bb*=k}put(i,rr,gg,bb)}}}
+ else if(kind==='rug'){ // gewebter Teppich mit Bordüre und Ornament
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=(y*S+x)*4,u=x/S,v=y/S,du=Math.min(u,1-u),dv=Math.min(v,1-v),d=Math.min(du,dv),f=Fh(u*4,v*4);
+   let col=[150,40,44];if(d<.03)col=[60,40,34];else if(d<.09)col=[196,150,70];else if(d<.11)col=[60,40,34];else if(d<.16)col=[34,58,92];
+   else{const cx=Math.abs(u-.5),cy=Math.abs(v-.5),dm=cx+cy;if(Math.abs(dm-.22)<.025||Math.abs(dm-.12)<.02)col=[196,150,70];else if(dm<.08)col=[34,58,92];else if((Math.floor(u*18)+Math.floor(v*18))%2&&dm>.3)col=[132,34,40]}
+   const weave=(Math.sin(x*1.6)*Math.sin(y*1.6))*.04,b=.92+weave-f*.08+(R()-.5)*.04;put(i,col[0]*b,col[1]*b,col[2]*b)}}
+ c.putImageData(im,0,0);return cv}
+function itxTex(kind){if(ITX.tex[kind])return ITX.tex[kind];const cv=itxPaint(kind),t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,cv);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);const an=gl.getExtension('EXT_texture_filter_anisotropic');if(an)gl.texParameterf(gl.TEXTURE_2D,an.TEXTURE_MAX_ANISOTROPY_EXT,4);
+ gl.activeTexture(gl.TEXTURE0);ITX.tex[kind]=t;return t}
+function itxInit(){if(ITX.prog||ITX.fail)return ITX.prog;try{const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
+ const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 u;attribute vec4 c;uniform mat4 vp;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 tc;void main(){w=p;nn=n;v=u;tc=c;gl_Position=vp*vec4(p,1.);}`));
+ gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 tc;uniform sampler2D tx;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform float day;uniform vec4 wins[12];uniform float nwin;
+  vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
+  void main(){vec3 N=normalize(nn);vec3 base=pow(texture2D(tx,v).rgb,vec3(2.2))*tc.rgb;
+   float ao=N.y>.5?1.:mix(.55,1.,smoothstep(0.,.9,w.y))*mix(1.,.92,smoothstep(2.2,3.4,w.y));
+   ao*=tc.a;
+   vec3 amb=mix(gnd,sky,N.y*.5+.5)*ao;float nd=max(dot(N,ld)*.8+.2,0.);
+   vec3 col=base*(amb*.9+lc*.85*nd*ao);
+   // Sonnenlicht, das durch die Fenster auf den Boden fällt
+   if(N.y>.5){float s=0.;for(int i=0;i<12;i++){if(float(i)>=nwin)break;vec4 q=wins[i];vec2 d=w.xz-q.xy;float fw=dot(d,q.zw);float sd=abs(d.x*q.w-d.y*q.z);
+     s+=smoothstep(0.,.25,fw)*smoothstep(2.6,.4,fw)*smoothstep(.75,.35,sd-fw*.18);}
+    col+=base*vec3(1.,.82,.58)*min(s,1.5)*.55*day;}
+   col=pow(col,vec3(1./2.2));col=aces(col*1.02);gl_FragColor=vec4(col,1.);}`));
+ ['p','n','u','c'].forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('itx link');
+ const U={};for(const k of['vp','tx','ld','lc','sky','gnd','day','wins','nwin'])U[k]=gl.getUniformLocation(p,k);ITX.prog={p,U,buf:gl.createBuffer()};return ITX.prog}catch(e){console.warn('Innenraum-Texturen',e);ITX.fail=true;return null}}
+// Geometrie sammeln: je Textur eine Liste [x,y,z,nx,ny,nz,u,v,r,g,b,ao]
+function itxQ(kind,P,Nv,UV,tint,ao){const L=ITX.q[kind]||(ITX.q[kind]=[]);const t=tint||[1,1,1],a=ao==null?1:ao;for(const k of[0,1,2,0,2,3])L.push(P[k][0],P[k][1],P[k][2],Nv[0],Nv[1],Nv[2],UV[k][0],UV[k][1],t[0],t[1],t[2],a)}
+function itxFloor(kind,x0,z0,x1,z1,y,sc,tint){itxQ(kind,[[x0,y,z0],[x0,y,z1],[x1,y,z1],[x1,y,z0]],[0,1,0],[[x0/sc,z0/sc],[x0/sc,z1/sc],[x1/sc,z1/sc],[x1/sc,z0/sc]],tint)}
+// beide Seiten eines Wandstücks (v: Wand entlang z, sonst entlang x)
+function itxWall(v,mx,mz,o,len,y0,hh,th,kA,kB,sx,sy){const off=th/2+.004,a0=o-len/2,a1=o+len/2;
+ for(const[sg,kind]of[[-1,kA],[1,kB]]){if(!kind)continue;const P=[],UV=[];for(const[a,y]of[[a0,y0],[a1,y0],[a1,y0+hh],[a0,y0+hh]]){const along=(v?mz:mx)+a;P.push(v?[mx+sg*off,y,mz+a]:[mx+a,y,mz+sg*off]);UV.push([along/sx,1-y/sy])}
+  if((sg>0)!==v){P.reverse();UV.reverse()}itxQ(kind,P,v?[sg,0,0]:[0,0,sg],UV)}}
+function itxDraw(Lt,dayish,wins){const H=itxInit();if(!H){ITX.q={};return}const U=H.U;gl.useProgram(H.p);
+ for(const k of['p','n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);for(let i=0;i<4;i++)gl.enableVertexAttribArray(i);
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniform3fv(U.ld,[-.35,.85,.4]);gl.uniform3fv(U.lc,[.62*dayish+.12,.52*dayish+.1,.38*dayish+.1]);gl.uniform3fv(U.sky,[.5,.46,.42]);gl.uniform3fv(U.gnd,[.34,.26,.2]);gl.uniform1f(U.day,Math.max(0,1-Lt.night*1.4));
+ const wf=new Float32Array(48);wins.slice(0,12).forEach((q,i)=>wf.set(q,i*4));gl.uniform4fv(U.wins,wf);gl.uniform1f(U.nwin,Math.min(12,wins.length));
+ gl.bindBuffer(gl.ARRAY_BUFFER,H.buf);gl.uniform1i(U.tx,2);
+ for(const kind in ITX.q){const A=ITX.q[kind];if(!A.length)continue;gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,itxTex(kind));gl.activeTexture(gl.TEXTURE0);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(A),gl.STREAM_DRAW);const st=48;gl.vertexAttribPointer(0,3,gl.FLOAT,false,st,0);gl.vertexAttribPointer(1,3,gl.FLOAT,false,st,12);gl.vertexAttribPointer(2,2,gl.FLOAT,false,st,24);gl.vertexAttribPointer(3,4,gl.FLOAT,false,st,32);
+  gl.drawArrays(gl.TRIANGLES,0,A.length/12)}
+ ITX.q={};for(let i=0;i<4;i++)gl.disableVertexAttribArray(i);gl.useProgram(P);for(const k of['p','n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
+const FLOORK={bad:'tiles',wasch:'tiles',sauna:'boards',barbier:'tiles',heil:'tiles',kueche:'terra',back:'terra',werk:'flags',lager:'flags',stall:'flags',schank:'flags',verkauf:'planks',flur:'flags'};
+const WALLK={fachwerk:'timber',stein:'stone',lehm:'lehm',holz:'boards'};
 // ---- Szene ----
 function horse3s(x,z,ry,c){const T=(a,y,b)=>{const cs=Math.cos(ry),sn=Math.sin(ry);return TR(x+a*cs+b*sn,y,z-a*sn+b*cs,ry)};const hc=col(c),dk=col(shade(c,-.3));box(T(0,.95,0),.55,.6,1.5,hc);for(const[a,b]of[[-.18,-.55],[.18,-.55],[-.18,.55],[.18,.55]])box(T(a,0,b),.13,.95,.13,dk);box(TR(x+Math.sin(ry)*.75,1.3,z+Math.cos(ry)*.75,ry,-.5),.25,.75,.28,hc);box(T(0,1.85,1.05),.24,.28,.55,hc);box(T(0,1.6,.75),.06,.45,.3,dk);box(T(0,.9,-.8),.08,.55,.1,dk)}
 function hvScene(ui){
@@ -4987,13 +5088,13 @@ function hvScene(ui){
  const p=b.plan,fl=p.floors[IM.f]||p.floors[0],A=planA(b),a=A.floors[IM.f]||A.floors[0];
  gq(-3,-3,PW+3,PH+3,-.02,col('#5d8744'));
  if(IM.f>0){G=BT_DYN;p.floors[IM.f-1].rooms.forEach(R=>gq(R.x,R.y,R.x+R.w,R.y+R.h,-.01,col('#6b5a44')))}
- SOFTBOX=true;fl.rooms.forEach((R,i)=>{const rc=R.o&&a.rooms[i].type==='leer'?'#a9c27a':(ROOMC[a.rooms[i].type]||'#d8d2c2');gq(R.x,R.y,R.x+R.w,R.y+R.h,0,R.o&&!R.bath?col(rc):R.bath||a.rooms[i].type==='wasch'?col('#b4ab9b'):col(shade('#b98a5a',(i%3)*.04-.02),.998))});
+ SOFTBOX=true;fl.rooms.forEach((R,i)=>{const rc=R.o&&a.rooms[i].type==='leer'?'#a9c27a':(ROOMC[a.rooms[i].type]||'#d8d2c2');gq(R.x,R.y,R.x+R.w,R.y+R.h,0,R.o&&!R.bath?col(rc):R.bath||a.rooms[i].type==='wasch'?col('#b4ab9b'):col(shade('#b98a5a',(i%3)*.04-.02),.998));if(!R.o||R.bath){const ty=a.rooms[i].type,fk=R.bath?'tiles':(FLOORK[ty]||'planks'),tv=.94+(i%3)*.04;itxFloor(fk,R.x,R.y,R.x+R.w,R.y+R.h,.004,fk==='planks'?2.2:fk==='flags'?3:2,[tv,tv,tv])}});const ITW=[];
  // Wände mit Kamera-Ausschnitt
  const fwd=[-Math.sin(cam.yaw),-Math.cos(cam.yaw)],cx0=PW/2,cz0=PH/2,FULL=3.4,LOW=.35;
  for(let Y=0;Y<=PH;Y++)for(let X=0;X<=PW;X++)for(const k of[`v:${X}:${Y}`,`h:${X}:${Y}`]){if((k[0]==='v'&&Y>=PH)||(k[0]==='h'&&X>=PW))continue;if(!isWall(fl,k))continue;
   const[sa,sb]=edgeSides(fl,k),ext=sa<0||sb<0,R=fl.rooms[sa>=0?sa:sb],t=fl.edges[k],v=k[0]==='v',mx=v?X:X+.5,mz=v?Y+.5:Y;
   const near=(mx-cx0)*fwd[0]+(mz-cz0)*fwd[1]<-.5,H2=near?LOW:(ext?FULL:FULL*.9),th=ext?.16:.1,wc=col(shade(MATS[R.mat].c,ext?0:.25),ext?undefined:.999),rot=v?Math.PI/2:0;
-  const seg=(o,len,y0,hh,c,e)=>box(TR(v?mx:mx+o,y0,v?mz+o:mz,rot),len,hh,th,c,e);
+  const sk=r=>{if(r<0)return null;const RR=fl.rooms[r];if(RR.o&&!RR.bath)return null;const mt=(RR.mat||R.mat);return ext?(WALLK[mt]||'plaster'):(mt==='holz'?'boards':mt==='fachwerk'?'plaster':(WALLK[mt]||'plaster'))},kA=sk(sa),kB=sk(sb),wsc=kA==='timber'||kB==='timber'?[1.7,3.4]:[2,2];const seg=(o,len,y0,hh,c,e)=>{box(TR(v?mx:mx+o,y0,v?mz+o:mz,rot),len,hh,th,c,e);if(c===wc)itxWall(v,mx,mz,o,len,y0,hh,th,kA,kB,wsc[0],wsc[1])};if(t==='window'){const RA=sa>=0?fl.rooms[sa]:null,RB=sb>=0?fl.rooms[sb]:null,inA=RA&&!RA.o,inB=RB&&!RB.o;if(inA!==inB){const sg=inB?1:-1;ITW.push(v?[mx,mz,sg,0]:[mx,mz,0,sg])}}
   if(t==='door'){seg(-.4,.2,0,H2,wc);seg(.4,.2,0,H2,wc);if(!near&&H2>2.8){seg(0,.6,2.8,H2-2.8,wc)}box(TR(v?mx:mx,0,v?mz:mz,rot),.62,.01,th*1.2,col('#6b4a2e'))}
   else if(t==='open'){}
   else if(t==='window'&&!near){seg(0,1+th,0,1.2,wc);seg(0,.8,1.2,1.3,col('#bfe2f2'),.5);seg(0,1+th,2.5,H2-2.5,wc);seg(-.45,.1,1.2,1.3,wc);seg(.45,.1,1.2,1.3,wc)}
@@ -5009,7 +5110,7 @@ function hvScene(ui){
   s.act=wasWalk;s._iv=[x,1.2*k,z];
   if(s===act||s.ctrl){G=DT;for(let i=0;i<20;i++){const a1=i/20*Math.PI*2,a2=(i+1)/20*Math.PI*2,r1=.55,r2=.7;quad([x+Math.cos(a1)*r1,.02,z+Math.sin(a1)*r1],[x+Math.cos(a2)*r1,.02,z+Math.sin(a2)*r1],[x+Math.cos(a2)*r2,.02,z+Math.sin(a2)*r2],[x+Math.cos(a1)*r2,.02,z+Math.sin(a1)*r2],col(s.ctrl?'#f0c85a':'#ffffff',.9))}}
   G=DT;gq(x-.35,z-.25,x+.35,z+.25,.01,col('#000000',.2))}
- SOFTBOX=false;BT_DYN.up();DT.up();BT_DYN.draw();
+ SOFTBOX=false;BT_DYN.up();DT.up();BT_DYN.draw();itxDraw(Lt,dayish,ITW);
  gl.uniform1f(L.det,0);for(const[s,x,y,z,hd]of faces)drawFigure(s,x,y,z,hd,2.25,true);gl.uniform1f(L.det,1);flushSprites([1.02,.98,.92],null);
  setModel(ID4,ID3);gl.enable(gl.BLEND);gl.depthMask(false);DT.draw();gl.depthMask(true);gl.disable(gl.BLEND);
  if(PPH){const tl=cam.dist;cam.dist=0;postEnd(Lt,.9);cam.dist=tl}
