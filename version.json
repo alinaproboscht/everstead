@@ -1,7 +1,7 @@
 {
-  "build": 2026110707,
+  "build": 2026110708,
   "file": "everstead.html",
-  "notes": "Update 40: 3D-Modelle werden auch mit Leerzeichen im Dateinamen gefunden",
+  "notes": "Update 41: Marktplatz als 3D-Modell",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -22,6 +22,10 @@
     {
       "file": "m_lagerhaus.json",
       "size": 1298607
+    },
+    {
+      "file": "m_markt.json",
+      "size": 1465486
     },
     {
       "file": "m_rathaus.json",
