@@ -1,15 +1,23 @@
 {
-  "build": 2026110712,
+  "build": 2026110713,
   "file": "everstead.html",
-  "notes": "Update 45: 3D-Möbel im Bad – Waschtisch, Badezuber, Abort",
+  "notes": "Update 46: Einzelne Marktstände und Picknicktische auf dem Marktplatz, Brunnen, Dorflinde und Spielplatz als 3D-Modelle",
   "models": [
     {
       "file": "m_baeckerei.json",
       "size": 1386208
     },
     {
+      "file": "m_brunnen.json",
+      "size": 1182226
+    },
+    {
       "file": "m_chalet.json",
       "size": 1288339
+    },
+    {
+      "file": "m_dorflinde.json",
+      "size": 1444254
     },
     {
       "file": "m_fabort.json",
@@ -52,12 +60,32 @@
       "size": 1298607
     },
     {
-      "file": "m_markt.json",
-      "size": 1465486
+      "file": "m_picknick.json",
+      "size": 1349001
     },
     {
       "file": "m_rathaus.json",
       "size": 1346893
+    },
+    {
+      "file": "m_spielplatz.json",
+      "size": 1415662
+    },
+    {
+      "file": "m_stand1.json",
+      "size": 1301154
+    },
+    {
+      "file": "m_stand2.json",
+      "size": 1344243
+    },
+    {
+      "file": "m_stand3.json",
+      "size": 1381086
+    },
+    {
+      "file": "m_stand4.json",
+      "size": 1373141
     },
     {
       "file": "m_villa.json",

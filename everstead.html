@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110712">
+<meta name="everstead-build" content="2026110713">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2866,11 +2866,11 @@ function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],
 }
 let sig='';
 function bsig(){return (S.era||0)+'#'+(S.decoV||0)+'#'+S.b.map(b=>b.id+':'+b.x+','+b.y+','+(b.rot||0)+':'+(b.built>=1?1:0)+':'+(b.d?b.d.f+b.d.fl+b.d.wc+b.d.rc+(b.d.deco||[]).join(''):'')+':'+(b.plan?b.plan.v:0)).join('|')}
-function buildStatic(){MKR.clear();SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42}}
+function buildStatic(){MKR.clear();MKI=null;SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42}}
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
-const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},markt:{sc:1.5}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:1.15,np:1},dorflinde:{sc:1.7},spielplatz:{sc:1.35,np:1}};const GLBK=Object.keys(MDEF);
 const MBASE='https://alinaproboscht.github.io/everstead/',MVER=40;let mWarned=0;const HGD={},HGL={};
 function mLoad(key){if(HGD[key]||HGL[key])return;HGL[key]=1;const f='m_'+key+'.json',tryF=u=>fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
  const alt='m%20'+key+'.json',q='?v='+MVER;tryF(f).catch(()=>tryF(alt)).catch(()=>tryF(MBASE+f+q)).catch(()=>tryF(MBASE+alt+q)).then(M=>{HGD[key]=M;bDirty=true;sig=''}).catch(e=>{console.warn('Modell '+key+' nicht geladen',e);if(!mWarned){mWarned=1;try{toast('3D-Modelle konnten nicht geladen werden – Internet prüfen')}catch(_){}}setTimeout(()=>{delete HGL[key]},20000)})}
@@ -2889,7 +2889,7 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;uniform sampler2D tx;uniform sampler2D smap;uniform float shOn;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform vec4 sw;uniform float day;uniform float indoor;
+varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;uniform sampler2D tx;uniform sampler2D smap;uniform float shOn;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform vec4 sw;uniform float day;uniform float indoor;uniform float plt;
    float unpack(vec4 q){return dot(q,vec4(1.,1./255.,1./65025.,1./16581375.));}
    float shade(){if(shOn<.5)return 1.;vec3 q=vl.xyz/vl.w*.5+.5;if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z>1.)return 1.;float s=0.;vec2 o=vec2(1.5/2048.,0.);
     s+=(q.z-.003>unpack(texture2D(smap,q.xy+o)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy-o)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy+o.yx)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy-o.yx)))?0.:1.;return s*.25;}
@@ -2901,11 +2901,11 @@ varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;un
     float n1=vn(w.xz*3.1),n2=vn(w.xz*11.7),nz=n1*.65+n2*.35;
     float low=1.-smoothstep(.03,.065,lp.y);
     // Bodenplatte: ausgefranster Rand, damit das Gelände durchscheint
-    if(indoor<.5&&low>.5&&r+(nz-.5)*.34>.8)discard;
+    if(indoor<.5&&plt>.5&&low>.5&&r+(nz-.5)*.34>.8)discard;
     vec3 N=normalize(nn);vec3 base=pow(texture2D(tx,v).rgb,vec3(1.08));
     // Rand der Bodenplatte in die Wiese übergehen lassen
     vec3 grass=vec3(.31,.47,.2)*(.9+.2*n2);float edge=low*smoothstep(.45,.8,r+(n1-.5)*.2);float gg=smoothstep(.0,.06,base.g-max(base.r,base.b));
-    base=mix(base,grass*(.8+.4*dot(base,vec3(.33))/max(dot(grass,vec3(.33)),.01)*.5),low*(1.-gg)*mix(.38,.85,edge)*(1.-indoor));
+    base=mix(base,grass*(.8+.4*dot(base,vec3(.33))/max(dot(grass,vec3(.33)),.01)*.5),low*(1.-gg)*mix(.38,.85,edge)*(1.-indoor)*plt);
     // Pflanzen am Modell folgen den Jahreszeiten wie die Landschaft
     float veg=smoothstep(.015,.07,base.g-max(base.r,base.b));
     if(veg>0.&&indoor<.5){float tn=vn(floor(w.xz*1.7)*.73+.5);vec3 aut=mix(mix(vec3(.86,.5,.14),vec3(.76,.24,.1),tn),vec3(.92,.74,.2),step(.62,tn));aut=mix(base,aut,low>.5?.45:.75);
@@ -2925,7 +2925,7 @@ varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;un
     float sdv=max(dot(-V,ld),0.);vec3 fcol=fogc+lc*(pow(sdv,8.)*.25+pow(sdv,64.)*.2)*day;
     col=mix(col,fcol,clamp((dist-30.)/80.,0.,.94));gl_FragColor=vec4(col,1.);}`));
   gl.bindAttribLocation(p,0,'p');gl.bindAttribLocation(p,1,'n');gl.bindAttribLocation(p,2,'u');gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('glb link');
-  const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night','mnv','mxv','sw','day','indoor'])U[k]=gl.getUniformLocation(p,k);
+  const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night','mnv','mxv','sw','day','indoor','plt'])U[k]=gl.getUniformLocation(p,k);
   const mb=(a)=>{const B=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,B);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return B};
   const H={p,U,pb:mb(pos),nb:mb(new Int8Array(dec(M.nm))),ub:mb(new Uint16Array(dec(M.uv))),ib:gl.createBuffer(),cnt:M.i,tex:null,mn:M.mn,mx:M.mx};
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(dec(M.ix)),gl.STATIC_DRAW);
@@ -2943,23 +2943,51 @@ function marktRect(b){if(MKR.has(b.id))return MKR.get(b.id);
   if(y1-y0<9&&row(y0-1,x0,x1)){y0--;g=true}if(y1-y0<9&&row(y1+1,x0,x1)){y1++;g=true}if(!g)break}
  const r={x0,y0,x1:x1+1,y1:y1+1,cx:(x0+x1+1)/2,cy:(y0+y1+1)/2,sz:Math.min(x1+1-x0,y1+1-y0)};MKR.set(b.id,r);return r}
 function underMarkt(b){if(b.t!=='brunnen')return false;for(const m of S.b){if(m.t!=='markt'||!useGlb(m))continue;const r=marktRect(m);if(b.x>=r.x0&&b.x<r.x1&&b.y>=r.y0&&b.y<r.y1)return true}return false}
+// ===== Marktstände & Picknicktische rund um den Markt =====
+const MKSTAND=[{k:'stand1',f:[1,0]},{k:'stand2',f:[1,0]},{k:'stand3',f:[0,-1]},{k:'stand4',f:[0,-1]}],MKPICK='picknick';let MKI=null;
+function mkReady(){let ok=true;for(const k of[...MKSTAND.map(q=>q.k),MKPICK]){if(!HGD[k]){mLoad(k);ok=false}else if(!hgInit(k))ok=false}return ok}
+function mkPlace(k,tx,ty,dir,len,push,face){const H=HGM[k],ex=H.mx[0]-H.mn[0],ez=H.mx[2]-H.mn[2],ey=H.mx[1]-H.mn[1],s=len/Math.max(ex,ez);
+ let best=0,bd=-9;for(let q=0;q<4;q++){const a=q*Math.PI/2,c=Math.cos(a),sn=Math.sin(a),fx=face[0]*c+face[1]*sn,fz=-face[0]*sn+face[1]*c,d=fx*dir[0]+fz*dir[1];if(d>bd){bd=d;best=a}}
+ const c=Math.cos(best)*s,sn=Math.sin(best)*s,mx=(H.mn[0]+H.mx[0])/2,mz=(H.mn[2]+H.mx[2])/2,px=tx+.5-dir[0]*push,pz=ty+.5-dir[1]*push,y=hgtAt(ty*W+tx)*HS-H.mn[1]*s;
+ return{M:[c,0,-sn,0, 0,s,0,0, sn,0,c,0, px-(mx*c+mz*sn),y,pz-(-mx*sn+mz*c),1]}}
+function mkItems(){if(MKI)return MKI;const out={};if(!S||!mkReady())return out;
+ for(const b of S.b){if(b.t!=='markt'||b.built<1||!(typeof eraOf!=='function'||eraOf()<=2))continue;
+  let x0=b.x,y0=b.y,x1=b.x,y1=b.y;const free=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&!occ[y*W+x]&&S.road[y*W+x]>=1,ok=(x,y)=>{if(x<0||y<0||x>=W||y>=H)return false;const o=occ[y*W+x];if(o){const q=bById.get(o);return !!q&&(q===b||q.t==='brunnen')}return S.road[y*W+x]>=1};
+  const row=(y,a,c)=>{for(let x=a;x<=c;x++)if(!ok(x,y))return false;return true},colm=(x,a,c)=>{for(let y=a;y<=c;y++)if(!ok(x,y))return false;return true};
+  for(let it=0;it<20;it++){let g=false;if(x1-x0<7&&colm(x0-1,y0,y1)){x0--;g=true}if(x1-x0<7&&colm(x1+1,y0,y1)){x1++;g=true}if(y1-y0<7&&row(y0-1,x0,x1)){y0--;g=true}if(y1-y0<7&&row(y1+1,x0,x1)){y1++;g=true}if(!g)break}
+  const cx=(x0+x1+1)/2,cy=(y0+y1+1)/2,add=(k,it)=>(out[k]=out[k]||[]).push(it),hs=(x,y)=>((x*73856093)^(y*19349663)^b.id)>>>0;
+  const dirTo=(x,y)=>{const dx=cx-(x+.5),dy=cy-(y+.5);return Math.abs(dx)>=Math.abs(dy)?[Math.sign(dx)||1,0]:[0,Math.sign(dy)||1]};
+  // Stand auf dem Markt-Feld selbst
+  {const d=(x1>x0||y1>y0)?dirTo(b.x,b.y):[0,1],q=MKSTAND[b.id%4];add(q.k,mkPlace(q.k,b.x,b.y,d[0]||d[1]?d:[0,1],1.25,0,q.f))}
+  if(x1===x0&&y1===y0)continue;
+  // Stände am Platzrand, Blick zur Mitte; Zugänge bleiben frei
+  const per=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){if(x!==x0&&x!==x1&&y!==y0&&y!==y1)continue;if(!free(x,y))continue;
+   const ent=(x===x0&&S.road[y*W+x-1]>=1&&x>0)||(x===x1&&x+1<W&&S.road[y*W+x+1]>=1)||(y===y0&&y>0&&S.road[(y-1)*W+x]>=1)||(y===y1&&y+1<H&&S.road[(y+1)*W+x]>=1);if(ent)continue;per.push([x,y])}
+  per.sort((a,c)=>hs(a[0],a[1])-hs(c[0],c[1]));const used=[[b.x,b.y]];let n=0;
+  for(const[x,y]of per){if(n>=7)break;if(used.some(([ux,uy])=>Math.abs(ux-x)+Math.abs(uy-y)<2))continue;const q=MKSTAND[hs(x,y)%4];add(q.k,mkPlace(q.k,x,y,dirTo(x,y),1.2,.18,q.f));used.push([x,y]);n++}
+  // ein bis zwei Picknicktische im Inneren
+  const inn=[];for(let x=x0+1;x<x1;x++)for(let y=y0+1;y<y1;y++)if(free(x,y)&&!used.some(([ux,uy])=>Math.abs(ux-x)+Math.abs(uy-y)<2))inn.push([x,y]);
+  inn.sort((a,c)=>hs(a[0],a[1])-hs(c[0],c[1]));for(const[x,y]of inn.slice(0,Math.min(2,Math.floor(inn.length/4)+1))){add(MKPICK,mkPlace(MKPICK,x,y,hs(x,y)%2?[1,0]:[0,1],1.1,0,[0,1]));used.push([x,y])}}
+ MKI=out;return out}
 function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,z=MR?MR.sz:szOf(b.t),s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):MDEF[K].sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:b.x+z/2,cz=MR?MR.cy:b.y+z/2,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s-.004*z,
  ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
 const hgList=()=>S.b.filter(useGlb);
 function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):szOf(b.t)*MDEF[K].sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s}
-function hgDraw(Lt,shOn,cut){for(const key of GLBK){const H=hgInit(key);if(!H||!H.tex)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDraw1(H,L2,Lt,shOn)}}
-function hgDraw1(H,L2,Lt,shOn){const U=H.U;gl.useProgram(H.p);
+function hgDraw(Lt,shOn,cut){for(const key of GLBK){const H=hgInit(key);if(!H||!H.tex)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDraw1(H,L2,Lt,shOn,MDEF[key].np)}
+ if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&H.tex&&I[k].length)hgDraw1(H,I[k],Lt,shOn,1)}}}
+function hgDraw1(H,L2,Lt,shOn,np){const U=H.U;gl.useProgram(H.p);
  for(const k of['n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);gl.enableVertexAttribArray(0);gl.enableVertexAttribArray(1);gl.enableVertexAttribArray(2);
  gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.nb);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.ub);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
- gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);gl.uniform3fv(U.mnv,H.mn);gl.uniform3fv(U.mxv,H.mx);gl.uniform4fv(U.sw,seasonWeights());gl.uniform1f(U.day,Lt.day==null?1:Lt.day);gl.uniform1f(U.indoor,Lt.indoor?1:0);
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);gl.uniform3fv(U.mnv,H.mn);gl.uniform3fv(U.mxv,H.mx);gl.uniform4fv(U.sw,seasonWeights());gl.uniform1f(U.day,Lt.day==null?1:Lt.day);gl.uniform1f(U.indoor,Lt.indoor?1:0);gl.uniform1f(U.plt,np?0:1);
  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.uniform1i(U.tx,2);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.uniform1i(U.smap,0);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
  for(const b of L2){gl.uniformMatrix4fv(U.mdl,false,new Float32Array(b.M||hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}
  gl.disable(gl.CULL_FACE);gl.disableVertexAttribArray(2);gl.useProgram(P);for(const k of['n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
-function hgDrawS(cut){for(const key of GLBK){const H=hgInit(key);if(!H)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDrawS1(H,L2)}}
+function hgDrawS(cut){for(const key of GLBK){const H=hgInit(key);if(!H)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDrawS1(H,L2)}
+ if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&I[k].length)hgDrawS1(H,I[k])}}}
 function hgDrawS1(H,L2){gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
- for(const b of L2){gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4))}
+ for(const b of L2){gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(b.M||hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4))}
 function buildStatic0(){BT_OPEN.n=0;BT_EXT.n=0;BT_INT.n=0;BT_SH.n=0;SMOKE=[];
- for(const b of S.b){if(b.built<1)continue;BY=hgtAt(b.y*W+b.x)*HS;setRot(b);G=b.plan&&b.d?BT_EXT:BT_OPEN;if(useGlb(b)&&hgInit(glbKey(b))){b._top=hgTop(b)+hgtAt(b.y*W+b.x)*HS}else if(underMarkt(b)){b._top=hgtAt(b.y*W+b.x)*HS+.4}else b._top=bldMesh(b);if(b.plan&&b.d){G=BT_INT;interiorMesh(b)}
+ for(const b of S.b){if(b.built<1)continue;BY=hgtAt(b.y*W+b.x)*HS;setRot(b);G=b.plan&&b.d?BT_EXT:BT_OPEN;if(useGlb(b)&&hgInit(glbKey(b))){b._top=hgTop(b)+hgtAt(b.y*W+b.x)*HS}else if(b.t==='markt'&&mkReady()){b._top=hgtAt(b.y*W+b.x)*HS+.75}else if(underMarkt(b)){b._top=hgtAt(b.y*W+b.x)*HS+.4}else b._top=bldMesh(b);if(b.plan&&b.d){G=BT_INT;interiorMesh(b)}
   if(b.d&&!SH_OK){const z=szOf(b.t);G=BT_SH;gq(b.x+.12,b.y+.18,b.x+z+.02,b.y+z,.006,col('#000000',.16))}BY=0;BROT=null}
  G=BT_OPEN;for(const d of S.deco||[]){const i=Math.floor(d.y)*W+Math.floor(d.x);BY=(i>=0&&i<W*H?hgtAt(i)*HS:0);try{plant3(d)}catch(e){}}BY=0;
  BT_OPEN.up();BT_EXT.up();BT_INT.up();BT_SH.up()}
