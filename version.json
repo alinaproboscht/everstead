@@ -1,5 +1,35 @@
 {
-  "build": 2026110703,
+  "build": 2026110704,
   "file": "everstead.html",
-  "notes": "Update 36: Rathaus, Lagerhaus, Bäckerei; alle Lebensmittel zählen; Stadthäuser als Villa"
+  "notes": "Update 37: 3D-Modelle werden von der App heruntergeladen und lokal geladen",
+  "models": [
+    {
+      "file": "m_baeckerei.json",
+      "size": 1386208
+    },
+    {
+      "file": "m_chalet.json",
+      "size": 1288339
+    },
+    {
+      "file": "m_gut.json",
+      "size": 1355135
+    },
+    {
+      "file": "m_haus.json",
+      "size": 1372403
+    },
+    {
+      "file": "m_lagerhaus.json",
+      "size": 1298607
+    },
+    {
+      "file": "m_rathaus.json",
+      "size": 1346893
+    },
+    {
+      "file": "m_villa.json",
+      "size": 1363338
+    }
+  ]
 }
