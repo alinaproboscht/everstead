@@ -1,7 +1,7 @@
 {
-  "build": 2026110711,
+  "build": 2026110712,
   "file": "everstead.html",
-  "notes": "Update 44: Erste 3D-Möbel – Bett, Herdzeile, Stuhl, Esstisch",
+  "notes": "Update 45: 3D-Möbel im Bad – Waschtisch, Badezuber, Abort",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -10,6 +10,10 @@
     {
       "file": "m_chalet.json",
       "size": 1288339
+    },
+    {
+      "file": "m_fabort.json",
+      "size": 1334420
     },
     {
       "file": "m_fbett.json",
@@ -26,6 +30,14 @@
     {
       "file": "m_ftisch.json",
       "size": 1372908
+    },
+    {
+      "file": "m_fwasch.json",
+      "size": 1301057
+    },
+    {
+      "file": "m_fzuber.json",
+      "size": 1231395
     },
     {
       "file": "m_gut.json",
