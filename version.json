@@ -1,7 +1,7 @@
 {
-  "build": 2026110706,
+  "build": 2026110707,
   "file": "everstead.html",
-  "notes": "Update 39: Gemalte Innenräume – Dielen, Terrakotta, Fliesen, Steinplatten, Fachwerk- und Putzwände, Sonnenlicht durch die Fenster",
+  "notes": "Update 40: 3D-Modelle werden auch mit Leerzeichen im Dateinamen gefunden",
   "models": [
     {
       "file": "m_baeckerei.json",
