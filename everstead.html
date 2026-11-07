@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110704">
+<meta name="everstead-build" content="2026110705">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2883,21 +2883,49 @@ const useGlb=b=>!!glbKey(b);
 function hgInit(key){key=key||'haus';if(HGM[key])return HGM[key];if(HG_FAIL)return null;try{const M=GLBS()[key];if(!M)return null;const dec=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer;
   const qp=new Uint16Array(dec(M.p)),pos=new Float32Array(M.n*3);for(let i=0;i<M.n*3;i++){const k=i%3;pos[i]=M.mn[k]+qp[i]/65535*(M.mx[k]-M.mn[k])}
   const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
-  const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 u;uniform mat4 vp;uniform mat4 mdl;uniform mat4 lvp;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;void main(){vec4 wp=mdl*vec4(p,1.);w=wp.xyz;nn=mat3(mdl)*n;v=u;vl=lvp*wp;gl_Position=vp*wp;}`));
+  const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 u;uniform mat4 vp;uniform mat4 mdl;uniform mat4 lvp;uniform vec3 mnv;uniform vec3 mxv;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;void main(){vec4 wp=mdl*vec4(p,1.);w=wp.xyz;nn=mat3(mdl)*n;v=u;vl=lvp*wp;lp=(p-mnv)/(mxv-mnv);gl_Position=vp*wp;}`));
   gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
 precision mediump float;
 #endif
-varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;uniform sampler2D tx;uniform sampler2D smap;uniform float shOn;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;
+varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;uniform sampler2D tx;uniform sampler2D smap;uniform float shOn;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform vec3 eye;uniform vec3 fogc;uniform float night;uniform vec4 sw;uniform float day;
    float unpack(vec4 q){return dot(q,vec4(1.,1./255.,1./65025.,1./16581375.));}
    float shade(){if(shOn<.5)return 1.;vec3 q=vl.xyz/vl.w*.5+.5;if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z>1.)return 1.;float s=0.;vec2 o=vec2(1.5/2048.,0.);
     s+=(q.z-.003>unpack(texture2D(smap,q.xy+o)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy-o)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy+o.yx)))?0.:1.;s+=(q.z-.003>unpack(texture2D(smap,q.xy-o.yx)))?0.:1.;return s*.25;}
    vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
-   void main(){vec3 N=normalize(nn);vec3 base=pow(texture2D(tx,v).rgb,vec3(1.08));float nd=dot(N,ld),d=max(nd,0.),sh=d>0.?shade():1.;vec3 amb=mix(gnd,sky,N.y*.5+.5);
-    vec3 col=base*(amb*.62+lc*.95*max(nd*.86+.14,0.)*mix(.22,1.,sh));col=aces(col*1.08);float dist=length(w-eye);col=mix(col,fogc,clamp((dist-30.)/80.,0.,.94));gl_FragColor=vec4(col,1.);}`));
+   float hs(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
+   float vn(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.-2.*f);return mix(mix(hs(i),hs(i+vec2(1,0)),f.x),mix(hs(i+vec2(0,1)),hs(i+vec2(1,1)),f.x),f.y);}
+   void main(){
+    vec2 dq=abs(lp.xz-.5)*2.;float r=pow(pow(dq.x,4.)+pow(dq.y,4.),.25);
+    float n1=vn(w.xz*3.1),n2=vn(w.xz*11.7),nz=n1*.65+n2*.35;
+    float low=1.-smoothstep(.03,.065,lp.y);
+    // Bodenplatte: ausgefranster Rand, damit das Gelände durchscheint
+    if(low>.5&&r+(nz-.5)*.34>.8)discard;
+    vec3 N=normalize(nn);vec3 base=pow(texture2D(tx,v).rgb,vec3(1.08));
+    // Rand der Bodenplatte in die Wiese übergehen lassen
+    vec3 grass=vec3(.31,.47,.2)*(.9+.2*n2);float edge=low*smoothstep(.45,.8,r+(n1-.5)*.2);float gg=smoothstep(.0,.06,base.g-max(base.r,base.b));
+    base=mix(base,grass*(.8+.4*dot(base,vec3(.33))/max(dot(grass,vec3(.33)),.01)*.5),low*(1.-gg)*mix(.38,.85,edge));
+    // Pflanzen am Modell folgen den Jahreszeiten wie die Landschaft
+    float veg=smoothstep(.015,.07,base.g-max(base.r,base.b));
+    if(veg>0.){float tn=vn(floor(w.xz*1.7)*.73+.5);vec3 aut=mix(mix(vec3(.86,.5,.14),vec3(.76,.24,.1),tn),vec3(.92,.74,.2),step(.62,tn));aut=mix(base,aut,low>.5?.45:.75);
+     float lu=dot(base,vec3(.3,.5,.2));vec3 win=mix(vec3(lu)*vec3(.9,.86,.76),base*.7+vec3(.06,.05,.03),.4);vec3 spr=base*vec3(1.,1.03,.94);
+     base=mix(base,spr*sw.x+base*sw.y+aut*sw.z+win*sw.w,veg);}
+    // Schnee auf Dächern und Boden im Winter
+    base=mix(base,vec3(.66,.69,.75)*(.93+.08*n2),sw.w*smoothstep(.32,.75,N.y)*.9);
+    // Kontaktschatten: Mauern werden zum Boden hin dunkler
+    float ao=mix(.64,1.,smoothstep(.02,.16,lp.y))*mix(1.,.9,low*(1.-edge));
+    float nd=dot(N,ld),sh=nd>0.?shade():1.;vec3 amb=mix(gnd,sky,N.y*.5+.5)*ao;float wrap=max(nd*.86+.14,0.)*(nd>0.?1.:.3);
+    vec3 col=base*(amb*.66+lc*1.04*wrap*mix(.18,1.,sh));
+    vec3 V=normalize(eye-w);col+=lc*pow(1.-max(dot(N,V),0.),4.)*.05*day*sh;
+    // Nachts: warmes Licht aus Fenstern (dunkle, bläuliche Glasflächen)
+    float gls=smoothstep(.05,.0,abs(N.y))*smoothstep(.2,.05,dot(base,vec3(.33)))*step(base.r,base.b+.02)*step(.12,lp.y);
+    col+=vec3(1.,.72,.38)*gls*night*.9*step(.45,hs(floor(w.xz*4.)+floor(w.y*4.)));
+    col=aces(col*1.08);float dist=length(w-eye);
+    float sdv=max(dot(-V,ld),0.);vec3 fcol=fogc+lc*(pow(sdv,8.)*.25+pow(sdv,64.)*.2)*day;
+    col=mix(col,fcol,clamp((dist-30.)/80.,0.,.94));gl_FragColor=vec4(col,1.);}`));
   gl.bindAttribLocation(p,0,'p');gl.bindAttribLocation(p,1,'n');gl.bindAttribLocation(p,2,'u');gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('glb link');
-  const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night'])U[k]=gl.getUniformLocation(p,k);
+  const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night','mnv','mxv','sw','day'])U[k]=gl.getUniformLocation(p,k);
   const mb=(a)=>{const B=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,B);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return B};
   const H={p,U,pb:mb(pos),nb:mb(new Int8Array(dec(M.nm))),ub:mb(new Uint16Array(dec(M.uv))),ib:gl.createBuffer(),cnt:M.i,tex:null,mn:M.mn,mx:M.mx};
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(dec(M.ix)),gl.STATIC_DRAW);
@@ -2912,7 +2940,7 @@ function hgDraw(Lt,shOn,cut){for(const key of GLBK){const H=hgInit(key);if(!H||!
 function hgDraw1(H,L2,Lt,shOn){const U=H.U;gl.useProgram(H.p);
  for(const k of['n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);gl.enableVertexAttribArray(0);gl.enableVertexAttribArray(1);gl.enableVertexAttribArray(2);
  gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.nb);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.ub);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
- gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);gl.uniform3fv(U.mnv,H.mn);gl.uniform3fv(U.mxv,H.mx);gl.uniform4fv(U.sw,seasonWeights());gl.uniform1f(U.day,Lt.day==null?1:Lt.day);
  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.uniform1i(U.tx,2);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.uniform1i(U.smap,0);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
  for(const b of L2){gl.uniformMatrix4fv(U.mdl,false,new Float32Array(hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}
  gl.disable(gl.CULL_FACE);gl.disableVertexAttribArray(2);gl.useProgram(P);for(const k of['n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}

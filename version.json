@@ -1,7 +1,7 @@
 {
-  "build": 2026110704,
+  "build": 2026110705,
   "file": "everstead.html",
-  "notes": "Update 37: 3D-Modelle werden von der App heruntergeladen und lokal geladen",
+  "notes": "Update 38: 3D-Gebäude fügen sich natürlich in die Landschaft ein (weicher Übergang, Jahreszeiten, Schnee, Fensterlicht)",
   "models": [
     {
       "file": "m_baeckerei.json",
