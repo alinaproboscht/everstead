@@ -1,7 +1,7 @@
 {
-  "build": 2026110803,
+  "build": 2026110804,
   "file": "everstead.html",
-  "notes": "Update 50: Lagerhäuser fassen 1000 Einheiten und wachsen mit dem Dorf, größere Herdzeile und Badezuber, Pfeil zeigt Blickrichtung der Stühle",
+  "notes": "Update 51: Realistischere Möbelgrößen in allen Gebäuden",
   "models": [
     {
       "file": "m_baeckerei.json",

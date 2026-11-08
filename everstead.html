@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110803">
+<meta name="everstead-build" content="2026110804">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2919,7 +2919,7 @@ function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],
   if(t==='door'){box(TR(v?cx:cx-cs*.4,0,v?cz-cs*.4:cz,rot),cs*.2,WH,th,wc);box(TR(v?cx:cx+cs*.4,0,v?cz+cs*.4:cz,rot),cs*.2,WH,th,wc)}
   else if(t==='open'){}
   else{box(TR(cx,0,cz,rot),cs+th,t==='window'?WH*.45:WH,th,wc);TW(cs+th,0,t==='window'?WH*.45:WH);if(t==='window'){TW(cs+th,WH*.85,WH*.15);box(TR(cx,WH*.45,cz,rot),cs*.7,WH*.4,th*.6,col('#bfe2f2'),.6);box(TR(cx,WH*.85,cz,rot),cs+th,WH*.15,th,wc)}}}
- fl.furn.forEach(f=>{if(fgUse(f)){const F=fgMat(f),c=BROT?BROT.c:1,s2=BROT?BROT.s:0,ccx=BROT?BROT.cx:0,ccz=BROT?BROT.cz:0,vs=(WH/cs)/3.4,A=[c*cs,0,-s2*cs,0, 0,cs*vs,0,0, s2*cs,0,c*cs,0, ccx+(x0-ccx)*c+(z0-ccz)*s2,BY,ccz-(x0-ccx)*s2+(z0-ccz)*c,1],k=FGM[f.t].k;(FGC[k]=FGC[k]||[]).push({M:mmul(A,F)});return}
+ fl.furn.forEach(f=>{if(fgUse(f)){const F=fgMat(f),c=BROT?BROT.c:1,s2=BROT?BROT.s:0,ccx=BROT?BROT.cx:0,ccz=BROT?BROT.cz:0,vs=(WH/cs)/2.5,A=[c*cs,0,-s2*cs,0, 0,cs*vs,0,0, s2*cs,0,c*cs,0, ccx+(x0-ccx)*c+(z0-ccz)*s2,BY,ccz-(x0-ccx)*s2+(z0-ccz)*c,1],k=FGM[f.t].k;(FGC[k]=FGC[k]||[]).push({M:mmul(A,F)});return}
   const[fw,fd]=fsize(f),[h,c]=FH[f.t]||[.05,'#8a6a42'],x=x0+(f.x+fw/2)*cs,z=z0+(f.y+fd/2)*cs,sm=(f.t==='handtuch'||f.t==='schwall')?.4:1,w=fw*cs*.86*sm,d=fd*cs*.86*sm;
   if(f.t==='badfass'){cyl(TR(x,0,z),w/2,w/2,h,10,col('#8a5a32'));gq(x-w*.32,z-w*.32,x+w*.32,z+w*.32,h+.002,col('#8fc0d8'))}
   else if(f.t==='korb')cyl(TR(x,0,z),w*.35,w*.42,h,8,col(c));
@@ -5199,11 +5199,12 @@ function itxDraw(Lt,dayish,wins,ext){const H=itxInit();if(!H){ITX.q={};return}co
 const FLOORK={bad:'tiles',wasch:'tiles',sauna:'boards',barbier:'tiles',heil:'tiles',kueche:'terra',back:'terra',werk:'flags',lager:'flags',stall:'flags',schank:'flags',verkauf:'planks',flur:'flags'};
 const WALLK={fachwerk:'timber',stein:'stone',lehm:'lehm',holz:'boards'};
 // ===== Möbel als 3D-Modelle (GLB) =====
-const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',fp:1,over:1.55,back:1},waschbank:{k:'fwasch',ry:-Math.PI/2,fit:'xz',fp:.8,back:1},waschtisch:{k:'fwasch',ry:-Math.PI/2,fit:'xz',back:1},zuber:{k:'fzuber',ry:0,fit:'xz'},badfass:{k:'fzuber',ry:-Math.PI/2,fit:'xz',fp:1,over:1.3,back:1},abort:{k:'fabort',ry:-Math.PI/2,fit:'h',h:1.15,back:1},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
+const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch',fp:1,g:1.12,back:1},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch',fp:1,g:1.12,back:1},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',fp:1,over:1.55,back:1,g:1.05},waschbank:{k:'fwasch',ry:-Math.PI/2,fit:'xz',fp:.8,back:1},waschtisch:{k:'fwasch',ry:-Math.PI/2,fit:'xz',back:1},zuber:{k:'fzuber',ry:0,fit:'xz'},badfass:{k:'fzuber',ry:-Math.PI/2,fit:'xz',fp:1,over:1.3,back:1,g:1.1},abort:{k:'fabort',ry:-Math.PI/2,fit:'h',h:1.15,back:1},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
 function fgUse(f){const m=FGM[f.t];if(!m||HG_FAIL)return false;if(!HGD[m.k]){mLoad(m.k);return false}return !!hgInit(m.k)}
 function fgMat(f){const m=FGM[f.t],H=HGM[m.k],d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,th=m.ry+f.r*Math.PI/2,sw=Math.abs(Math.sin(m.ry))>.5;
  const ex=H.mx[0]-H.mn[0],ey=H.mx[1]-H.mn[1],ez=H.mx[2]-H.mn[2],Wl=d.w*(m.fp||.86),Dl=d.h*(m.fp||.86),ax=sw?Dl:Wl,az=sw?Wl:Dl;let sx,sy,sz;
  if(m.fit==='stretch'){sx=ax/ex;sz=az/ez;sy=Math.sqrt(sx*sz)}else if(m.fit==='h'){sx=sy=sz=m.h/ey}else{sx=sy=sz=Math.min(ax/ex,az/ez)*(m.over||1)}
+ {const g=m.g||1.28;sx*=g;sy*=g;sz*=g}
  const c=Math.cos(th),sn=Math.sin(th),mx=(H.mn[0]+H.mx[0])/2*sx,mz=(H.mn[2]+H.mx[2])/2*sz;
  let ox=0,oz=0;if(m.back){const dep=(sw?ex*sx:ez*sz),o=Math.max(0,(Dl-dep)/2),R=f.r*Math.PI/2;ox=-o*Math.sin(R);oz=-o*Math.cos(R)}
  return[c*sx,0,-sn*sx,0, 0,sy,0,0, sn*sz,0,c*sz,0, cx+ox-(mx*c+mz*sn),-H.mn[1]*sy,cz+oz-(-mx*sn+mz*c),1]}
