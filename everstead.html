@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110806">
+<meta name="everstead-build" content="55">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -483,6 +483,10 @@ function mem(s,txt){s.mem.unshift(`${WD[wday()].slice(0,2)} ${clock()}: ${txt}`)
 function bathCount(p){let n=0;for(const fl of p.floors)for(const R of fl.rooms)if(R.bath)n++;return n}
 function bedCount(p){let n=0;for(const fl of p.floors)for(const f of fl.furn)n+=f.t==='doppelbett'?2:f.t==='bett'?1:0;return n}
 function tubCount(p){let n=0;for(const fl of p.floors)for(const f of fl.furn)if(f.t==='badfass'||f.t==='zuber')n++;return n}
+// Volle Wohnhäuser (ab 3 Bewohnern oder alle Betten belegt) bekommen ein zweites Bad mit Badezuber
+function fullBaths(){const H=hAbs();let n=0;for(const b of S.b){if(b.t!=='haus'||!b.plan||b.built<1)continue;const p=b.plan;if(bathCount(p)>=2||(b._b2t&&H-b._b2t<24))continue;
+  const r=S.p.filter(s=>s.home===b.id&&!s.dead).length,bd=bedCount(p);if(r<3&&!(r>=2&&r>=bd))continue;b._b2t=H;if(ensureBath(b,true)){p.v=(p.v||1)+1;b._pa=null;n++}}
+ if(n)toast(n>1?`🛁 ${n} volle Wohnhäuser haben ein zweites Badezimmer mit Badezuber bekommen.`:'🛁 Ein volles Wohnhaus hat ein zweites Badezimmer mit Badezuber bekommen.')}
 function ensureBaths(b){if(!b.plan||BT[b.t].bath)return false;const p=b.plan;let ch=false;
  if(!bathCount(p))ch=ensureBath(b)||ch;
  if(b.t==='haus'&&(bedCount(p)>=5||p.floors.filter(fl=>fl.rooms.length).length>=2||(b.d&&['villa','stadt','gut'].includes(b.d.f)))&&bathCount(p)<2)ch=ensureBath(b,true)||ch;
@@ -490,7 +494,7 @@ function ensureBaths(b){if(!b.plan||BT[b.t].bath)return false;const p=b.plan;let
   if(!ok&&!ensureBath(b,true))break;ch=true}}
  if(ch){p.v=(p.v||1)+1;b._pa=null}return ch}
 function index(){if(S&&(S._bathV||0)<4){if((S._bathV||0)>=3){S._bathV=4;let n=0;for(const b of S.b)try{if(ensureBaths(b))n++}catch(e){}if(n)setTimeout(()=>{try{toast(`🛁 ${n} Gebäude haben zusätzliche Bäder bzw. Badezuber bekommen.`)}catch(e){}},2600)}}
- if(S&&(S._bathV||0)<3){S._bathV=3;let n=0;for(const b of S.b)try{if(!b.plan||BT[b.t].bath)continue;let had=false;for(const fl of b.plan.floors)for(const R of bathRooms(fl)){furnishBath(fl,R);had=true}if(had){b.plan.v=(b.plan.v||1)+1;b._pa=null;n++}else if(ensureBath(b))n++;ensureBaths(b)}catch(e){}S._bathV=4;if(n)setTimeout(()=>{try{toast(`🛁 ${n} Gebäude haben ein einheitliches Badezimmer.`)}catch(e){}},2500)}bById=new Map();pById=new Map();occ.fill(0);for(const b of S.b){bById.set(b.id,b);const z=BT[b.t]&&BT[b.t].sz||1;for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=b.id}for(const s of S.p)pById.set(s.id,s);bDirty=true}
+ if(S&&(S._bathV||0)<3){S._bathV=3;let n=0;for(const b of S.b)try{if(!b.plan||BT[b.t].bath)continue;let had=false;for(const fl of b.plan.floors)for(const R of bathRooms(fl)){furnishBath(fl,R);had=true}if(had){b.plan.v=(b.plan.v||1)+1;b._pa=null;n++}else if(ensureBath(b))n++;ensureBaths(b)}catch(e){}S._bathV=4;if(n)setTimeout(()=>{try{toast(`🛁 ${n} Gebäude haben ein einheitliches Badezimmer.`)}catch(e){}},2500)}if(S&&(S._bathV||0)>=4&&S._bathV<5){S._bathV=5;let n=0;for(const b of S.b)try{if(!b.plan||BT[b.t].bath)continue;let had=false;for(const fl of b.plan.floors)for(const R of fl.rooms)if(R.bath){furnishBath(fl,R);had=true}if(had)ensureBaths(b);if(tidyPlan(b.plan)||had){b.plan.v=(b.plan.v||1)+1;b._pa=null;n++}b.plan.tidy=1}catch(e){console.warn(e)}if(n)setTimeout(()=>{try{toast(`🛁 Einrichtung in ${n} Gebäuden neu geordnet: Bäder, Herd und Stühle.`)}catch(e){}},2700)}bById=new Map();pById=new Map();occ.fill(0);for(const b of S.b){bById.set(b.id,b);const z=BT[b.t]&&BT[b.t].sz||1;for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=b.id}for(const s of S.p)pById.set(s.id,s);bDirty=true}
 const afford=c=>Object.entries(c||{}).every(([k,n])=>S.res[k]>=n);
 const pay=c=>{for(const[k,n]of Object.entries(c||{})){S.res[k]-=n;if(k==='taler')flow('out','Bauen & Einrichten',n);else flow('cons',k,n)}};
 const beds=b=>b.built>=1?(b.plan?F(b).beds:(b.t==='haus'?3*(b.d.fl||1):(BT[b.t].beds||0))):0;
@@ -851,7 +855,7 @@ function goalMet(s,g){let ok=false;
  if(g==='heiraten')ok=s.married;else if(g==='familie')ok=S.p.some(c=>c.parents.includes(s.id));else if(g==='haus')ok=S.b.some(b=>b.owner===s.id);
  else if(g==='reich')ok=s.money>=200;else if(g==='freunde')ok=Object.values(s.rel).filter(r=>r.f>=40).length>=4;else if(g==='meister')ok=s.skill>=150;return ok}
 function checkGoal(s){const g=s.goal;if(goalMet(s,g)){log(`⭐ ${nm(s)} hat sich einen Wunsch erfüllt: ${GOALS[g]}.`,s.id);story(s,'⭐',`erfüllte sich einen Lebenstraum: ${GOALS[g]}`);mem(s,'hat sich einen Wunsch erfüllt: '+GOALS[g]);s.rep+=5;s.n.f=100;s.goal=pick(Object.keys(GOALS).filter(x=>x!==g&&!goalMet(s,x)))||'freunde'}}
-function hourly(){try{whSync()}catch(e){console.warn(e)}assignHomes();assignJobs();rebalanceJobs();constructionHelpers();emHourly();famHourly();railTick();if(hod()%3===0)shiftWorkers();for(const b of S.b)if(b.built<1){const pb=b._pb==null?b.built:b._pb;b.rate=(b.rate||0)*.6+Math.max(0,b.built-pb)*.4;b._pb=b.built};moreArrivals();extraJobs();if(hod()===6)autoGrow();foodHourly();greenCalc();let m=0;for(const s of S.p){s.mood=moodOf(s);m+=s.mood}S.mood=S.p.length?m/S.p.length:0;S._mh=(S._mh||[]);S._mh.push(Math.round(S.mood*10)/10);if(S._mh.length>48)S._mh.shift();for(let i=0;i<W*H;i++)S.traffic[i]*=.985}
+function hourly(){try{whSync()}catch(e){console.warn(e)}try{fullBaths()}catch(e){console.warn(e)}for(const b of S.b)if(b.plan&&!b.plan.tidy){b.plan.tidy=1;try{if(tidyPlan(b.plan))b._pa=null}catch(e){}}assignHomes();assignJobs();rebalanceJobs();constructionHelpers();emHourly();famHourly();railTick();if(hod()%3===0)shiftWorkers();for(const b of S.b)if(b.built<1){const pb=b._pb==null?b.built:b._pb;b.rate=(b.rate||0)*.6+Math.max(0,b.built-pb)*.4;b._pb=b.built};moreArrivals();extraJobs();if(hod()===6)autoGrow();foodHourly();greenCalc();let m=0;for(const s of S.p){s.mood=moodOf(s);m+=s.mood}S.mood=S.p.length?m/S.p.length:0;S._mh=(S._mh||[]);S._mh.push(Math.round(S.mood*10)/10);if(S._mh.length>48)S._mh.shift();for(let i=0;i<W*H;i++)S.traffic[i]*=.985}
 let lastHour=-1,lastDay=-1;
 function update(dt){
  S.t+=dt;const dh=dt/HOUR;
@@ -951,8 +955,31 @@ function furnishBath(fl,R){const inR=f=>{const[w,h]=fsize(f);return f.x>=R.x&&f.
  const cx=R.x+R.w/2-.5,cy=R.y+R.h/2-.5,C=[];for(let y=R.y;y<R.y+R.h;y++)for(let x=R.x;x<R.x+R.w;x++)if(!block.has(x+','+y)&&furnAt(fl,x,y)<0)C.push([x,y]);
  const corner=([x,y])=>(x===R.x||x===R.x+R.w-1?1:0)+(y===R.y||y===R.y+R.h-1?1:0);C.sort((a,b)=>corner(b)-corner(a)||Math.hypot(b[0]-cx,b[1]-cy)-Math.hypot(a[0]-cx,a[1]-cy));
  const face=(x,y)=>{const dx=cx-x,dy=cy-y;return Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?0:2)};
- const L=['badfass','abort','waschbank'];if(C.length>=6)L.push('handtuch');if(C.length>=8)L.push('korb');if(C.length>=10)L.push('schwall');
- for(const t of L){const c=C.shift();if(!c)break;fl.furn.push({t,x:c[0],y:c[1],r:face(c[0],c[1])})}}
+ const dDoor=([x,y])=>{let m=99;for(const k of block){const[a,c]=k.split(',').map(Number);m=Math.min(m,Math.abs(a-x)+Math.abs(c-y))}return m};
+ const wallFace=([x,y])=>{if(corner([x,y])===1){if(y===R.y&&R.h>1)return 0;if(y===R.y+R.h-1&&R.h>1)return 2;if(x===R.x)return 1;if(x===R.x+R.w-1)return 3}return face(x,y)};
+ // Badezuber in die Ecke (möglichst weit weg von der Tür), Abort und Waschtisch an die Wand
+ const corners=C.filter(c=>corner(c)===2).sort((a,b)=>dDoor(b)-dDoor(a));const tub=corners[0]||C[0];if(!tub)return;fl.furn.push({t:'badfass',x:tub[0],y:tub[1],r:face(tub[0],tub[1])});
+ const adj=(p,q)=>Math.max(Math.abs(p[0]-q[0]),Math.abs(p[1]-q[1]))<=1;let used=[tub];
+ for(const t of['abort','waschbank']){const W=C.filter(c=>corner(c)>=1&&!used.some(u=>u[0]===c[0]&&u[1]===c[1]));if(!W.length)break;
+  W.sort((p,q)=>(used.some(u=>adj(u,p))?1:0)-(used.some(u=>adj(u,q))?1:0)||(corner(p)===1?0:1)-(corner(q)===1?0:1)||dDoor(q)-dDoor(p));const c=W[0];used.push(c);fl.furn.push({t,x:c[0],y:c[1],r:wallFace(c)})}}
+// Einrichtung ordnen: Stühle zum Tisch drehen, Herdstelle mittig an ihre Wand
+function tidyPlan(p){if(!p)return false;let ch=false;
+ for(const fl of p.floors){const T=fl.furn.filter(f=>f.t==='tisch');
+  for(const f of fl.furn){if(f.t!=='stuhl')continue;const ri=roomAt(fl,f.x,f.y);let best=null,bd=9;
+   for(const t of T){if(roomAt(fl,t.x,t.y)!==ri)continue;const[w,h]=fsize(t),dx=Math.max(t.x-f.x,0,f.x-(t.x+w-1)),dy=Math.max(t.y-f.y,0,f.y-(t.y+h-1)),d=dx+dy;if(d<bd){bd=d;best=t}}
+   if(!best||bd>2)continue;const[w,h]=fsize(best),dx=best.x+(w-1)/2-f.x,dy=best.y+(h-1)/2-f.y,r=Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?0:2);if(f.r!==r){f.r=r;ch=true}}
+  for(const f of fl.furn){if(f.t!=='herd')continue;const ri=roomAt(fl,f.x,f.y);if(ri<0)continue;const R=fl.rooms[ri];let best=null;
+   const occ=(x,y)=>{const o=furnAt(fl,x,y);return o>=0&&fl.furn[o]!==f};
+   for(const r of[0,2,1,3]){const hor=r===0||r===2,L=hor?R.w:R.h,b0=hor?R.x:R.y;if(L<3)continue;const mid=b0+(L-1)/2;
+    for(const k of[Math.floor(mid),Math.ceil(mid)].concat([Math.floor(mid)-1,Math.ceil(mid)+1])){if(k<b0||k>=b0+L)continue;
+     const x=hor?k:(r===1?R.x:R.x+R.w-1),y=hor?(r===0?R.y:R.y+R.h-1):k;if(occ(x,y))continue;
+     const ek=(kk)=>hor?`h:${kk}:${r===0?R.y:R.y+R.h}`:`v:${r===1?R.x:R.x+R.w}:${kk}`;const et=fl.edges[ek(k)];if(et==='door'||et==='open')continue;
+     let sc=Math.abs(k-mid)*2;for(const d of[-1,1]){const t2=fl.edges[ek(k+d)];if(t2==='door'||t2==='open')sc+=6;const nx=hor?k+d:x,ny=hor?y:k+d;if(roomAt(fl,nx,ny)===ri&&occ(nx,ny))sc+=4}
+     if(et==='window')sc+=2;const fx=x+(r===1?1:r===3?-1:0),fy=y+(r===0?1:r===2?-1:0);if(occ(fx,fy))sc+=10;
+     // Tür direkt gegenüber im Weg?
+     if(f.x===x&&f.y===y)sc-=1;if(!best||sc<best.sc)best={sc,x,y,r}}}
+   if(best&&(f.x!==best.x||f.y!==best.y||f.r!==best.r)){f.x=best.x;f.y=best.y;f.r=best.r;ch=true}}}
+ if(ch)p.v=(p.v||1)+1;return ch}
 // ältere Bäder entrümpeln: in kleinen Bädern bleiben Zuber, Abort und Waschtisch – genug Platz zum Bewegen
 function bathTidy(b){const p=b.plan;if(!p||p.bathT)return;p.bathT=1;let ch=false;for(const fl of p.floors)fl.rooms.forEach((R,ri)=>{if(!R.bath)return;const F=fl.furn.filter(f=>roomAt(fl,f.x,f.y)===ri);let free=R.w*R.h-F.reduce((a,f)=>{const[w,h]=fsize(f);return a+w*h},0);
   for(const t of['schwall','korb','handtuch']){if(free>=3)break;const f=F.find(q=>q.t===t);if(f){fl.furn.splice(fl.furn.indexOf(f),1);free++;ch=true}}});if(ch)p.v=(p.v||0)+1}
@@ -2707,13 +2734,13 @@ let LEAFTX=null;function bindDetail(){if(LEAFTX){gl.activeTexture(gl.TEXTURE7);g
   for(const ox of[-N,0,N])for(const oy of[-N,0,N]){const X=px+ox,Y=py+oy;if(X<-20||Y<-20||X>N+20||Y>N+20)continue;x.save();x.translate(X,Y);x.rotate(a);x.fillStyle=`rgb(${g},${g},${g})`;x.beginPath();x.ellipse(0,0,rx,ry,0,0,7);x.fill();
    x.strokeStyle=`rgba(40,40,40,.5)`;x.lineWidth=.7;x.beginPath();x.moveTo(-rx*.9,0);x.lineTo(rx*.9,0);x.stroke();x.restore()}}
  const t=gl.createTexture();gl.activeTexture(gl.TEXTURE7);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.generateMipmap(gl.TEXTURE_2D);
- gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
  gl.activeTexture(gl.TEXTURE0);LEAFTX=t}catch(e){console.warn('Laub',e)}})();
 (function loadDetail(){if(!GL_OK||typeof TEXB64==='undefined')return;const imgs={},ks=Object.keys(TEXB64);let left=ks.length;
  const done=()=>{try{const N=512,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d',{willReadFrequently:true});const an=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
   TEXPACK.forEach((ns,ti)=>{const out=new Uint8Array(N*N*3);ns.forEach((n,ch)=>{if(!imgs[n])return;x.clearRect(0,0,N,N);x.drawImage(imgs[n],0,0,N,N);const d=x.getImageData(0,0,N,N).data;for(let i=0;i<N*N;i++)out[i*3+ch]=d[i*4]});
    const t=gl.createTexture();gl.activeTexture(gl.TEXTURE3+ti);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,N,N,0,gl.RGB,gl.UNSIGNED_BYTE,out);gl.pixelStorei(gl.UNPACK_ALIGNMENT,4);gl.generateMipmap(gl.TEXTURE_2D);
-   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
+   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
    if(an)gl.texParameterf(gl.TEXTURE_2D,an.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(4,gl.getParameter(an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));DTX[ti]=t});
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.useProgram(P);DTX_OK=true;bindDetail()}catch(e){console.warn('Texturen',e);DTX_OK=false}};
  for(const k of ks){const im=new Image();im.onload=()=>{imgs[k]=im;if(--left===0)done()};im.onerror=()=>{if(--left===0)done()};im.src='data:image/jpeg;base64,'+TEXB64[k]}})();
@@ -2993,7 +3020,7 @@ varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;un
   const mb=(a)=>{const B=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,B);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return B};
   const H={p,U,pb:mb(pos),nb:mb(new Int8Array(dec(M.nm))),ub:mb(new Uint16Array(dec(M.uv))),ib:gl.createBuffer(),cnt:M.i,tex:null,mn:M.mn,mx:M.mx};
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(dec(M.ix)),gl.STATIC_DRAW);
-  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.activeTexture(gl.TEXTURE0);H.tex=t;bDirty=true};im.src=M.tex;
+  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.activeTexture(gl.TEXTURE0);H.tex=t;bDirty=true};im.src=M.tex;
   HGM[key]=H;return H}catch(e){console.warn('Hausmodell',e);HG_FAIL=true;return null}}
 // Modellmatrix: Grundfläche füllt das Grundstück, Unterkante auf Bodenhöhe
 // Marktplatz füllt den ganzen gepflasterten Platz rund um den Markt (inkl. Brunnen)
@@ -3198,10 +3225,10 @@ function overlay(ui,cut,selS){const c=oc;c.setTransform(dpr,0,0,dpr,0,0);c.clear
 }
 
 // ===== Grafikstufen & Leistung =====
-let SHF=0,LASTCAM='',LASTLV=null,DETN=0;const QDPR=[1,1.5,2];let GFX_AUTO=(navigator.hardwareConcurrency||4)<=4?1:2,FT=[],GFX_UP=0;
+let SHF=0,LASTCAM='',LASTLV=null,DETN=0;const QDPR=[1.25,2,3];function ANI(){if(ANI.e===undefined)ANI.e=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic')||null;const e=ANI.e;if(e)gl.texParameterf(gl.TEXTURE_2D,e.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(e.MAX_TEXTURE_MAX_ANISOTROPY_EXT)))}let GFX_AUTO=2,FT=[],GFX_UP=0;
 function gfxLevel(){const g=(typeof ui!=='undefined'&&ui.gfx)||'auto';return g==='hoch'?2:g==='mittel'?1:g==='sparsam'?0:GFX_AUTO}
 function gfxMonitor(dt){if(typeof ui==='undefined'||(ui.gfx&&ui.gfx!=='auto')||ui.eco)return;FT.push(dt);if(FT.length<120)return;FT.sort((a,b)=>a-b);const med=FT[60];FT=[];const old=GFX_AUTO;
- if(med>.036&&GFX_AUTO>0){GFX_AUTO--;GFX_UP=0}else if(med<.018&&GFX_AUTO<2){if(++GFX_UP>=3){GFX_AUTO++;GFX_UP=0}}else GFX_UP=0;if(old!==GFX_AUTO)r3resize()}
+ if(med>.045&&GFX_AUTO>1){GFX_AUTO--;GFX_UP=0}else if(med<.018&&GFX_AUTO<2){if(++GFX_UP>=3){GFX_AUTO++;GFX_UP=0}}else GFX_UP=0;if(old!==GFX_AUTO)r3resize()}
 
 // ===== Nachbearbeitung: Farbabstimmung, Leuchten, Vignette, Miniatur-Effekt =====
 let PPS=null;
@@ -4221,12 +4248,13 @@ function skInit(k){if(SKH[k])return SKH[k].ok?SKH[k]:null;const M=HGD[k];if(!M){
   const mkB=(arr,tgt)=>{const b=gl.createBuffer();gl.bindBuffer(tgt||gl.ARRAY_BUFFER,b);gl.bufferData(tgt||gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);return b};
   H.bp=mkB(P);H.bn=mkB(d(M.nr,Int8Array));H.bu=mkB(d(M.uv,Uint16Array));H.bj=mkB(d(M.j,Uint8Array));H.bw=mkB(d(M.w,Uint8Array));const ix=d(M.ix,Uint16Array);H.bi=mkB(ix,gl.ELEMENT_ARRAY_BUFFER);H.ni=ix.length;
   H.clips={};for(const[c,C]of Object.entries(M.clips))H.clips[c]={n:C.n,dur:C.dur,m:new Float32Array(C.m)};H.nj=M.nj;H.h=M.h;H.B=new Float32Array(M.nj*12);
-  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.activeTexture(gl.TEXTURE0);H.tex=t;H.ok=true};im.src=M.tex}
+  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.activeTexture(gl.TEXTURE0);H.tex=t;H.ok=true};im.src=M.tex}
  catch(e){console.warn('Figuren-Modell',e);SK_FAIL=true;return null}return null}
 let SKN=0;
-function skinQueue(s,x,y,z,yaw,h){const k=skKey(s);if(!k)return false;const t=s.task&&s.task.k;if(s.act==='do'&&(t==='sleep'||t==='nap'||t==='birth'||t==='trybaby'))return false;
- const H=skInit(k);if(!H)return false;const dd=Math.hypot(x-EYE[0],y-EYE[1],z-EYE[2]);if(dd>24||SKN>=36)return false;SKN++;
- const walk=s.act==='walk'||s.iwalk;SKQ.push({H,x,y,z,yaw,h,clip:walk?(s.run?'run':'walk'):'idle',ph:(s.id*.7311)%1,tint:s._skt||(s._skt=[.92+((s.id*37)%17)/100,.92+((s.id*53)%13)/100,.92+((s.id*71)%11)/100])});return true}
+let SK_IN=false;
+function skinQueue(s,x,y,z,yaw,h){const k=skKey(s);if(!k)return false;const t=s.task&&s.task.k,dn=s.act==='do';const lie=dn&&(t==='sleep'||t==='nap'||t==='birth'||t==='trybaby'),sit=!lie&&dn&&!s.iwalk&&!!(s.spot&&s.spot.seat);
+ const H=skInit(k);if(!H)return false;if((lie||sit)&&!H.clips[lie?'lie':'sit'])return false;if(lie){y-=.035*h;h*=.86}const dd=Math.hypot(x-EYE[0],y-EYE[1],z-EYE[2]);if(dd>24||SKN>=36)return false;SKN++;
+ const walk=s.act==='walk'||s.iwalk;SKQ.push({H,x,y,z,yaw,h,clip:lie?'lie':sit?'sit':walk?(s.run?'run':'walk'):'idle',ph:(s.id*.7311)%1,tint:s._skt||(s._skt=[.92+((s.id*37)%17)/100,.92+((s.id*53)%13)/100,.92+((s.id*71)%11)/100])});return true}
 function flushSkins(lt,fog){SKN=0;if(!SKQ.length||!SKP)return SKQ.length=0;const U=SKP.U;gl.useProgram(SKP.p);
  for(const k of['p','n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);for(let i=0;i<5;i++)gl.enableVertexAttribArray(i);
  gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniform3fv(U.lt,lt);gl.uniform3fv(U.fogc,fog||[1,1,1]);gl.uniform3fv(U.eye,EYE);gl.uniform1f(U.fogOn,fog?1:0);gl.uniform1i(U.tx,2);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
@@ -4245,7 +4273,7 @@ function spriteIdx(s){if(!SPR_ON||SPR_FAIL||typeof SPRITES==='undefined')return 
  const t=s.task&&s.task.k;if(s.act==='do'&&(t==='sleep'||t==='nap'||t==='birth'||t==='trybaby'))return -1;const ph=photoFor(s);if(!ph)return -1;const i=ph.i<20?ph.i:SPR_MAP[ph.i];return i==null||!SPRITES[i]?-1:i}
 function sprTex(i){let T=SPRTX[i];if(T)return T.ok?T:null;T=SPRTX[i]={ok:false};const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d');x.drawImage(im,0,0,512,256);
   const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.generateMipmap(gl.TEXTURE_2D);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   gl.activeTexture(gl.TEXTURE0);T.t=t;T.ok=true}catch(e){SPR_FAIL=true}};im.src=SPRITES[i].src;return null}
 // Figur einreihen; liefert false, wenn (noch) kein Sprite verfügbar ist
 function spriteQueue(s,x,y,z,yaw,h){if(skinQueue(s,x,y,z,yaw,h*.93))return true;const i=spriteIdx(s);if(i<0)return false;const T=sprTex(i);if(!T)return false;
@@ -4268,7 +4296,7 @@ function flushSprites(lt,fog){try{flushSkins(lt,fog)}catch(e){console.warn(e);SK
   gl.uniform1f(u.lo,.5);gl.uniform1f(u.hi,2.);gl.drawArrays(gl.TRIANGLES,0,L.length*6);
   gl.enable(gl.BLEND);gl.depthMask(false);gl.uniform1f(u.lo,.04);gl.uniform1f(u.hi,.5);gl.drawArrays(gl.TRIANGLES,0,L.length*6);gl.depthMask(true);gl.disable(gl.BLEND)}
  gl.activeTexture(gl.TEXTURE0);gl.useProgram(P);for(const k of['n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
-function drawFigure(s,x,y,z,yaw,size,inHouse){if(spriteQueue(s,x,y,z,yaw,size*1.06)){s._v=s._v||[x,y+size*.55,z];return}gl.uniform1f(L.fig,1);FIG_ON=true;try{drawFigure0(s,x,y,z,yaw,size,inHouse)}finally{FIG_ON=false;gl.uniform1f(L.fig,0)}}
+function drawFigure(s,x,y,z,yaw,size,inHouse){SK_IN=!!inHouse;const _sq=spriteQueue(s,x,y,z,yaw,size*1.06);SK_IN=false;if(_sq){s._v=s._v||[x,y+size*.55,z];return}gl.uniform1f(L.fig,1);FIG_ON=true;try{drawFigure0(s,x,y,z,yaw,size,inHouse)}finally{FIG_ON=false;gl.uniform1f(L.fig,0)}}
 function drawFigure0(s,x,y,z,yaw,size,inHouse){if(s.talk&&s.talk.with&&hAbs()<s.talk.until){const p=pById.get(s.talk.with);if(p&&p._fx2!=null){const mD=inHouse?1.15:.14,dx=x-p._fx2,dz=z-p._fz2,d=Math.hypot(dx,dz);if(d<mD&&d<(inHouse?7:1.2)){const ux=d>1e-3?dx/d:Math.sin(s.id),uz=d>1e-3?dz/d:Math.cos(s.id);x+=ux*(mD-d)/2;z+=uz*(mD-d)/2}}if(p&&p._fx2!=null&&Math.hypot(p._fx2-x,p._fz2-z)<(inHouse?7:1.2)&&Math.hypot(p._fx2-x,p._fz2-z)>.01)yaw=Math.atan2(p._fx2-x,p._fz2-z)}const pr=figParts(s),P=poseOf(s,inHouse),prop=propOf(s),kid=pr.o.kid,a=ageOf(s),k=a<1?.3+a*.15:kid?.62+a/13*.3:1,sc=size*k,f=pr.f;
  if(!(s.talk&&s.talk.with&&hAbs()<s.talk.until)&&!P.lie&&s.act==='do')actPose(s,P,inHouse);
  const base=P.lie?mm(M4.T(x,y+.07*sc,z),M4.RY(yaw),M4.RX(-Math.PI/2),M4.T(0,-.5,0)):mm(M4.T(x,y,z),M4.RY(yaw));
@@ -5199,7 +5227,7 @@ function itxPaint(kind){const S=ITS,cv=document.createElement('canvas');cv.width
    const weave=(Math.sin(x*1.6)*Math.sin(y*1.6))*.04,b=.92+weave-f*.08+(R()-.5)*.04;put(i,col[0]*b,col[1]*b,col[2]*b)}}
  c.putImageData(im,0,0);return cv}
 function itxTex(kind){if(ITX.tex[kind])return ITX.tex[kind];const cv=itxPaint(kind),t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);
- gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,cv);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,cv);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();
  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);const an=gl.getExtension('EXT_texture_filter_anisotropic');if(an)gl.texParameterf(gl.TEXTURE_2D,an.TEXTURE_MAX_ANISOTROPY_EXT,4);
  gl.activeTexture(gl.TEXTURE0);ITX.tex[kind]=t;return t}
 function itxInit(){if(ITX.prog||ITX.fail)return ITX.prog;try{const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
@@ -5277,7 +5305,7 @@ function hvScene(ui){
  for(const s of S.p){if(s.inside!==b.id||s.away||s.act==='walk'||!s.ip||s.ip.f!==IM.f){s._iv=null;continue}
   const x=s.ip.x,z=s.ip.y,sl=s.act==='do'&&s.task&&(s.task.k==='sleep'||s.task.k==='nap')&&!s.iwalk,k=(ageOf(s)<16?.5+ageOf(s)/16*.5:1);
   s._hd=s._ihd||0;const wasWalk=s.act;if(s.iwalk)s.act='walk';
-  if(sl){const fi=s.spot&&s.spot.fi!=null?fl.furn[s.spot.fi]:null,R2=fi?fi.r*Math.PI/2:0;faces.push([s,x,.42,z,R2])}
+  if(sl){const fi=s.spot&&s.spot.fi!=null?fl.furn[s.spot.fi]:null,R2=fi?fi.r*Math.PI/2:0;faces.push([s,x,fi&&/bett|wiege/.test(fi.t)?.42:.04,z,R2])}
   else{walkPhase(s,x,z);s._wscale=2.4;faces.push([s,x,0,z,s._hd||0])}
   s.act=wasWalk;s._iv=[x,1.2*k,z];
   if(s===act||s.ctrl){G=DT;for(let i=0;i<20;i++){const a1=i/20*Math.PI*2,a2=(i+1)/20*Math.PI*2,r1=.55,r2=.7;quad([x+Math.cos(a1)*r1,.02,z+Math.sin(a1)*r1],[x+Math.cos(a2)*r1,.02,z+Math.sin(a2)*r1],[x+Math.cos(a2)*r2,.02,z+Math.sin(a2)*r2],[x+Math.cos(a1)*r2,.02,z+Math.sin(a1)*r2],col(s.ctrl?'#f0c85a':'#ffffff',.9))}}
