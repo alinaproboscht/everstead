@@ -1,7 +1,7 @@
 {
-  "build": 2026110801,
+  "build": 2026110802,
   "file": "everstead.html",
-  "notes": "Update 48: Marktstände einzeln bearbeitbar und im Baumodus, Pflaster unter Markt und Brunnen, aufgeräumte Bäder, Möbel mit mehr Abstand",
+  "notes": "Update 49: Lagerhäuser mit eigenem Bestand, Betriebe holen Rohstoffe im Lager ab, zweites Bad in großen Wohnhäusern, zwei Badezuber in jedem Betrieb",
   "models": [
     {
       "file": "m_baeckerei.json",

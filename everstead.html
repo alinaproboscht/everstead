@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110801">
+<meta name="everstead-build" content="2026110802">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -479,7 +479,18 @@ const bName=b=>b?(b.d&&b.d.name)||BT[b.t].n:'';
 const jobTitle=s=>{const b=s.job&&bById.get(s.job);if(!b)return ageOf(s)<16?'Kind':ageOf(s)>=65?'Im Ruhestand':'Ohne Arbeit';if(b.built<1)return (s.g==='f'?'Bauhelferin':'Bauhelfer')+(s.tmpJob?' (vorübergehend)':'');const j=F(b).job;return j?j[s.g==='f'?0:1]:'Helfer'};
 function log(txt,sid){S.log.unshift({d:day(),h:clock(),txt});if(S.log.length>200)S.log.pop();hooks.feed(txt,sid)}
 function mem(s,txt){s.mem.unshift(`${WD[wday()].slice(0,2)} ${clock()}: ${txt}`);if(s.mem.length>8)s.mem.pop()}
-function index(){if(S&&(S._bathV||0)<3){S._bathV=3;let n=0;for(const b of S.b)try{if(!b.plan||BT[b.t].bath)continue;let had=false;for(const fl of b.plan.floors)for(const R of bathRooms(fl)){furnishBath(fl,R);had=true}if(had){b.plan.v=(b.plan.v||1)+1;b._pa=null;n++}else if(ensureBath(b))n++}catch(e){}if(n)setTimeout(()=>{try{toast(`🛁 ${n} Gebäude haben ein einheitliches Badezimmer.`)}catch(e){}},2500)}bById=new Map();pById=new Map();occ.fill(0);for(const b of S.b){bById.set(b.id,b);const z=BT[b.t]&&BT[b.t].sz||1;for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=b.id}for(const s of S.p)pById.set(s.id,s);bDirty=true}
+// Große Wohnhäuser bekommen ein zweites Bad, Betriebe mindestens zwei Badezuber fürs Personal
+function bathCount(p){let n=0;for(const fl of p.floors)for(const R of fl.rooms)if(R.bath)n++;return n}
+function bedCount(p){let n=0;for(const fl of p.floors)for(const f of fl.furn)n+=f.t==='doppelbett'?2:f.t==='bett'?1:0;return n}
+function tubCount(p){let n=0;for(const fl of p.floors)for(const f of fl.furn)if(f.t==='badfass'||f.t==='zuber')n++;return n}
+function ensureBaths(b){if(!b.plan||BT[b.t].bath)return false;const p=b.plan;let ch=false;
+ if(!bathCount(p))ch=ensureBath(b)||ch;
+ if(b.t==='haus'&&(bedCount(p)>=5||p.floors.filter(fl=>fl.rooms.length).length>=2||(b.d&&['villa','stadt','gut'].includes(b.d.f)))&&bathCount(p)<2)ch=ensureBath(b,true)||ch;
+ if(b.t!=='haus'&&BT[b.t].slots){for(let k=0;k<2&&tubCount(p)<2;k++){let ok=false;for(const fl of p.floors){for(const R2 of fl.rooms){if(!R2.bath)continue;const C=[];for(let y=R2.y;y<R2.y+R2.h;y++)for(let x=R2.x;x<R2.x+R2.w;x++)C.push([x,y,0]);if(fitFurn(fl,'badfass',C)){ok=true;break}}if(ok)break}
+  if(!ok&&!ensureBath(b,true))break;ch=true}}
+ if(ch){p.v=(p.v||1)+1;b._pa=null}return ch}
+function index(){if(S&&(S._bathV||0)<4){if((S._bathV||0)>=3){S._bathV=4;let n=0;for(const b of S.b)try{if(ensureBaths(b))n++}catch(e){}if(n)setTimeout(()=>{try{toast(`🛁 ${n} Gebäude haben zusätzliche Bäder bzw. Badezuber bekommen.`)}catch(e){}},2600)}}
+ if(S&&(S._bathV||0)<3){S._bathV=3;let n=0;for(const b of S.b)try{if(!b.plan||BT[b.t].bath)continue;let had=false;for(const fl of b.plan.floors)for(const R of bathRooms(fl)){furnishBath(fl,R);had=true}if(had){b.plan.v=(b.plan.v||1)+1;b._pa=null;n++}else if(ensureBath(b))n++;ensureBaths(b)}catch(e){}S._bathV=4;if(n)setTimeout(()=>{try{toast(`🛁 ${n} Gebäude haben ein einheitliches Badezimmer.`)}catch(e){}},2500)}bById=new Map();pById=new Map();occ.fill(0);for(const b of S.b){bById.set(b.id,b);const z=BT[b.t]&&BT[b.t].sz||1;for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=b.id}for(const s of S.p)pById.set(s.id,s);bDirty=true}
 const afford=c=>Object.entries(c||{}).every(([k,n])=>S.res[k]>=n);
 const pay=c=>{for(const[k,n]of Object.entries(c||{})){S.res[k]-=n;if(k==='taler')flow('out','Bauen & Einrichten',n);else flow('cons',k,n)}};
 const beds=b=>b.built>=1?(b.plan?F(b).beds:(b.t==='haus'?3*(b.d.fl||1):(BT[b.t].beds||0))):0;
@@ -622,6 +633,7 @@ function arrive(s){
   case 'buy':{if(S.res.brot<1){s.th='Kein Brot mehr da!';s.left=.1;break}const pz=bp(),q=Math.min(S.res.brot,Math.floor(s.money/pz),s.tr.includes('sparsam')?3:5);
    if(q<1){s.th='Ich habe kein Geld.';s.left=.1;break}S.res.brot-=q;s.money-=q*pz;pf(s,'exp',q*pz);S.res.taler+=q*pz;flow('in','Brotverkauf',q*pz);{const fee=Math.min(s.money,q*pz*(S.mfee==null?.1:S.mfee));if(fee>0){s.money-=fee;pf(s,'exp',fee);S.res.taler+=fee;flow('in','Marktstandgeld',fee)}}flow('cons','brot',q);s.brot+=q;s.th=`${q} Brote gekauft.`;mem(s,`hat ${q} Brote gekauft`);s.left=.25;
    if(s.home)s.cmds.unshift({k:'deliver',bid:s.home,pri:1,exp:hAbs()+6,auto:1});break}
+  case 'fetch':fetchArrive(s,b,t);break;
   case 'hobby':hobbyArrive(s,b);break;
   case 'mass':case 'learn':townArrive(s,b,t.k);break;
   case 'birth':s.left=2;s.th='Es geht los …';break;
@@ -692,7 +704,7 @@ function options(s){
  if(s.money>=bp()&&S.res.brot>0){const sh=nearest(s,b=>F(b).shop);if(sh&&h>=7&&h<20)add(hungry-8,{k:'eat',bid:sh.id})}
  if(s.money>=2){const tv=nearest(s,b=>F(b).tavern&&staffed(b));if(tv)add(hungry-12,{k:'eat',bid:tv.id})}
  if(s.money>=1&&foodTypes().some(k=>k!=='brot')){const sh=nearest(s,b=>F(b).shop||b.t==='markt');if(sh&&h>=7&&h<20)add(hungry+2,{k:'eat',bid:sh.id})}
- if(work){let b=bById.get(s.job);if(b&&BT[b.t].builder&&b.built>=1){const st=nextSite(s);if(st)b=st}if(b)add(72+(FO==='karriere'?25:0)+(FO==='wohlstand'?15:0)+(s.tr.includes('fleissig')?10:0),{k:'work',bid:b.id})}
+ if(work){let b=bById.get(s.job);if(b&&BT[b.t].builder&&b.built>=1){const st=nextSite(s);if(st)b=st}if(b)add(72+(FO==='karriere'?25:0)+(FO==='wohlstand'?15:0)+(s.tr.includes('fleissig')?10:0),{k:'work',bid:b.id});if(b&&b.need&&b.built>=1&&(!b.fetchBy||b.fetchBy===s.id||hAbs()-(b.fetchT||0)>2)){const ks=Object.keys(F(b).in||{}),wh=whNear(b,ks.find(k=>whHas(k)>=1))||whNear(b);if(wh){b.fetchBy=s.id;b.fetchT=hAbs();add(95,{k:'fetch',bid:wh.id,jb:b.id})}}}
  if(home&&!isKid(s)&&h>=7&&h<19&&s.money>=bp()*2&&S.res.brot>0){const need=residents(home).length*3-(home.stock||0)-s.brot;const sh=nearest(s,b=>F(b).shop);if(need>0&&sh)add(30+need*6,{k:'buy',bid:sh.id})}
  const soc=(100-n.s)*(s.tr.includes('gesellig')?1.2:.9)*(FO==='freunde'?1.35:1)*(FO==='familie'?1.15:1);
  const fr=bestFriend(s);if(fr&&h>=8&&h<21)add(soc*.9,{k:'interact',tid:fr.id,ik:pickInter(s,fr)});
@@ -767,7 +779,7 @@ function socialTick(s,dh){if(!s.inside||rnd()>dh*1.5)return;const o=S.p.filter(p
 // ===== Gebäude =====
 function addB(t,x,y,d){const T=BT[t];const b={id:S.nid++,t,x,y,built:0,prog:0,stock:0,owner:0,st:''};if(T.def||d)b.d=Object.assign({wc:null,rc:null,deco:[],name:''},T.def?{f:T.def.f,fl:T.def.fl}:{},d||{});
  if(b.d){const Fm=FORMS[b.d.f];if(!b.d.wc)b.d.wc=Fm.walls[0];if(!b.d.rc)b.d.rc=Fm.roofs[0];b.d.deco=[...(b.d.deco||[])];delete b.d.plan}
- if(PLAN_TYPES[t]){b.plan=clonePlan((d&&d.plan)||TEMPLATES[t]);try{if(!BT[t].bath){for(const fl of b.plan.floors)for(const R of bathRooms(fl))furnishBath(fl,R);ensureBath(b)}}catch(e){}syncExterior(b)}
+ if(PLAN_TYPES[t]){b.plan=clonePlan((d&&d.plan)||TEMPLATES[t]);try{if(!BT[t].bath){for(const fl of b.plan.floors)for(const R of bathRooms(fl))furnishBath(fl,R);ensureBath(b);ensureBaths(b)}}catch(e){}syncExterior(b)}
  S.b.push(b);bById.set(b.id,b);const z=szOf(t);for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++){occ[(y+dy)*W+x+dx]=b.id;hooks.tile((y+dy)*W+x+dx)}pcache.clear();bDirty=true;return b}
 function syncExterior(b){if(!b.plan||!b.d)return;const n=planFloors(b.plan);if(FORMS[b.d.f].maxF<n){b.d.f='fachwerk';b.d.wc=FORMS.fachwerk.walls[0];b.d.rc=FORMS.fachwerk.roofs[0]}b.d.fl=Math.min(3,n);b._fx=null}
 function removeB(b){S.b=S.b.filter(q=>q!==b);bById.delete(b.id);const z=szOf(b.t);for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++)occ[(b.y+dy)*W+b.x+dx]=0;pcache.clear();for(const s of S.p){if(s.job===b.id)s.job=0;if(s.home===b.id)s.home=0;if(s.inside===b.id){s.inside=0;s.y=b.y+1.2;s.task=null;s.act='idle'}}hooks.tile(b.y*W+b.x)}
@@ -780,9 +792,11 @@ function updB(b,dh){
  if(!T.wh){b.st='';return}
  if(!w){b.st=jobCount.get(b.id)?'Geschlossen – Personal nicht vor Ort':'Sucht Personal';return}
  if(!b.prog&&Object.keys(T.out||{}).every(k=>S.res[k]>=(T.cap||autoCap(k)))){b.st='Lager voll – pausiert';return}
- if(!b.prog){for(const[k,n]of Object.entries(T.in||{}))if(S.res[k]<n){b.st='Wartet auf '+RES[k][1];return}for(const[k,n]of Object.entries(T.in||{})){S.res[k]-=n;flow('cons',k,n)}b.prog=1e-6}
+ if(!b.prog){for(const[k,n]of Object.entries(T.in||{}))if(S.res[k]<n){b.st='Wartet auf '+RES[k][1];return}
+  if(T.in&&whList().length){b.buf=b.buf||{};const miss=Object.entries(T.in).filter(([k,n])=>(b.buf[k]||0)<n);if(miss.length){if(!b.need){b.need=1;b.needT=hAbs()}if(hAbs()-b.needT<3){b.st='Holt '+RES[miss[0][0]][1]+' im Lagerhaus';return}for(const[k,n]of miss){whTake(k,n,b);b.buf[k]=(b.buf[k]||0)+n}b.need=0}for(const[k,n]of Object.entries(T.in)){b.buf[k]-=n;S.res[k]-=n;flow('cons',k,n)}}
+  else for(const[k,n]of Object.entries(T.in||{})){S.res[k]-=n;flow('cons',k,n)}b.prog=1e-6}
  b.prog+=dh*w*vehProd(b)*eraProd()*seasonProd(b);b.st='In Betrieb';
- if(b.prog>=T.wh){b.prog=0;for(const[k,n]of Object.entries(T.out||{})){if(S.res.werkzeug>=1&&rnd()<.05){S.res.werkzeug-=1;flow('cons','werkzeug',1)}if(b.t==='seidensticker'&&k==='stickerei'&&S.res.seide>=1){S.res.seide-=1;flow('cons','seide',1);S.res.stickerei=(S.res.stickerei||0)+1}if(b.t==='schneider'&&k==='kleidung'&&S.res.tuch>=1){S.res.tuch-=1;flow('cons','tuch',1);S.res.kleidung+=1}S.res[k]+=n;flow('prod',k,n);fx.push({x:b.x+.5,y:b.y,i:RES[k][0],t:0})}
+ if(b.prog>=T.wh){b.prog=0;for(const[k,n]of Object.entries(T.out||{})){if(S.res.werkzeug>=1&&rnd()<.05){S.res.werkzeug-=1;flow('cons','werkzeug',1)}if(b.t==='seidensticker'&&k==='stickerei'&&S.res.seide>=1){S.res.seide-=1;flow('cons','seide',1);S.res.stickerei=(S.res.stickerei||0)+1}if(b.t==='schneider'&&k==='kleidung'&&S.res.tuch>=1){S.res.tuch-=1;flow('cons','tuch',1);S.res.kleidung+=1}S.res[k]+=n;flow('prod',k,n);if(whList().length)whPut(k,n,b);fx.push({x:b.x+.5,y:b.y,i:RES[k][0],t:0})}
   if(T.near&&rnd()<.12){for(let k=0;k<30;k++){const x=b.x+((rnd()*7)|0)-3,y=b.y+((rnd()*7)|0)-3;if(x>=0&&y>=0&&x<W&&y<H&&S.map[y*W+x]===1){S.map[y*W+x]=0;hooks.tile(y*W+x);break}}}}
 }
 
@@ -837,7 +851,7 @@ function goalMet(s,g){let ok=false;
  if(g==='heiraten')ok=s.married;else if(g==='familie')ok=S.p.some(c=>c.parents.includes(s.id));else if(g==='haus')ok=S.b.some(b=>b.owner===s.id);
  else if(g==='reich')ok=s.money>=200;else if(g==='freunde')ok=Object.values(s.rel).filter(r=>r.f>=40).length>=4;else if(g==='meister')ok=s.skill>=150;return ok}
 function checkGoal(s){const g=s.goal;if(goalMet(s,g)){log(`⭐ ${nm(s)} hat sich einen Wunsch erfüllt: ${GOALS[g]}.`,s.id);story(s,'⭐',`erfüllte sich einen Lebenstraum: ${GOALS[g]}`);mem(s,'hat sich einen Wunsch erfüllt: '+GOALS[g]);s.rep+=5;s.n.f=100;s.goal=pick(Object.keys(GOALS).filter(x=>x!==g&&!goalMet(s,x)))||'freunde'}}
-function hourly(){assignHomes();assignJobs();rebalanceJobs();constructionHelpers();emHourly();famHourly();railTick();if(hod()%3===0)shiftWorkers();for(const b of S.b)if(b.built<1){const pb=b._pb==null?b.built:b._pb;b.rate=(b.rate||0)*.6+Math.max(0,b.built-pb)*.4;b._pb=b.built};moreArrivals();extraJobs();if(hod()===6)autoGrow();foodHourly();greenCalc();let m=0;for(const s of S.p){s.mood=moodOf(s);m+=s.mood}S.mood=S.p.length?m/S.p.length:0;S._mh=(S._mh||[]);S._mh.push(Math.round(S.mood*10)/10);if(S._mh.length>48)S._mh.shift();for(let i=0;i<W*H;i++)S.traffic[i]*=.985}
+function hourly(){try{whSync()}catch(e){console.warn(e)}assignHomes();assignJobs();rebalanceJobs();constructionHelpers();emHourly();famHourly();railTick();if(hod()%3===0)shiftWorkers();for(const b of S.b)if(b.built<1){const pb=b._pb==null?b.built:b._pb;b.rate=(b.rate||0)*.6+Math.max(0,b.built-pb)*.4;b._pb=b.built};moreArrivals();extraJobs();if(hod()===6)autoGrow();foodHourly();greenCalc();let m=0;for(const s of S.p){s.mood=moodOf(s);m+=s.mood}S.mood=S.p.length?m/S.p.length:0;S._mh=(S._mh||[]);S._mh.push(Math.round(S.mood*10)/10);if(S._mh.length>48)S._mh.shift();for(let i=0;i<W*H;i++)S.traffic[i]*=.985}
 let lastHour=-1,lastDay=-1;
 function update(dt){
  S.t+=dt;const dh=dt/HOUR;
@@ -958,10 +972,10 @@ function bathHut(fl){// kleines Bad (3×2) in eine Freifläche setzen; der Rest 
    for(const f of blk){const C=[];for(const q of parts)for(let y=q.y;y<q.y+q.h;y++)for(let x=q.x;x<q.x+q.w;x++)C.push([x,y,f.r]);C.sort((u,v)=>Math.hypot(u[0]-f.x,u[1]-f.y)-Math.hypot(v[0]-f.x,v[1]-f.y));fitFurn(fl,f.t,C)}
    for(const k of Object.keys(fl.edges))if(!isWall(fl,k))delete fl.edges[k];return true}}return false}
 const BATH_PREF={lager:0,flur:1,leer:1,stube:2,schlaf:3,kueche:4};
-function ensureBath(b){if(!b.plan||planHasBath(b.plan)||!b.plan.floors.some(fl=>fl.rooms.length))return false;const p=b.plan;
- if(p.floors[0].rooms.length&&p.floors[0].rooms.every(R=>R.o)){if(bathHut(p.floors[0])){p.v=(p.v||1)+1;b._pa=null;return true}}
+function ensureBath(b,more){if(!b.plan||(!more&&planHasBath(b.plan))||!b.plan.floors.some(fl=>fl.rooms.length))return false;const p=b.plan;
+ if(!more&&p.floors[0].rooms.length&&p.floors[0].rooms.every(R=>R.o)){if(bathHut(p.floors[0])){p.v=(p.v||1)+1;b._pa=null;return true}}
  let A0=null;try{A0=analyze(p)}catch(e){}
- for(let fi=0;fi<p.floors.length;fi++){const fl=p.floors[fi];const ty=i=>{const t=A0&&A0.floors[fi]&&A0.floors[fi].rooms[i]&&A0.floors[fi].rooms[i].type;return t in BATH_PREF?BATH_PREF[t]:6};const rooms=fl.rooms.map((R,i)=>[R,i]).filter(([R])=>R.w*R.h>=10&&!R.o).sort((a,c)=>ty(a[1])-ty(c[1])||a[0].w*a[0].h-c[0].w*c[0].h);
+ for(let fi=0;fi<p.floors.length;fi++){const fl=p.floors[fi];const ty=i=>{const t=A0&&A0.floors[fi]&&A0.floors[fi].rooms[i]&&A0.floors[fi].rooms[i].type;return t in BATH_PREF?BATH_PREF[t]:6};const rooms=fl.rooms.map((R,i)=>[R,i]).filter(([R])=>R.w*R.h>=10&&!R.o&&!R.bath).sort((a,c)=>ty(a[1])-ty(c[1])||a[0].w*a[0].h-c[0].w*c[0].h);
   for(const[R]of rooms){for(const side of['b','r','t','l']){const hor=side==='b'||side==='t';if((hor?R.h:R.w)<5||(hor?R.w:R.h)<2)continue;
     const S2=side==='b'?{x:R.x,y:R.y+R.h-2,w:R.w,h:2}:side==='t'?{x:R.x,y:R.y,w:R.w,h:2}:side==='r'?{x:R.x+R.w-2,y:R.y,w:2,h:R.h}:{x:R.x,y:R.y,w:2,h:R.h};
     const inStrip=f=>{const[w,h]=fsize(f);return f.x<S2.x+S2.w&&f.x+w>S2.x&&f.y<S2.y+S2.h&&f.y+h>S2.y};const crossing=fl.furn.filter(inStrip);
@@ -1753,7 +1767,7 @@ function cityIncome2(){if(S.gewRate==null)S.gewRate=.1;if(S.kurtaxe==null)S.kurt
  if(zoll>0){S.res.taler+=zoll;flow('in','Zölle',zoll)}}
 
 // ===== Ausgleich: Lagergrenzen & Umverteilung der Arbeit =====
-function autoCap(k){return autoCap0(k)*(typeof capMul==='function'?capMul():1)}
+function autoCap(k){const b=autoCap0(k);if(typeof whList!=='function'||!S||!S.b)return b;const L=whList();if(!L.length)return b;return b+whHas(k)+whFreeAll()}
 function autoCap0(k){const n=Math.max(10,S.p.length);const c={brot:n*6,mehl:n*3,getreide:n*3,holz:120,bretter:150,stein:120,werkzeug:40,kleidung:40,tuch:60,wolle:60}[k];return c||Math.max(60,targetStock(k)*4)}
 function needyBuildings(){const out=[];for(const b of S.b){if(b.built<1)continue;const T=F(b);if(!T.slots||!T.wh)continue;const have=S.p.filter(p=>p.job===b.id).length;if(have>=T.slots)continue;
   const outs=Object.keys(T.out||{});const scarce=outs.some(k=>(S.res[k]||0)<targetStock(k)*.6);const feeds=S.b.some(x=>x.st&&x.st.startsWith('Wartet auf')&&outs.some(k=>x.st.includes(RES[k][1])));if(scarce||feeds)out.push([b,(feeds?2:0)+(scarce?1:0)])}
@@ -2139,7 +2153,7 @@ const JOBPROP={baeckerei:'teig',schmiede:'hammer',wagnerei:'hammer',radwerkstatt
 const HOBPROP={angelsteg:'angel',musikhaus:'laute',bogen:'bogen',kegelbahn:'kugel',garten:'giess',spielstube:'buch',dorflinde:null};
 function propOf(s){const t=s.task;if(s.act==='walk'||s.iwalk){return t&&(t.k==='deliver'||t.k==='buy')?'korb':null}if(s.act!=='do'||!t)return null;const b=t.bid&&bById.get(t.bid);
  switch(t.k){case 'cook':return 'loeffel';case 'eat':return 'schale';case 'write':case 'learn':return t.k==='write'?'feder':'buch';case 'drink':case 'leisure':return 'krug';case 'tidy':return 'besen';case 'wash':case 'shower':return 'tuch';
-  case 'work':return b?JOBPROP[b.t]||null:null;case 'hobby':return b?HOBPROP[b.t]||null:null;case 'sit':return rnd()<0?null:'buch';case 'buy':return 'korb'}return null}
+  case 'work':return b?JOBPROP[b.t]||null:null;case 'hobby':return b?HOBPROP[b.t]||null:null;case 'sit':return rnd()<0?null:'buch';case 'buy':return 'korb';case 'fetch':return 'kiste'}return null}
 function actPose(s,P,inHouse){const t=s.task;if(!t||s.act!=='do')return;const ph=S.t*5+s.id;
  switch(t.k){case 'cook':P.shR=-1+.25*Math.sin(ph);P.elR=-.9;P.spR=.15+.2*Math.cos(ph);P.shL=-.6;P.elL=-.8;P.lean=.08;break;
   case 'tidy':P.shR=P.shL=-.7+.35*Math.sin(ph*.8);P.elR=P.elL=-.3;P.lean=.15;break;case 'wash':case 'shower':P.shR=P.shL=-1.1+.2*Math.sin(ph*1.5);P.elR=P.elL=-1.2;break;
@@ -2308,18 +2322,47 @@ Object.assign(TEMPLATES,{weinberg:{v:1,floors:[{rooms:[Ro(0,0,12,10)],furn:[Fu('
 for(const t of['weinberg','weingut','olivenfarm']){PLAN_TYPES[t]=1;JP[t]=10}
 Object.assign(JOBSK,{weinberg:'garten',weingut:'kochen',olivenfarm:'garten'});Object.assign(JOBPROP,{weinberg:'korb',weingut:'krug',olivenfarm:'korb'});
 // ===== Lagerhaus =====
-Object.assign(BT,{lagerhaus:{n:'Lagerhaus',i:'📦',sz:2,slots:2,job:['Lagerverwalterin','Lagerverwalter'],cost:{bretter:24,stein:10,taler:120},bh:9,def:{f:'lang',fl:2},cat:'gew',d:'Mehr Lagerplatz (+60 % je Lagerhaus, bis zu 3) und frische Waren: Verderbliches hält hier viel länger (2×2 Felder).'}});
+Object.assign(BT,{lagerhaus:{n:'Lagerhaus',i:'📦',sz:2,slots:2,job:['Lagerverwalterin','Lagerverwalter'],cost:{bretter:24,stein:10,taler:120},bh:9,def:{f:'lang',fl:2},cat:'gew',d:'Eigenes Lager mit Bestandsliste: Alle Waren des Dorfes werden hier eingelagert, Betriebe holen ihre Rohstoffe hier ab. Ist ein Lagerhaus voll, kommt die Ware ins nächste. Verderbliches hält hier viel länger (2×2 Felder).'}});
 TEMPLATES.lagerhaus={v:1,floors:[{rooms:[Rm(0,0,12,7,'holz'),Ro(0,7,12,3)],furn:[Fu('regal',0,0),Fu('regal',2,0),Fu('regal',4,0),Fu('regal',6,0),Fu('regal',8,0),Fu('fass',10,0),Fu('fass',11,0),Fu('truhe',1,3),Fu('truhe',3,3),Fu('fass',6,3),Fu('fass',7,3),Fu('truhe',9,3),Fu('pult',10,5),Fu('stuhl',10,4),Fu('holzstapel',1,8),Fu('fass',5,8),Fu('fass',6,8)],edges:{'h:6:7':'door','h:3:7':'door','v:0:3':'window','v:12:3':'window'}}]};
 PLAN_TYPES.lagerhaus=1;JP.lagerhaus=8;JOBSK.lagerhaus='fitness';JOBPROP.lagerhaus='kiste';
 const PERISH=['brot','fisch','fleisch','milch','gemuese','trauben'];
+// ===== Lagerhäuser mit eigenem Bestand =====
+const WHCAP=600;
+function whList(){return S.b.filter(b=>b.t==='lagerhaus'&&b.built>=1)}
+function whCap(b){return WHCAP*Math.max(1,Math.min(3,(b.d&&b.d.fl)||1))*.5+WHCAP*.5}
+function whUsed(b){let n=0;for(const v of Object.values(b.inv||{}))n+=v;return n}
+function whFree(b){return Math.max(0,whCap(b)-whUsed(b))}
+function whFreeAll(){let n=0;for(const b of whList())n+=whFree(b);return n}
+function whHas(k){let n=0;for(const b of whList())n+=(b.inv&&b.inv[k])||0;return n}
+const dist2=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2;
+// Ware einlagern: nächstes Lagerhaus mit Platz, ist es voll, das nächste
+function whPut(k,n,near){let left=n;const L=whList().sort((a,c)=>near?dist2(a,near)-dist2(c,near):whFree(c)-whFree(a));for(const b of L){if(left<=0)break;const q=Math.min(left,whFree(b));if(q<=0)continue;b.inv=b.inv||{};b.inv[k]=(b.inv[k]||0)+q;left-=q}return n-left}
+function whTake(k,n,near){let left=n;const L=whList().sort((a,c)=>near?dist2(a,near)-dist2(c,near):0);for(const b of L){if(left<=0)break;const h=(b.inv&&b.inv[k])||0,q=Math.min(left,h);if(q<=0)continue;b.inv[k]=h-q;if(b.inv[k]<1e-6)delete b.inv[k];left-=q}return n-left}
+// Bestand abgleichen: alles, was im Dorf liegt, kommt in die Lagerhäuser – was nicht passt, bleibt im Dorfspeicher
+function whSync(){const L=whList();if(!L.length)return;for(const b of S.b)if(b.buf)for(const k in b.buf)if(!(b.buf[k]>0))delete b.buf[k];
+ for(const k of Object.keys(RES)){if(k==='taler')continue;const tot=Math.max(0,S.res[k]||0),inW=whHas(k);let buf=0;for(const b of S.b)if(b.buf&&b.buf[k])buf+=b.buf[k];
+  if(inW+buf>tot+1e-6){let ex=inW+buf-tot;ex-=whTake(k,ex);if(ex>0)for(const b of S.b){if(ex<=0)break;if(b.buf&&b.buf[k]){const q=Math.min(ex,b.buf[k]);b.buf[k]-=q;ex-=q}}}
+  else{const base=tot-inW-buf;if(base>=1){const pref=L.filter(b=>b.inv&&b.inv[k]);whPut(k,Math.floor(base),pref[0]||null)}}}}
+function whNear(b,k){const L=whList().filter(w=>!k||((w.inv&&w.inv[k])||0)>=1);if(!L.length)return null;return L.sort((a,c)=>dist2(a,b)-dist2(c,b))[0]}
+// Betriebe holen ihre Rohstoffe im Lagerhaus ab
+function fetchArrive(s,wh,t){const jb=bById.get(t.jb);if(!jb){s.left=.1;return}const T=F(jb);jb.buf=jb.buf||{};const got=[];
+ for(const[k,n]of Object.entries(T.in||{})){const want=Math.max(0,n*3-(jb.buf[k]||0));if(want<=0)continue;let otherBuf=0;for(const b of S.b)if(b!==jb&&b.buf&&b.buf[k])otherBuf+=b.buf[k];const avail=Math.max(0,(S.res[k]||0)-otherBuf-(jb.buf[k]||0));const q=Math.min(want,Math.floor(avail));if(q<=0)continue;
+  let tk=whTake(k,q,wh);jb.buf[k]=(jb.buf[k]||0)+q;got.push(q+' '+RES[k][1])}
+ jb.need=0;jb.fetchBy=0;s.th=got.length?`Hole ${got.join(', ')} aus dem Lagerhaus.`:'Im Lagerhaus ist nichts mehr da.';s.left=.35;
+ s.cmds.unshift({k:'work',bid:jb.id,exp:hAbs()+4,auto:1})}
+function whView(b){const inv=b.inv||{},used=whUsed(b),cap=whCap(b),p=Math.min(100,used/cap*100),ks=Object.keys(inv).filter(k=>inv[k]>=1).sort((a,c)=>inv[c]-inv[a]);
+ const others=whList().filter(w=>w!==b);
+ return `<h3>Bestand dieses Lagerhauses</h3><p class="hint">${Math.floor(used)} / ${Math.round(cap)} Einheiten belegt${p>=100?' – voll! Neue Waren gehen automatisch in '+(others.length?'ein anderes Lagerhaus':'den Dorfspeicher'):''}.</p>${bar(p,p>=100?'#c0453a':p>75?'#e0a83a':'var(--ok)')}
+ <div class="stock">${ks.length?ks.map(k=>`<div class="sk2"><span>${RES[k][0]}</span><div><b>${RES[k][1]}</b> <small>${Math.floor(inv[k])}${PERISH.includes(k)?' · verderblich':''}</small>${bar(Math.min(100,inv[k]/cap*100*3),'var(--ok)')}</div></div>`).join(''):'<p class="hint">Noch leer.</p>'}</div>
+ ${others.length?`<p class="hint">Weitere Lagerhäuser: ${others.map(w=>esc(bName(w))+' '+Math.round(whUsed(w)/whCap(w)*100)+' %').join(' · ')}</p>`:''}`}
 function storeCount(){return Math.min(3,S.b.filter(b=>b.t==='lagerhaus'&&b.built>=1).length)}
 function storeStaffed(){return S.b.filter(b=>b.t==='lagerhaus'&&b.built>=1&&S.p.some(p=>p.job===b.id)).length}
-function capMul(){return 1+.6*storeCount()}
+function capMul(){return 1}
 function spoilDaily(){const n=storeStaffed(),rate=.02*Math.pow(.25,Math.min(3,n))+(storeCount()&&!n?-.01:0);let lost=0;for(const k of PERISH){const v=S.res[k]||0;if(v<10)continue;const d=Math.floor(v*Math.max(.003,rate));if(d>0){S.res[k]-=d;flow('cons',k,d);lost+=d}}S.spoilLast=lost}
 function storeView(){const n=storeCount(),st=storeStaffed(),rate=(.02*Math.pow(.25,Math.min(3,st))*100).toFixed(1).replace('.',',');
  const ks=Object.keys(RES).filter(k=>k!=='taler'&&(S.res[k]||0)>0).sort((a,b)=>(S.res[b]||0)/autoCap(b)-(S.res[a]||0)/autoCap(a));
- return `<div class="stats"><div><b>${n}</b><span>Lagerhäuser</span></div><div><b>+${Math.round((capMul()-1)*100)} %</b><span>Lagerplatz</span></div><div><b>${rate} %</b><span>Verderb/Tag</span></div></div>
- ${S.spoilLast?`<p class="hint">Gestern verdorben: ${S.spoilLast} Einheiten frischer Waren.</p>`:''}<h3>Lagerbestand</h3><div class="stock">${ks.map(k=>{const v=Math.floor(S.res[k]),c=Math.round(autoCap(k)),p=Math.min(100,v/c*100);
+ return `<div class="stats"><div><b>${n}</b><span>Lagerhäuser</span></div><div><b>${Math.round(whList().reduce((t,w)=>t+whUsed(w),0))} / ${Math.round(whList().reduce((t,w)=>t+whCap(w),0))}</b><span>Belegt / Platz gesamt</span></div><div><b>${rate} %</b><span>Verderb/Tag</span></div></div>
+ ${S.spoilLast?`<p class="hint">Gestern verdorben: ${S.spoilLast} Einheiten frischer Waren.</p>`:''}<h3>Gesamtbestand im Dorf</h3><div class="stock">${ks.map(k=>{const v=Math.floor(S.res[k]),c=Math.round(autoCap(k)),p=Math.min(100,v/c*100);
   return `<div class="sk2"><span>${RES[k][0]}</span><div><b>${RES[k][1]}</b> <small>${v} / ${c}${PERISH.includes(k)?' · verderblich':''}</small>${bar(p,p>=100?'#c0453a':p>75?'#e0a83a':'var(--ok)')}</div></div>`}).join('')}</div>`}
 // ===== Strand =====
 Object.assign(BT,{strandplatz:{n:'Strandabschnitt',i:'⛱️',hobby:{n:'Strandtag',v:'genießt einen Tag am Strand',likes:['Baden','die Natur','Spielen'],open:[8,21],kids:1},cost:{taler:40,bretter:4},bh:3,cat:'hobby',d:'Sonnenschirme, Liegen, Volleyballnetz und Rettungsturm – Ort für Strandfeste. Gäste lieben ihn.'}});
@@ -2877,7 +2920,7 @@ function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],
   else if(t==='open'){}
   else{box(TR(cx,0,cz,rot),cs+th,t==='window'?WH*.45:WH,th,wc);TW(cs+th,0,t==='window'?WH*.45:WH);if(t==='window'){TW(cs+th,WH*.85,WH*.15);box(TR(cx,WH*.45,cz,rot),cs*.7,WH*.4,th*.6,col('#bfe2f2'),.6);box(TR(cx,WH*.85,cz,rot),cs+th,WH*.15,th,wc)}}}
  fl.furn.forEach(f=>{if(fgUse(f)){const F=fgMat(f),c=BROT?BROT.c:1,s2=BROT?BROT.s:0,ccx=BROT?BROT.cx:0,ccz=BROT?BROT.cz:0,vs=(WH/cs)/3.4,A=[c*cs,0,-s2*cs,0, 0,cs*vs,0,0, s2*cs,0,c*cs,0, ccx+(x0-ccx)*c+(z0-ccz)*s2,BY,ccz-(x0-ccx)*s2+(z0-ccz)*c,1],k=FGM[f.t].k;(FGC[k]=FGC[k]||[]).push({M:mmul(A,F)});return}
-  const[fw,fd]=fsize(f),[h,c]=FH[f.t]||[.05,'#8a6a42'],x=x0+(f.x+fw/2)*cs,z=z0+(f.y+fd/2)*cs,w=fw*cs*.86,d=fd*cs*.86;
+  const[fw,fd]=fsize(f),[h,c]=FH[f.t]||[.05,'#8a6a42'],x=x0+(f.x+fw/2)*cs,z=z0+(f.y+fd/2)*cs,sm=(f.t==='handtuch'||f.t==='schwall')?.4:1,w=fw*cs*.86*sm,d=fd*cs*.86*sm;
   if(f.t==='badfass'){cyl(TR(x,0,z),w/2,w/2,h,10,col('#8a5a32'));gq(x-w*.32,z-w*.32,x+w*.32,z+w*.32,h+.002,col('#8fc0d8'))}
   else if(f.t==='korb')cyl(TR(x,0,z),w*.35,w*.42,h,8,col(c));
   else if(f.t==='fass'||f.t==='mehl'||f.t==='ofen')cyl(TR(x,0,z),w/2,f.t==='ofen'?w*.3:w/2,h,8,col(c),f.t==='ofen'?.4:0);
@@ -4647,7 +4690,7 @@ idbLoad().then(p=>{if(p&&(!loaded||(p.savedAt||0)>(S.savedAt||0)+1000)){if(loadO
 redrawAll();resize();refresh(true);requestAnimationFrame(frame);
 if(!loaded)showStart();
 
-const _pBld0=pBld;pBld=function(b){const h=_pBld0(b);return b&&b.t==='lagerhaus'&&b.built>=1?storeView()+h:h};
+const _pBld0=pBld;pBld=function(b){const h=_pBld0(b);return b&&b.t==='lagerhaus'&&b.built>=1?whView(b)+storeView()+h:h};
 
 // ===== Straßenansicht (wie Street View) =====
 const EYE_H=.17;
