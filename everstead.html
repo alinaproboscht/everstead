@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110802">
+<meta name="everstead-build" content="2026110803">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2327,9 +2327,9 @@ TEMPLATES.lagerhaus={v:1,floors:[{rooms:[Rm(0,0,12,7,'holz'),Ro(0,7,12,3)],furn:
 PLAN_TYPES.lagerhaus=1;JP.lagerhaus=8;JOBSK.lagerhaus='fitness';JOBPROP.lagerhaus='kiste';
 const PERISH=['brot','fisch','fleisch','milch','gemuese','trauben'];
 // ===== Lagerhäuser mit eigenem Bestand =====
-const WHCAP=600;
+const WHCAP=1000;
 function whList(){return S.b.filter(b=>b.t==='lagerhaus'&&b.built>=1)}
-function whCap(b){return WHCAP*Math.max(1,Math.min(3,(b.d&&b.d.fl)||1))*.5+WHCAP*.5}
+function whCap(b){const pop=S&&S.p?S.p.length:0,fl=Math.max(1,Math.min(3,(b.d&&b.d.fl)||1));return Math.round(WHCAP*Math.max(1,pop/120)*(1+.25*(fl-1))/10)*10}
 function whUsed(b){let n=0;for(const v of Object.values(b.inv||{}))n+=v;return n}
 function whFree(b){return Math.max(0,whCap(b)-whUsed(b))}
 function whFreeAll(){let n=0;for(const b of whList())n+=whFree(b);return n}
@@ -5199,7 +5199,7 @@ function itxDraw(Lt,dayish,wins,ext){const H=itxInit();if(!H){ITX.q={};return}co
 const FLOORK={bad:'tiles',wasch:'tiles',sauna:'boards',barbier:'tiles',heil:'tiles',kueche:'terra',back:'terra',werk:'flags',lager:'flags',stall:'flags',schank:'flags',verkauf:'planks',flur:'flags'};
 const WALLK={fachwerk:'timber',stein:'stone',lehm:'lehm',holz:'boards'};
 // ===== Möbel als 3D-Modelle (GLB) =====
-const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',over:1.08,back:1},waschbank:{k:'fwasch',ry:-Math.PI/2,fit:'xz',fp:.8,back:1},waschtisch:{k:'fwasch',ry:-Math.PI/2,fit:'xz',back:1},zuber:{k:'fzuber',ry:0,fit:'xz'},badfass:{k:'fzuber',ry:0,fit:'xz',fp:.82},abort:{k:'fabort',ry:-Math.PI/2,fit:'h',h:1.15,back:1},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
+const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',fp:1,over:1.55,back:1},waschbank:{k:'fwasch',ry:-Math.PI/2,fit:'xz',fp:.8,back:1},waschtisch:{k:'fwasch',ry:-Math.PI/2,fit:'xz',back:1},zuber:{k:'fzuber',ry:0,fit:'xz'},badfass:{k:'fzuber',ry:-Math.PI/2,fit:'xz',fp:1,over:1.3,back:1},abort:{k:'fabort',ry:-Math.PI/2,fit:'h',h:1.15,back:1},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
 function fgUse(f){const m=FGM[f.t];if(!m||HG_FAIL)return false;if(!HGD[m.k]){mLoad(m.k);return false}return !!hgInit(m.k)}
 function fgMat(f){const m=FGM[f.t],H=HGM[m.k],d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,th=m.ry+f.r*Math.PI/2,sw=Math.abs(Math.sin(m.ry))>.5;
  const ex=H.mx[0]-H.mn[0],ey=H.mx[1]-H.mn[1],ez=H.mx[2]-H.mn[2],Wl=d.w*(m.fp||.86),Dl=d.h*(m.fp||.86),ax=sw?Dl:Wl,az=sw?Wl:Dl;let sx,sy,sz;
@@ -5427,7 +5427,7 @@ function drawFurn(c,f,ox,oy,cs,sel,bad){const d=FURN[f.t],[w,h]=fsize(f),cx=ox+(
   case 'truhe':box('#7a4a26');c.fillStyle='#c9a24a';c.fillRect(-W2+p,-cs*.04,W2*2-2*p,cs*.08);break;
   case 'schrank':box('#5e3a1e');c.strokeStyle='#3a2414';ln(c,0,-H2+p,0,H2-p);break;
   case 'tisch':case 'arbeitstisch':box(f.t==='tisch'?'#b88a52':'#a07a4a');if(f.t==='arbeitstisch'){c.fillStyle='#f4efe4';for(let i=0;i<4;i++)ell(c,-W2*.5+i*W2*.33,0,cs*.05,cs*.05)}break;
-  case 'stuhl':box('#9a6a3a',cs*.15);break;case 'bank':box('#8a5a32',cs*.08);break;
+  case 'stuhl':box('#9a6a3a',cs*.15);c.fillStyle='#5a3a1e';c.fillRect(-W2+p,-H2+p,W2*2-2*p,cs*.14);c.fillStyle='#f0c85a';c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=1;c.beginPath();c.moveTo(0,H2-p*.6);c.lineTo(-cs*.2,H2*.05);c.lineTo(-cs*.07,H2*.05);c.lineTo(-cs*.07,-H2*.35);c.lineTo(cs*.07,-H2*.35);c.lineTo(cs*.07,H2*.05);c.lineTo(cs*.2,H2*.05);c.closePath();c.fill();c.stroke();break;case 'bank':box('#8a5a32',cs*.08);break;
   case 'herd':box('#8f8a80');c.fillStyle='#ff8a2e';ell(c,0,0,cs*.18,cs*.15);break;
   case 'ofen':c.fillStyle='#a8573a';ell(c,0,0,W2-p,H2-p);c.fillStyle='#6b3424';ell(c,0,H2*.35,W2*.45,H2*.3);c.fillStyle='#ffb04a';ell(c,0,H2*.4,W2*.28,H2*.15);break;
   case 'mehl':c.fillStyle='#e8dcc0';ell(c,0,0,cs*.36,cs*.4);c.strokeStyle='#a89870';c.beginPath();c.ellipse(0,0,cs*.36,cs*.4,0,0,7);c.stroke();break;

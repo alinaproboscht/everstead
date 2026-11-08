@@ -1,7 +1,7 @@
 {
-  "build": 2026110802,
+  "build": 2026110803,
   "file": "everstead.html",
-  "notes": "Update 49: Lagerhäuser mit eigenem Bestand, Betriebe holen Rohstoffe im Lager ab, zweites Bad in großen Wohnhäusern, zwei Badezuber in jedem Betrieb",
+  "notes": "Update 50: Lagerhäuser fassen 1000 Einheiten und wachsen mit dem Dorf, größere Herdzeile und Badezuber, Pfeil zeigt Blickrichtung der Stühle",
   "models": [
     {
       "file": "m_baeckerei.json",
