@@ -1,7 +1,7 @@
 {
-  "build": 2026110713,
+  "build": 2026110714,
   "file": "everstead.html",
-  "notes": "Update 46: Einzelne Marktstände und Picknicktische auf dem Marktplatz, Brunnen, Dorflinde und Spielplatz als 3D-Modelle",
+  "notes": "Update 47: 3D-Möbel und gemalte Böden in der Draufsicht, realistische Größen, versetzbare Marktstände, Zufriedenheit berücksichtigt alles",
   "models": [
     {
       "file": "m_baeckerei.json",

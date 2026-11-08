@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110713">
+<meta name="everstead-build" content="2026110714">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -533,14 +533,18 @@ function relLabel(a,b){if(a.partner===b.id)return a.married?'Ehepartner':'Partne
 const isKid=s=>ageOf(s)<16;
 // ===== Zufriedenheit: Wohnkomfort, Grün, Aufschlüsselung und konkrete Tipps =====
 const DECO_T=new Set(['teppich','fell','kerze','topf','vase','spiegel','buecher','lehnstuhl','kommode','wiege']);
-function homeComfort(b){if(!b||!b.plan)return 0;const v=b.plan.v||1;if(b._hcv===v)return b._hc;let n=0;for(const fl of b.plan.floors)for(const f of fl.furn)if(DECO_T.has(f.t))n++;b._hcv=v;b._hcn=n;b._hc=Math.min(8,n*1.6);return b._hc}
-function greenCalc(){const G=new Map();const D=S.deco||[];for(const b of S.b){if(!residents||b.t!=='haus')continue;const cx=b.x+.5,cy=b.y+.5;let n=0;for(const d of D)if(Math.abs(d.x-cx)<5&&Math.abs(d.y-cy)<5)n++;
+function homeComfort(b){if(!b||!b.plan)return 0;const v=b.plan.v||1;if(b._hcv===v)return b._hc;let n=0,deco=0;const ty=new Set(),rt=new Set();let bath=false;
+ for(const fl of b.plan.floors){for(const f of fl.furn){n++;ty.add(f.t);if(DECO_T.has(f.t))deco++}for(const R of fl.rooms)if(R.bath)bath=true}
+ const A=planA(b);if(A)for(const fa of A.floors)for(const r of fa.rooms){if(r.type&&r.type!=='leer'&&r.type!=='flur')rt.add(r.type);if(r.type==='bad'||r.type==='wasch')bath=true}
+ const c=Math.min(3,n*.15)+Math.min(2,ty.size*.15)+Math.min(3,deco*.6)+Math.min(1.5,rt.size*.3)+(bath?.5:0);
+ b._hcv=v;b._hcn=deco;b._hcd={n,types:ty.size,deco,rooms:rt.size,bath};b._hc=Math.min(10,c);return b._hc}
+function greenCalc(){const G=new Map();const D=S.deco||[];for(const b of S.b){if(!residents||b.t!=='haus')continue;const cx=b.x+.5,cy=b.y+.5;let n=0;for(const d of D)if(!(PLANT[d.t]&&PLANT[d.t].glb)&&Math.abs(d.x-cx)<5&&Math.abs(d.y-cy)<5)n++;
   let fl=0;for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const i=(b.y+dy)*W+b.x+dx;if(i>=0&&i<W*H&&S.map[i]===6)fl++}G.set(b.id,Math.min(5,n*.7+fl*.25))}S._grn=G}
 const comfortMood=s=>{const b=s.home&&bById.get(s.home);return b?homeComfort(b):0};
 const greenMood=s=>S._grn&&s.home?(S._grn.get(s.home)||0):0;
 function moodParts(){const P=S.p,N=Math.max(1,P.length),av=f=>P.reduce((a,s)=>a+f(s),0)/N,nd=k=>av(s=>s.n[k]==null?70:s.n[k]);
  const needs={h:nd('h'),e:nd('e'),s:nd('s'),f:nd('f'),y:nd('y')};
- return{needs,base:(needs.h+needs.e+needs.s+needs.f+needs.y)/5,home:av(s=>s.home?6:-15),partner:av(s=>s.partner?5:0),sick:av(s=>s.sick?-10:0),lux:luxMood(),veh:vehMood(),emo:av(s=>emSum(s)),comfort:av(comfortMood),green:av(greenMood),food:foodMood(),village:villageMood()}}
+ return{needs,base:(needs.h+needs.e+needs.s+needs.f+needs.y)/5,home:av(s=>s.home?6:-15),partner:av(s=>s.partner?5:0),sick:av(s=>s.sick?-10:0),lux:luxMood(),veh:vehMood(),emo:av(s=>emSum(s)),comfort:av(comfortMood),green:av(greenMood),food:foodMood(),village:villageMood(),goods:goodsMood(),work:workMood()}}
 function moodTips(){const M=moodParts(),N=Math.max(1,S.p.length),T=[],built=t=>S.b.some(b=>b.t===t&&b.built>=1),add=(gain,i,title,txt,go,gl)=>T.push({gain,i,title,txt,go,gl});
  const n=M.needs,bread=S.res.brot||0,days=bread/Math.max(1,N*2),freeBeds=S.b.reduce((a,b)=>a+Math.max(0,beds(b)-residents(b).length),0);
  {const ft=foodTypes(),fs=foodStock(),miss=FOODS().filter(k=>!ft.includes(k)).map(k=>FOODN[k]||k),fd=fs/Math.max(1,N*2);
@@ -552,17 +556,19 @@ function moodTips(){const M=moodParts(),N=Math.max(1,S.p.length),T=[],built=t=>S
  if(n.y<75)add((75-n.y)/5,'🛁','Hygiene',`Hygiene ${Math.round(n.y)} %. Stelle in vollen Häusern einen zweiten Badezuber auf (Einrichtung › Sanitär).`,'build:ein:sanitaer','Sanitär');
  const homeless=S.p.filter(s=>!s.home).length;if(homeless)add(homeless/N*21,'🏚️','Wohnraum',`${homeless} ${homeless===1?'Person hat':'Personen haben'} kein Zuhause (−15 Punkte je Person). Baue Wohnhäuser.`,'build:geb','Bauen');
  const sick=S.p.filter(s=>s.sick).length;if(sick)add(sick/N*10,'🤒','Gesundheit',`${sick} krank. ${built('heiler')?'Das Heilerhaus braucht Personal.':'Baue ein Heilerhaus.'}`,'build:geb','Bauen');
- if(M.comfort<6){const poor=S.b.filter(b=>b.t==='haus'&&residents(b).length&&homeComfort(b)<4).length;add((8-M.comfort)*.8,'🕯️','Wohnkomfort',`Ø ${M.comfort.toFixed(1)} von 8 Punkten. ${poor} Wohnhäuser haben kaum Deko – Teppich, Kerzen, Topfpflanze, Spiegel, Lehnstuhl bringen je +1,6.`,'build:ein:wohnen','Einrichtung')}
- if(M.village<6)add((8-M.village)*.5,'🏘️','Dorfleben',`${new Set(S.b.filter(b=>b.built>=1).map(b=>b.t)).size} verschiedene Gebäudearten (+${M.village.toFixed(1)}). Jede neue Art – Werkstatt, Treffpunkt, Hobby, Dienstleistung – bringt +0,25, Pflanzen zusätzlich bis +2.`,'build:geb','Bauen');
+ if(M.comfort<8){const poor=S.b.filter(b=>b.t==='haus'&&residents(b).length&&homeComfort(b)<5).length;add((10-M.comfort)*.8,'🕯️','Wohnkomfort',`Ø ${M.comfort.toFixed(1)} von 10 Punkten. ${poor} Wohnhäuser sind karg. Jedes Möbelstück zählt (+0,15), neue Möbelarten (+0,15), Deko wie Teppich, Kerzen, Spiegel, Lehnstuhl (+0,6) und eingerichtete Räume – Schlafzimmer, Küche, Stube, Bad (+0,3).`,'build:ein:wohnen','Einrichtung')}
+ if(M.village<10){const V=S._vd||villageCalc(),ms=VSOC.filter(t=>BT[t]&&!S.b.some(b=>b.t===t&&b.built>=1)).map(t=>BT[t].n);add((12-M.village)*.5,'🏘️','Dorfleben',`${V.T} Gebäudearten, ${V.socN} Treffpunkte, ${V.plantN} Pflanzen, ${V.propN} Platz-Objekte (+${M.village.toFixed(1)} von 12). Jede neue Gebäudeart +0,3${ms.length?', Treffpunkte wie '+ms.slice(0,3).join(', ')+' je +0,35':''}, Pflanzen, Marktstände und Picknicktische, eingerichtete öffentliche Gebäude und Pflaster zählen ebenfalls.`,'build:geb','Bauen')}
+ if(M.goods<3.5)add((4-M.goods)*.7,'📦','Warenvielfalt',`${S._gmN||0} Warensorten auf Lager (+${M.goods.toFixed(1)} von 4). Jede Sorte im Lager zählt +0,2 – produziere oder kaufe neue Waren.`,'trade','Handel');
+ if(M.work<2.6){const A=S.p.filter(s=>!isKid(s)&&ageOf(s)<65),u=A.filter(s=>!s.job).length;add((3-M.work)*.8,'🛠️','Arbeit',`${u} Erwachsene ohne Arbeit. Gebäude mit freien Stellen bauen – Arbeit gibt bis +3.`,'build:geb','Bauen')}
  if(M.green<4)add((5-M.green)*.7,'🌳','Grün ums Haus',`Ø ${M.green.toFixed(1)} von 5 Punkten. Pflanze Bäume, Sträucher oder Blumen nahe den Wohnhäusern (je bis 5 Felder Abstand).`,'build:pfl','Pflanzen');
  const luxMax=6+10*2;if(M.lux<luxMax*.5)add((luxMax-M.lux)*.35,'🍷','Luxuswaren',`${M.lux} von ${luxMax} Punkten. Wein, Salz, Gewürze, Honig usw. dauerhaft auf Lager halten (Handel).`,'trade','Handel');
  if(M.partner<3)add(1.2,'💕','Familien','Paare sind zufriedener (+5). Treffpunkte und Feste fördern Beziehungen.','people','Bewohner');
  return{M,T:T.sort((a,b)=>b.gain-a.gain)}}
 function pMood(){const{M,T}=moodTips(),h=S._mh||[],tr=h.length>=24?S.mood-h[h.length-24]:0,c=S.mood>65?'ok':S.mood>45?'mid':'bad';
- const R=[['Grundbedürfnisse',M.base,100],['Zuhause',M.home,6],['Speiseplan',M.food,6],['Dorfleben',M.village,8],['Wohnkomfort',M.comfort,8],['Grün ums Haus',M.green,5],['Luxuswaren',M.lux,26],['Fahrzeuge & Schiffe',M.veh,6],['Partnerschaft',M.partner,5],['Gefühle & Erlebnisse',M.emo,25],['Krankheit',M.sick,0]];
+ const R=[['Grundbedürfnisse',M.base,100],['Zuhause',M.home,6],['Speiseplan',M.food,6],['Dorfleben',M.village,12],['Wohnkomfort',M.comfort,10],['Grün ums Haus',M.green,5],['Luxuswaren',M.lux,26],['Warenvielfalt',M.goods,4],['Arbeit',M.work,3],['Fahrzeuge & Schiffe',M.veh,6],['Partnerschaft',M.partner,5],['Gefühle & Erlebnisse',M.emo,25],['Krankheit',M.sick,0]];
  return `<h3 class="orh">Zufriedenheit</h3><div class="mood ${c}"><b>${Math.round(S.mood)} %</b><span>${tr>1?'▲ steigt':tr<-1?'▼ sinkt':'● stabil'}${h.length>=24?` (${tr>0?'+':''}${tr.toFixed(0)} in 24 h)`:''}</span></div>
  <div class="mparts">${R.map(([n,v,mx])=>`<div><span>${n}</span><i style="--w:${mx>0?Math.max(0,Math.min(100,v/mx*100)):0}%"></i><em class="${v<0?'neg':''}">${v>=0&&n!=='Grundbedürfnisse'?'+':''}${v.toFixed(n==='Grundbedürfnisse'?0:1)}</em></div>`).join('')}</div>
- <p class="hint">Grundbedürfnisse sind der Durchschnitt aus Essen, Energie, Geselligkeit, Freizeit und Hygiene. Alle Lebensmittel im Lager werden gegessen; jede Sorte macht satter und bringt einen Bonus. Alles andere – Gebäude, Einrichtung, Pflanzen, Waren – kommt als Bonus dazu. Die Zufriedenheit wird stündlich neu berechnet.</p>
+ <p class="hint">Grundbedürfnisse sind der Durchschnitt aus Essen, Energie, Geselligkeit, Freizeit und Hygiene. Alle Lebensmittel im Lager werden gegessen; jede Sorte macht satter und bringt einen Bonus. Alles andere kommt als Bonus dazu: jedes Möbelstück, Deko und eingerichtete Räume im eigenen Haus, die Vielfalt an Gebäuden, Treffpunkten, Pflanzen und Platz-Objekten im Dorf, alle Waren im Lager, Arbeit für alle und Fahrzeuge. Die Zufriedenheit wird stündlich neu berechnet.</p>
  <h3 class="orh">So erhöhst du sie</h3>${T.length?`<ol class="mtips">${T.slice(0,6).map(t=>`<li><span class="mi">${t.i}</span><div><b>${t.title} <small>bis +${Math.max(1,Math.round(t.gain))} %</small></b><p>${esc(t.txt)}</p></div><button data-a="goto" data-v="${t.go}">${t.gl} ›</button></li>`).join('')}</ol>`:'<p class="hint">Alles bestens – deine Bewohner sind rundum zufrieden.</p>'}`}
 // ---- Nahrung: alle Lebensmittel zählen ----
 const FOODS=()=>['brot','gemuese','fleisch','milch','honig','fisch','trauben','kaese','obst','wurst'].filter(k=>RES[k]);
@@ -573,8 +579,16 @@ function takeFood(pref){const L=foodTypes().filter(k=>k!=='brot');if(!L.length)r
 // Stündlich: Hungrige essen aus dem Vorrat an Gemüse, Milch, Fleisch, Honig, Fisch … (etwa eine Portion pro Tag und Kopf)
 function foodHourly(){if(!foodTypes().some(k=>k!=='brot'))return;for(const s of S.p){if(s.away||s.n.h>82)continue;const p=s.n.h<50?.12:.06;if(Math.random()<p){const k=takeFood();if(!k)return;s.n.h=Math.min(100,s.n.h+10)}}}
 const foodMood=()=>Math.min(6,foodTypes().length*1.2);
-const villageMood=()=>{if(S._vmT===hAbs()|0)return S._vm;const T=new Set(S.b.filter(b=>b.built>=1).map(b=>b.t));let v=Math.min(6,T.size*.25)+Math.min(2,(S.deco||[]).length*.05);S._vmT=hAbs()|0;S._vm=Math.min(8,v);return S._vm};
-function moodOf(s){const n=s.n;let m=(n.h+n.e+n.s+n.f+(n.y==null?70:n.y))/5+(s.home?6:-15)+(s.partner?5:0)-(s.sick?10:0)+luxMood()+vehMood()+emSum(s)+comfortMood(s)+greenMood(s)+foodMood()+villageMood();return clamp(m,0,100)}
+const VSOC=['brunnen','markt','taverne','kirche','heiler','badehaus','schule','dorflinde','theater','spielplatz','park','garten','musikhaus','spielstube'];
+function villageCalc(){const B=S.b.filter(b=>b.built>=1),T=new Set(B.map(b=>b.t)),D=S.deco||[],props=D.filter(d=>PLANT[d.t]&&PLANT[d.t].glb).length,plants=D.length-props;
+ let pub=0;for(const b of B)if(b.t!=='haus'&&b.plan)for(const fl of b.plan.floors)pub+=fl.furn.length;
+ const soc=VSOC.filter(t=>T.has(t)).length,paved=S.road?S.road.reduce((a,v)=>a+(v>=2?1:0),0):0;
+ const P={types:Math.min(5,T.size*.3),soc:Math.min(2.5,soc*.35),plants:Math.min(2,plants*.04),props:Math.min(1,props*.15),pub:Math.min(1,pub*.01),paved:Math.min(.5,paved*.004)};
+ P.sum=Math.min(12,P.types+P.soc+P.plants+P.props+P.pub+P.paved);P.T=T.size;P.socN=soc;P.plantN=plants;P.propN=props;return P}
+const villageMood=()=>{if(S._vmT===(hAbs()|0)&&S._vm!=null)return S._vm;S._vd=villageCalc();S._vmT=hAbs()|0;S._vm=S._vd.sum;return S._vm};
+const goodsMood=()=>{if(S._gmT===(hAbs()|0)&&S._gm!=null)return S._gm;const n=Object.keys(RES).filter(k=>k!=='taler'&&(S.res[k]||0)>=1).length;S._gmN=n;S._gmT=hAbs()|0;S._gm=Math.min(4,n*.2);return S._gm};
+const workMood=()=>{if(S._wmT===(hAbs()|0)&&S._wm!=null)return S._wm;const A=S.p.filter(s=>!isKid(s)&&ageOf(s)<65),e=A.filter(s=>s.job).length;S._wmR=A.length?e/A.length:1;S._wmT=hAbs()|0;S._wm=3*S._wmR;return S._wm};
+function moodOf(s){const n=s.n;let m=(n.h+n.e+n.s+n.f+(n.y==null?70:n.y))/5+(s.home?6:-15)+(s.partner?5:0)-(s.sick?10:0)+luxMood()+vehMood()+emSum(s)+comfortMood(s)+greenMood(s)+foodMood()+villageMood()+goodsMood()+workMood();return clamp(m,0,100)}
 
 // Orte & Ziele
 function locOf(t){if(t.bid){const b=bById.get(t.bid);return b?{x:b.x,y:b.y,b}:null}return{x:t.x,y:t.y}}
@@ -2846,17 +2860,19 @@ function bldMesh(b){const z0=szOf(b.t),cx=b.x+z0/2,cz=b.y+z0/2;if(HMESH[b.t])ret
 const ROOMC={feld:'#9c7a4a',markt:'#cbbd99',garten:'#8fb860',sport:'#9fbf70',hof:'#b9a77f',stall:'#b89a6a',buehne:'#c9b48a',bad:'#c8c0b0',sauna:'#b08a60',wasch:'#a8c4d4',barbier:'#e0d3bf',heil:'#e8e2d4',kraeuterk:'#cfc49e',werk:'#c9b08a',schlaf:'#e4cfa8',kueche:'#d9c7a6',back:'#e2c9a0',verkauf:'#dccba8',schank:'#d6bf98',stube:'#e0cba5',schreib:'#ddd0b4',lager:'#cbbf9f',flur:'#d2c5a8',leer:'#d8d2c2'};
 const FH={badfass:[.07,'#8a5a32'],abort:[.06,'#7a4a26'],waschbank:[.06,'#b88a52'],korb:[.045,'#b08a52'],handtuch:[.12,'#efe6d6'],schwall:[.16,'#7a5030'],waschtisch:[.06,'#8a6a42'],bett:[.05,'#8a5a32'],doppelbett:[.05,'#8a5a32'],truhe:[.06,'#7a4a26'],schrank:[.2,'#5e3a1e'],tisch:[.07,'#b88a52'],stuhl:[.045,'#9a6a3a'],bank:[.04,'#8a5a32'],herd:[.06,'#8f8a80'],ofen:[.11,'#a8573a'],arbeitstisch:[.07,'#a07a4a'],mehl:[.07,'#e8dcc0'],theke:[.08,'#6b4226'],fass:[.08,'#8a5a2e'],regal:[.18,'#6e4a28'],pult:[.08,'#7a5030'],treppe:[.15,'#9a7a52']};
 function lotGeo(b){const z=szOf(b.t),cs=.94*z/PW;return{cs,x0:b.x+.03*z,z0:b.y+z/2-cs*PH/2}}
-function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],{cs,x0,z0}=lotGeo(b);
+function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],{cs,x0,z0}=lotGeo(b);const odd=BROT&&Math.round(BROT.a/(Math.PI/2))%2!==0;
  gq(x0,z0,x0+cs*PW,z0+cs*PH,.004,col('#a89878'));
- fl.rooms.forEach((R,i)=>gq(x0+R.x*cs,z0+R.y*cs,x0+(R.x+R.w)*cs,z0+(R.y+R.h)*cs,.01,col(R.o&&a.rooms[i].type==='leer'?'#a9c27a':(ROOMC[a.rooms[i].type]||'#d8d2c2'))));
+ fl.rooms.forEach((R,i)=>{gq(x0+R.x*cs,z0+R.y*cs,x0+(R.x+R.w)*cs,z0+(R.y+R.h)*cs,.01,col(R.o&&a.rooms[i].type==='leer'?'#a9c27a':(ROOMC[a.rooms[i].type]||'#d8d2c2')));
+  if(!R.o||R.bath){const ty=a.rooms[i].type,fk=R.bath?'tiles':(FLOORK[ty]||'planks'),p1=rotXZ(x0+R.x*cs,z0+R.y*cs),p2=rotXZ(x0+(R.x+R.w)*cs,z0+(R.y+R.h)*cs);itxFloor(fk,Math.min(p1[0],p2[0]),Math.min(p1[1],p2[1]),Math.max(p1[0],p2[0]),Math.max(p1[1],p2[1]),BY+.013,(fk==='planks'?2.2:fk==='flags'?3:2)*cs)}});
  const WH=.15;
  for(let Y=0;Y<=PH;Y++)for(let X=0;X<=PW;X++)for(const k of[`v:${X}:${Y}`,`h:${X}:${Y}`]){if((k[0]==='v'&&Y>=PH)||(k[0]==='h'&&X>=PW))continue;if(!isWall(fl,k))continue;
   const[sa,sb]=edgeSides(fl,k),ext=sa<0||sb<0,R=fl.rooms[sa>=0?sa:sb],t=fl.edges[k],th=ext?.022:.014,v=k[0]==='v',wc=col(MATS[R.mat].c);
-  const cx=x0+(v?X:X+.5)*cs,cz=z0+(v?Y+.5:Y)*cs,rot=v?Math.PI/2:0;
+  const cx=x0+(v?X:X+.5)*cs,cz=z0+(v?Y+.5:Y)*cs,rot=v?Math.PI/2:0;const RA=sa>=0?fl.rooms[sa]:null,RB=sb>=0?fl.rooms[sb]:null,kk=r=>!r||(r.o&&!r.bath)?null:(ext?(WALLK[r.mat||R.mat]||'plaster'):((r.mat||R.mat)==='holz'?'boards':'plaster')),[wx,wz]=rotXZ(cx,cz),vv=odd?!v:v,ksc=(kk(RA)==='timber'||kk(RB)==='timber')?[WH/2,WH]:[cs*2,cs*2],TW=(len,y0,hh)=>itxWall(vv,wx,wz,0,len,BY+y0,hh,th,kk(RA),kk(RB),ksc[0],ksc[1]);
   if(t==='door'){box(TR(v?cx:cx-cs*.4,0,v?cz-cs*.4:cz,rot),cs*.2,WH,th,wc);box(TR(v?cx:cx+cs*.4,0,v?cz+cs*.4:cz,rot),cs*.2,WH,th,wc)}
   else if(t==='open'){}
-  else{box(TR(cx,0,cz,rot),cs+th,t==='window'?WH*.45:WH,th,wc);if(t==='window'){box(TR(cx,WH*.45,cz,rot),cs*.7,WH*.4,th*.6,col('#bfe2f2'),.6);box(TR(cx,WH*.85,cz,rot),cs+th,WH*.15,th,wc)}}}
- fl.furn.forEach(f=>{const[fw,fd]=fsize(f),[h,c]=FH[f.t]||[.05,'#8a6a42'],x=x0+(f.x+fw/2)*cs,z=z0+(f.y+fd/2)*cs,w=fw*cs*.86,d=fd*cs*.86;
+  else{box(TR(cx,0,cz,rot),cs+th,t==='window'?WH*.45:WH,th,wc);TW(cs+th,0,t==='window'?WH*.45:WH);if(t==='window'){TW(cs+th,WH*.85,WH*.15);box(TR(cx,WH*.45,cz,rot),cs*.7,WH*.4,th*.6,col('#bfe2f2'),.6);box(TR(cx,WH*.85,cz,rot),cs+th,WH*.15,th,wc)}}}
+ fl.furn.forEach(f=>{if(fgUse(f)){const F=fgMat(f),c=BROT?BROT.c:1,s2=BROT?BROT.s:0,ccx=BROT?BROT.cx:0,ccz=BROT?BROT.cz:0,vs=(WH/cs)/3.4,A=[c*cs,0,-s2*cs,0, 0,cs*vs,0,0, s2*cs,0,c*cs,0, ccx+(x0-ccx)*c+(z0-ccz)*s2,BY,ccz-(x0-ccx)*s2+(z0-ccz)*c,1],k=FGM[f.t].k;(FGC[k]=FGC[k]||[]).push({M:mmul(A,F)});return}
+  const[fw,fd]=fsize(f),[h,c]=FH[f.t]||[.05,'#8a6a42'],x=x0+(f.x+fw/2)*cs,z=z0+(f.y+fd/2)*cs,w=fw*cs*.86,d=fd*cs*.86;
   if(f.t==='badfass'){cyl(TR(x,0,z),w/2,w/2,h,10,col('#8a5a32'));gq(x-w*.32,z-w*.32,x+w*.32,z+w*.32,h+.002,col('#8fc0d8'))}
   else if(f.t==='korb')cyl(TR(x,0,z),w*.35,w*.42,h,8,col(c));
   else if(f.t==='fass'||f.t==='mehl'||f.t==='ofen')cyl(TR(x,0,z),w/2,f.t==='ofen'?w*.3:w/2,h,8,col(c),f.t==='ofen'?.4:0);
@@ -2864,13 +2880,13 @@ function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],
   else{box(TR(x,0,z),w,h,d,col(c));if(f.t==='bett'||f.t==='doppelbett'){box(TR(x,h,z+(f.r%2?0:d*.12)),f.r%2?w*.7:w*.9,.012,f.r%2?d*.9:d*.7,col('#b5503e'));const px=f.r===1?x+w*.35:f.r===3?x-w*.35:x,pz=f.r===0?z-d*.38:f.r===2?z+d*.38:z;box(TR(px,h,pz),f.r%2?w*.18:w*.8,.02,f.r%2?d*.8:d*.18,col('#f4efe4'))}
    if(f.t==='herd')box(TR(x,h,z),w*.5,.02,d*.5,col('#ff8a2e'),1)}});
 }
-let sig='';
+let sig='',FGC={},ITXC={};
 function bsig(){return (S.era||0)+'#'+(S.decoV||0)+'#'+S.b.map(b=>b.id+':'+b.x+','+b.y+','+(b.rot||0)+':'+(b.built>=1?1:0)+':'+(b.d?b.d.f+b.d.fl+b.d.wc+b.d.rc+(b.d.deco||[]).join(''):'')+':'+(b.plan?b.plan.v:0)).join('|')}
-function buildStatic(){MKR.clear();MKI=null;SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42}}
+function buildStatic(){MKR.clear();MKI=null;try{mkSeed()}catch(e){console.warn(e)}SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42;ITXC=ITX.q;ITX.q={}}}
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
-const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:1.15,np:1},dorflinde:{sc:1.7},spielplatz:{sc:1.35,np:1}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:.82,np:1},dorflinde:{sc:1.2},spielplatz:{sc:1.0,np:1}};const GLBK=Object.keys(MDEF);
 const MBASE='https://alinaproboscht.github.io/everstead/',MVER=40;let mWarned=0;const HGD={},HGL={};
 function mLoad(key){if(HGD[key]||HGL[key])return;HGL[key]=1;const f='m_'+key+'.json',tryF=u=>fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
  const alt='m%20'+key+'.json',q='?v='+MVER;tryF(f).catch(()=>tryF(alt)).catch(()=>tryF(MBASE+f+q)).catch(()=>tryF(MBASE+alt+q)).then(M=>{HGD[key]=M;bDirty=true;sig=''}).catch(e=>{console.warn('Modell '+key+' nicht geladen',e);if(!mWarned){mWarned=1;try{toast('3D-Modelle konnten nicht geladen werden – Internet prüfen')}catch(_){}}setTimeout(()=>{delete HGL[key]},20000)})}
@@ -2945,36 +2961,40 @@ function marktRect(b){if(MKR.has(b.id))return MKR.get(b.id);
 function underMarkt(b){if(b.t!=='brunnen')return false;for(const m of S.b){if(m.t!=='markt'||!useGlb(m))continue;const r=marktRect(m);if(b.x>=r.x0&&b.x<r.x1&&b.y>=r.y0&&b.y<r.y1)return true}return false}
 // ===== Marktstände & Picknicktische rund um den Markt =====
 const MKSTAND=[{k:'stand1',f:[1,0]},{k:'stand2',f:[1,0]},{k:'stand3',f:[0,-1]},{k:'stand4',f:[0,-1]}],MKPICK='picknick';let MKI=null;
-function mkReady(){let ok=true;for(const k of[...MKSTAND.map(q=>q.k),MKPICK]){if(!HGD[k]){mLoad(k);ok=false}else if(!hgInit(k))ok=false}return ok}
-function mkPlace(k,tx,ty,dir,len,push,face){const H=HGM[k],ex=H.mx[0]-H.mn[0],ez=H.mx[2]-H.mn[2],ey=H.mx[1]-H.mn[1],s=len/Math.max(ex,ez);
+function _mkPlaceOld(k,tx,ty,dir,len,push,face){const H=HGM[k],ex=H.mx[0]-H.mn[0],ez=H.mx[2]-H.mn[2],ey=H.mx[1]-H.mn[1],s=len/Math.max(ex,ez);
  let best=0,bd=-9;for(let q=0;q<4;q++){const a=q*Math.PI/2,c=Math.cos(a),sn=Math.sin(a),fx=face[0]*c+face[1]*sn,fz=-face[0]*sn+face[1]*c,d=fx*dir[0]+fz*dir[1];if(d>bd){bd=d;best=a}}
  const c=Math.cos(best)*s,sn=Math.sin(best)*s,mx=(H.mn[0]+H.mx[0])/2,mz=(H.mn[2]+H.mx[2])/2,px=tx+.5-dir[0]*push,pz=ty+.5-dir[1]*push,y=hgtAt(ty*W+tx)*HS-H.mn[1]*s;
  return{M:[c,0,-sn,0, 0,s,0,0, sn,0,c,0, px-(mx*c+mz*sn),y,pz-(-mx*sn+mz*c),1]}}
-function mkItems(){if(MKI)return MKI;const out={};if(!S||!mkReady())return out;
- for(const b of S.b){if(b.t!=='markt'||b.built<1||!(typeof eraOf!=='function'||eraOf()<=2))continue;
+// Beim ersten Mal stellt jeder Markt Stände und Picknicktische auf den Platz – danach sind es normale, versetzbare Objekte.
+function mkSeed(){for(const b of S.b){if(b.t!=='markt'||b.built<1||b.mkSeed)continue;b.mkSeed=1;S.deco=S.deco||[];
   let x0=b.x,y0=b.y,x1=b.x,y1=b.y;const free=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&!occ[y*W+x]&&S.road[y*W+x]>=1,ok=(x,y)=>{if(x<0||y<0||x>=W||y>=H)return false;const o=occ[y*W+x];if(o){const q=bById.get(o);return !!q&&(q===b||q.t==='brunnen')}return S.road[y*W+x]>=1};
   const row=(y,a,c)=>{for(let x=a;x<=c;x++)if(!ok(x,y))return false;return true},colm=(x,a,c)=>{for(let y=a;y<=c;y++)if(!ok(x,y))return false;return true};
   for(let it=0;it<20;it++){let g=false;if(x1-x0<7&&colm(x0-1,y0,y1)){x0--;g=true}if(x1-x0<7&&colm(x1+1,y0,y1)){x1++;g=true}if(y1-y0<7&&row(y0-1,x0,x1)){y0--;g=true}if(y1-y0<7&&row(y1+1,x0,x1)){y1++;g=true}if(!g)break}
-  const cx=(x0+x1+1)/2,cy=(y0+y1+1)/2,add=(k,it)=>(out[k]=out[k]||[]).push(it),hs=(x,y)=>((x*73856093)^(y*19349663)^b.id)>>>0;
+  if(x1===x0&&y1===y0)continue;const cx=(x0+x1+1)/2,cy=(y0+y1+1)/2,hs=(x,y)=>((x*73856093)^(y*19349663)^b.id)>>>0;
   const dirTo=(x,y)=>{const dx=cx-(x+.5),dy=cy-(y+.5);return Math.abs(dx)>=Math.abs(dy)?[Math.sign(dx)||1,0]:[0,Math.sign(dy)||1]};
-  // Stand auf dem Markt-Feld selbst
-  {const d=(x1>x0||y1>y0)?dirTo(b.x,b.y):[0,1],q=MKSTAND[b.id%4];add(q.k,mkPlace(q.k,b.x,b.y,d[0]||d[1]?d:[0,1],1.25,0,q.f))}
-  if(x1===x0&&y1===y0)continue;
-  // Stände am Platzrand, Blick zur Mitte; Zugänge bleiben frei
   const per=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){if(x!==x0&&x!==x1&&y!==y0&&y!==y1)continue;if(!free(x,y))continue;
-   const ent=(x===x0&&S.road[y*W+x-1]>=1&&x>0)||(x===x1&&x+1<W&&S.road[y*W+x+1]>=1)||(y===y0&&y>0&&S.road[(y-1)*W+x]>=1)||(y===y1&&y+1<H&&S.road[(y+1)*W+x]>=1);if(ent)continue;per.push([x,y])}
+   const ent=(x===x0&&x>0&&S.road[y*W+x-1]>=1)||(x===x1&&x+1<W&&S.road[y*W+x+1]>=1)||(y===y0&&y>0&&S.road[(y-1)*W+x]>=1)||(y===y1&&y+1<H&&S.road[(y+1)*W+x]>=1);if(!ent)per.push([x,y])}
   per.sort((a,c)=>hs(a[0],a[1])-hs(c[0],c[1]));const used=[[b.x,b.y]];let n=0;
-  for(const[x,y]of per){if(n>=7)break;if(used.some(([ux,uy])=>Math.abs(ux-x)+Math.abs(uy-y)<2))continue;const q=MKSTAND[hs(x,y)%4];add(q.k,mkPlace(q.k,x,y,dirTo(x,y),1.2,.18,q.f));used.push([x,y]);n++}
-  // ein bis zwei Picknicktische im Inneren
+  for(const[x,y]of per){if(n>=7)break;if(used.some(([ux,uy])=>Math.abs(ux-x)+Math.abs(uy-y)<2))continue;const v=1+hs(x,y)%4,d=dirTo(x,y);S.deco.push({t:'mstand'+v,x:x+.5-d[0]*.2,y:y+.5-d[1]*.2,r:mkFaceR(v,d)});used.push([x,y]);n++}
   const inn=[];for(let x=x0+1;x<x1;x++)for(let y=y0+1;y<y1;y++)if(free(x,y)&&!used.some(([ux,uy])=>Math.abs(ux-x)+Math.abs(uy-y)<2))inn.push([x,y]);
-  inn.sort((a,c)=>hs(a[0],a[1])-hs(c[0],c[1]));for(const[x,y]of inn.slice(0,Math.min(2,Math.floor(inn.length/4)+1))){add(MKPICK,mkPlace(MKPICK,x,y,hs(x,y)%2?[1,0]:[0,1],1.1,0,[0,1]));used.push([x,y])}}
- MKI=out;return out}
+  inn.sort((a,c)=>hs(a[0],a[1])-hs(c[0],c[1]));for(const[x,y]of inn.slice(0,2))S.deco.push({t:'picknick',x:x+.5,y:y+.5,r:(hs(x,y)%2)*Math.PI/2});
+  S.decoV=(S.decoV||0)+1}}
+function mkFaceR(v,dir){const f=MKSTAND[v-1].f;let best=0,bd=-9;for(let q=0;q<4;q++){const a=q*Math.PI/2,c=Math.cos(a),sn=Math.sin(a),fx=f[0]*c+f[1]*sn,fz=-f[0]*sn+f[1]*c,d=fx*dir[0]+fz*dir[1];if(d>bd){bd=d;best=a}}return best}
+function mkMat(k,x,z,a,len){const H=HGM[k],ex=H.mx[0]-H.mn[0],ez=H.mx[2]-H.mn[2],s=len/Math.max(ex,ez),c=Math.cos(a)*s,sn=Math.sin(a)*s,mx=(H.mn[0]+H.mx[0])/2,mz=(H.mn[2]+H.mx[2])/2,ti=Math.min(W*H-1,Math.max(0,Math.floor(z)*W+Math.floor(x))),y=hgtAt(ti)*HS-H.mn[1]*s;
+ return{M:[c,0,-sn,0, 0,s,0,0, sn,0,c,0, x-(mx*c+mz*sn),y,z-(-mx*sn+mz*c),1]}}
+function mkItems(){if(MKI)return MKI;const out={};if(!S)return out;const add=(k,it)=>(out[k]=out[k]||[]).push(it);let wait=false;
+ const need=k=>{if(!HGD[k]){mLoad(k);wait=true;return false}return !!hgInit(k)};
+ if(typeof eraOf!=='function'||eraOf()<=2)for(const b of S.b){if(b.t!=='markt'||b.built<1)continue;const q=MKSTAND[b.id%4];if(need(q.k))add(q.k,mkMat(q.k,b.x+.5,b.y+.5,(b.rot||0)*Math.PI/2,.85))}
+ for(const d of S.deco||[]){const P=PLANT[d.t];if(!P||!P.glb)continue;if(need(P.glb))add(P.glb,mkMat(P.glb,d.x,d.y,d.r||0,P.len))}
+ if(!wait)MKI=out;return out}
+function mkReady(){const q=MKSTAND[0].k;if(!HGD[q]){mLoad(q);return false}return !!hgInit(q)}
 function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,z=MR?MR.sz:szOf(b.t),s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):MDEF[K].sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:b.x+z/2,cz=MR?MR.cy:b.y+z/2,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s-.004*z,
  ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
 const hgList=()=>S.b.filter(useGlb);
 function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):szOf(b.t)*MDEF[K].sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s}
 function hgDraw(Lt,shOn,cut){for(const key of GLBK){const H=hgInit(key);if(!H||!H.tex)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDraw1(H,L2,Lt,shOn,MDEF[key].np)}
- if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&H.tex&&I[k].length)hgDraw1(H,I[k],Lt,shOn,1)}}}
+ if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&H.tex&&I[k].length)hgDraw1(H,I[k],Lt,shOn,1)}}
+ else{ITX.q=Object.assign({},ITXC);itxDraw(Lt,1,[],1);const L3=Object.assign({},Lt,{indoor:1});for(const k in FGC){const H=hgInit(k);if(H&&H.tex)hgDraw1(H,FGC[k],L3,shOn,1)}}}
 function hgDraw1(H,L2,Lt,shOn,np){const U=H.U;gl.useProgram(H.p);
  for(const k of['n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);gl.enableVertexAttribArray(0);gl.enableVertexAttribArray(1);gl.enableVertexAttribArray(2);
  gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.nb);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.ub);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
@@ -2986,7 +3006,7 @@ function hgDrawS(cut){for(const key of GLBK){const H=hgInit(key);if(!H)continue;
  if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&I[k].length)hgDrawS1(H,I[k])}}}
 function hgDrawS1(H,L2){gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
  for(const b of L2){gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(b.M||hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4))}
-function buildStatic0(){BT_OPEN.n=0;BT_EXT.n=0;BT_INT.n=0;BT_SH.n=0;SMOKE=[];
+function buildStatic0(){BT_OPEN.n=0;BT_EXT.n=0;BT_INT.n=0;BT_SH.n=0;SMOKE=[];FGC={};ITX.q={};
  for(const b of S.b){if(b.built<1)continue;BY=hgtAt(b.y*W+b.x)*HS;setRot(b);G=b.plan&&b.d?BT_EXT:BT_OPEN;if(useGlb(b)&&hgInit(glbKey(b))){b._top=hgTop(b)+hgtAt(b.y*W+b.x)*HS}else if(b.t==='markt'&&mkReady()){b._top=hgtAt(b.y*W+b.x)*HS+.75}else if(underMarkt(b)){b._top=hgtAt(b.y*W+b.x)*HS+.4}else b._top=bldMesh(b);if(b.plan&&b.d){G=BT_INT;interiorMesh(b)}
   if(b.d&&!SH_OK){const z=szOf(b.t);G=BT_SH;gq(b.x+.12,b.y+.18,b.x+z+.02,b.y+z,.006,col('#000000',.16))}BY=0;BROT=null}
  G=BT_OPEN;for(const d of S.deco||[]){const i=Math.floor(d.y)*W+Math.floor(d.x);BY=(i>=0&&i<W*H?hgtAt(i)*HS:0);try{plant3(d)}catch(e){}}BY=0;
@@ -4362,9 +4382,9 @@ function pFurnish(){const L=planBlds();if(!L.length)return '<p class="hint">Noch
  for(const[gn,items]of FCAT[et].groups){h+=`<h3>${gn}</h3><div class="grid">${items.filter(k=>FURN[k]).map(k=>{const f=FURN[k];return `<button class="bb${afford(f.cost)?'':' poor'}" data-a="furnbuy" data-v="${k}"><span class="ic">${f.i}</span><span class="nm">${f.n}</span><span class="co">${costHTML(f.cost)||'gratis'}</span></button>`}).join('')}</div>`}
  return h+`<div class="acts"><button data-a="planb" data-v="${fb.id}">📐 Grundriss von ${esc(bName(fb))} öffnen</button></div>`}
 function pPlants(){const pt=ui.ptb||'baum';let h=`<div class="subtabs">${Object.entries(PLANTS).map(([k,G2])=>`<button class="st${pt===k?' on':''}" data-a="ptb" data-v="${k}">${G2.i} ${G2.n}</button>`).join('')}</div>`;
- h+=`<p class="hint">Wähle eine Pflanze und tippe auf die Karte – auf Wiese, Sand oder Blumenwiese, nicht auf Wege oder ins Wasser. Mehrmals tippen pflanzt mehrere.</p><div class="grid">`;
+ h+=`<p class="hint">Wähle eine Pflanze und tippe auf die Karte – auf Wiese, Sand oder Blumenwiese, nicht auf Wege oder ins Wasser. Mehrmals tippen pflanzt mehrere. Marktstände und Picknicktische dürfen auch aufs Pflaster. Mit ✋ Versetzen und 🔄 Drehen lässt sich alles neu anordnen.</p><div class="grid">`;
  for(const[k,P]of Object.entries(PLANTS[pt].items))h+=`<button class="bb${afford(P.cost)?'':' poor'}" data-a="plant" data-v="${k}"><span class="ic">${P.i}</span><span class="nm">${P.n}</span><span class="co">${costHTML(P.cost)}</span></button>`;
- return h+`<button class="bb" data-a="plant" data-v="del"><span class="ic">🧹</span><span class="nm">Pflanze entfernen</span></button></div><p class="hint">${(S.deco||[]).length} Pflanzen gesetzt.</p>`}
+ return h+`<button class="bb" data-a="plant" data-v="move"><span class="ic">✋</span><span class="nm">Versetzen</span></button><button class="bb" data-a="plant" data-v="rot"><span class="ic">🔄</span><span class="nm">Drehen</span></button><button class="bb" data-a="plant" data-v="del"><span class="ic">🧹</span><span class="nm">Entfernen</span></button></div><p class="hint">${(S.deco||[]).length} Pflanzen gesetzt.</p>`}
 function pBuildings(){
  let h='<p class="hint">Gebäude sind Vorlagen: Nach dem Platzieren kannst du Bauform, Etagen, Farben und Schmuck ändern.</p><div class="grid">';
  const cats=[['','Wohnen & Gemeinschaft'],['gew','Handwerk & Versorgung'],['hobby','Freizeit & Hobbys']];h+='</div>';
@@ -4431,7 +4451,7 @@ function act(a,v,el){if(a==='bauabbr'){const b=bById.get(+v);if(b&&b.built<1&&co
   case 'btab':ui.btab=v;break;case 'etab':ui.etab=v;break;case 'ptb':ui.ptb=v;break;case 'fhouse':ui.fh=+v;break;
   case 'planb':{const b3=bById.get(+v);if(b3&&b3.plan)openPlan(b3);return}
   case 'furnbuy':{const b3=bById.get(ui.fh)||planBlds()[0];if(!b3)return toast('Kein Gebäude zum Einrichten.');openPlan(b3,v,ui.etab||'wohnen');return}
-  case 'plant':ui.mode={k:'plant',t:v,hint:v==='del'?'🧹 Tippe auf eine Pflanze, um sie zu entfernen.':`${PLANT[v].i} ${PLANT[v].n}: Tippe auf die Karte zum Pflanzen.`};if(!wide())ui.tab=null;break;
+  case 'plant':ui.mode={k:'plant',t:v,hint:v==='del'?'🧹 Tippe auf eine Pflanze oder ein Objekt, um es zu entfernen.':v==='move'?'✋ Tippe auf eine Pflanze oder ein Objekt, dann auf den neuen Platz.':v==='rot'?'🔄 Tippe auf ein Objekt, um es um 90° zu drehen.':`${PLANT[v].i} ${PLANT[v].n}: Tippe auf die Karte zum Pflanzen.`};if(!wide())ui.tab=null;break;
   case 'build':startPlace(v,null);return;
   case 'villa':startPlace('haus',{f:'villa',fl:2,wc:'#e6dcc6',rc:'#3e4850',name:'Stadtvilla'});return;
   case 'gut':startPlace('haus',{f:'gut',fl:2,wc:'#d8cfc0',rc:'#3a434c',name:'Gutssitz'});return;
@@ -4988,9 +5008,10 @@ function furn3(f){const d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,R=f
 const PLANTS={
  baum:{n:'Bäume',i:'🌳',items:{eiche:{n:'Eiche',i:'🌳',cost:{taler:6}},linde:{n:'Linde',i:'🌳',cost:{taler:8}},birke:{n:'Birke',i:'🌿',cost:{taler:5}},obst:{n:'Apfelbaum',i:'🍎',cost:{taler:7}},tanne:{n:'Tanne',i:'🌲',cost:{taler:5}},weide:{n:'Trauerweide',i:'🌳',cost:{taler:8}}}},
  strauch:{n:'Sträucher',i:'🌿',items:{busch:{n:'Busch',i:'🌿',cost:{taler:2}},rose:{n:'Rosenstrauch',i:'🌹',cost:{taler:4}},hecke:{n:'Hecke',i:'🟩',cost:{taler:3}},beeren:{n:'Beerenstrauch',i:'🫐',cost:{taler:3}},buchs:{n:'Buchskugel',i:'🟢',cost:{taler:4}}}},
+ platz:{n:'Platz & Markt',i:'⛺',items:{mstand1:{n:'Marktstand Fleisch',i:'🥩',cost:{bretter:2,taler:6},glb:'stand1',len:.78},mstand2:{n:'Marktstand Gemüse',i:'🥬',cost:{bretter:2,taler:6},glb:'stand2',len:.78},mstand3:{n:'Marktstand Kräuter',i:'🌿',cost:{bretter:2,taler:6},glb:'stand3',len:.78},mstand4:{n:'Marktstand Stoffe',i:'🧵',cost:{bretter:2,taler:6},glb:'stand4',len:.78},picknick:{n:'Picknicktisch',i:'🧺',cost:{bretter:2,taler:3},glb:'picknick',len:.62}}},
  blume:{n:'Blumen',i:'🌷',items:{blbeet:{n:'Blumenbeet',i:'🌷',cost:{taler:2}},lavendel:{n:'Lavendel',i:'🪻',cost:{taler:2}},sonnenbl:{n:'Sonnenblumen',i:'🌻',cost:{taler:2}},kuebel:{n:'Blumenkübel',i:'🪴',cost:{taler:3}},wildbl:{n:'Wildblumen',i:'🌼',cost:{taler:1}}}}};
 const PLANT={};for(const[g,G2]of Object.entries(PLANTS))for(const[k,v]of Object.entries(G2.items))PLANT[k]={...v,g};
-function plant3(d){const x=d.x,z=d.y,r=d.r||0,sd=(x*7.13+z*3.71)%1,leafy=(cx,cy,cz,rx,ry,hex,k)=>{ell3(TR(cx,cy,cz),rx*.85,ry*.85,rx*.85,5,8,col(shade(hex,-.2)));leafCards(cx,cy,cz,rx,ry,hex,k)};
+function plant3(d){if(PLANT[d.t]&&PLANT[d.t].glb)return;const x=d.x,z=d.y,r=d.r||0,sd=(x*7.13+z*3.71)%1,leafy=(cx,cy,cz,rx,ry,hex,k)=>{ell3(TR(cx,cy,cz),rx*.85,ry*.85,rx*.85,5,8,col(shade(hex,-.2)));leafCards(cx,cy,cz,rx,ry,hex,k)};
  switch(d.t){
   case 'eiche':tree3(x,z,1.55+sd*.3,0);break;
   case 'linde':tree3(x,z,1.95+sd*.3,0);break;
@@ -5010,6 +5031,13 @@ function plant3(d){const x=d.x,z=d.y,r=d.r||0,sd=(x*7.13+z*3.71)%1,leafy=(cx,cy,
   case 'wildbl':{for(let i=0;i<14;i++){const a=i*2.4+sd*6,rr=.03+.09*((i*.37)%1);flower3(x+Math.cos(a)*rr,0,z+Math.sin(a)*rr,.4+((i*7)%3)*.06,['#f4efe4','#f2b33d','#e0547a','#8a5cc2','#5a8ad8'][i%5],i)}break}
  }}
 function plantAt(t,gx,gy){const x=Math.floor(gx),y=Math.floor(gy);if(x<0||y<0||x>=W||y>=H)return 'Außerhalb der Karte.';const i=y*W+x;S.deco=S.deco||[];
+ const near=()=>{let bi=-1,bd=.65;S.deco.forEach((d,j)=>{const dd=Math.hypot(d.x-gx,d.y-gy);if(dd<bd){bd=dd;bi=j}});return bi};
+ if(t==='rot'){const j=near();if(j<0)return 'Hier steht nichts zum Drehen.';const d=S.deco[j];d.r=Math.round(((d.r||0)+Math.PI/2)/(Math.PI/2))*(Math.PI/2)%(Math.PI*2);S.decoV=(S.decoV||0)+1;bDirty=true;return null}
+ if(t==='move'){const m=ui.mode;if(m.pick==null){const j=near();if(j<0)return 'Tippe auf eine Pflanze oder ein Objekt.';m.pick=j;m.hint='✋ '+(PLANT[S.deco[j].t]||{n:'Objekt'}).n+': Tippe auf den neuen Platz.';return null}
+  const d=S.deco[m.pick];if(!d){m.pick=null;return null}const P=PLANT[d.t]||{};if(S.map[i]===3)return 'Nicht ins Wasser.';if(occ[i])return 'Hier steht ein Gebäude.';if(!P.glb&&S.road[i])return 'Pflanzen nicht auf Wege.';
+  d.x=Math.round(gx*100)/100;d.y=Math.round(gy*100)/100;m.pick=null;m.hint='✋ Tippe auf die nächste Pflanze oder das nächste Objekt zum Versetzen.';S.decoV=(S.decoV||0)+1;bDirty=true;return null}
+ if(PLANT[t]&&PLANT[t].glb){const P=PLANT[t];if(occ[i])return 'Hier steht ein Gebäude.';if(S.map[i]===3)return 'Nicht ins Wasser.';if(S.deco.some(d=>Math.hypot(d.x-gx,d.y-gy)<.45))return 'Zu dicht an einem anderen Objekt.';if(!afford(P.cost))return 'Nicht genug Taler.';pay(P.cost);
+  S.deco.push({t,x:Math.round(gx*100)/100,y:Math.round(gy*100)/100,r:((Math.random()*4)|0)*Math.PI/2});S.decoV=(S.decoV||0)+1;bDirty=true;return null}
  if(t==='del'){let bi=-1,bd=.6;S.deco.forEach((d,j)=>{const dd=Math.hypot(d.x-gx,d.y-gy);if(dd<bd){bd=dd;bi=j}});if(bi<0)return 'Hier steht keine Pflanze.';const d=S.deco.splice(bi,1)[0];S.decoV=(S.decoV||0)+1;bDirty=true;toast(`${PLANT[d.t].i} ${PLANT[d.t].n} entfernt.`);return null}
  const P=PLANT[t];if(occ[i])return 'Hier steht ein Gebäude.';if(S.map[i]===3)return 'Im Wasser wächst das nicht.';if(S.road[i])return 'Nicht auf Wegen.';
  if(S.deco.some(d=>Math.hypot(d.x-gx,d.y-gy)<(P.g==='baum'?.35:.14)))return 'Zu dicht an einer anderen Pflanze.';
@@ -5083,10 +5111,10 @@ function itxTex(kind){if(ITX.tex[kind])return ITX.tex[kind];const cv=itxPaint(ki
  gl.activeTexture(gl.TEXTURE0);ITX.tex[kind]=t;return t}
 function itxInit(){if(ITX.prog||ITX.fail)return ITX.prog;try{const mk=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
  const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 u;attribute vec4 c;uniform mat4 vp;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 tc;void main(){w=p;nn=n;v=u;tc=c;gl_Position=vp*vec4(p,1.);}`));
- gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 tc;uniform sampler2D tx;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform float day;uniform vec4 wins[12];uniform float nwin;
+ gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 tc;uniform sampler2D tx;uniform vec3 ld;uniform vec3 lc;uniform vec3 sky;uniform vec3 gnd;uniform float day;uniform vec4 wins[12];uniform float nwin;uniform float cutm;
   vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
   void main(){vec3 N=normalize(nn);vec3 base=pow(texture2D(tx,v).rgb,vec3(2.2))*tc.rgb;
-   float ao=N.y>.5?1.:mix(.55,1.,smoothstep(0.,.9,w.y))*mix(1.,.92,smoothstep(2.2,3.4,w.y));
+   float ao=(N.y>.5||cutm>.5)?1.:mix(.55,1.,smoothstep(0.,.9,w.y))*mix(1.,.92,smoothstep(2.2,3.4,w.y));
    ao*=tc.a;
    vec3 amb=mix(gnd,sky,N.y*.5+.5)*ao;float nd=max(dot(N,ld)*.8+.2,0.);
    vec3 col=base*(amb*.9+lc*.85*nd*ao);
@@ -5096,7 +5124,7 @@ function itxInit(){if(ITX.prog||ITX.fail)return ITX.prog;try{const mk=(t,s)=>{co
     col+=base*vec3(1.,.82,.58)*min(s,1.5)*.55*day;}
    col=pow(col,vec3(1./2.2));col=aces(col*1.02);gl_FragColor=vec4(col,1.);}`));
  ['p','n','u','c'].forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('itx link');
- const U={};for(const k of['vp','tx','ld','lc','sky','gnd','day','wins','nwin'])U[k]=gl.getUniformLocation(p,k);ITX.prog={p,U,buf:gl.createBuffer()};return ITX.prog}catch(e){console.warn('Innenraum-Texturen',e);ITX.fail=true;return null}}
+ const U={};for(const k of['vp','tx','ld','lc','sky','gnd','day','wins','nwin','cutm'])U[k]=gl.getUniformLocation(p,k);ITX.prog={p,U,buf:gl.createBuffer()};return ITX.prog}catch(e){console.warn('Innenraum-Texturen',e);ITX.fail=true;return null}}
 // Geometrie sammeln: je Textur eine Liste [x,y,z,nx,ny,nz,u,v,r,g,b,ao]
 function itxQ(kind,P,Nv,UV,tint,ao){const L=ITX.q[kind]||(ITX.q[kind]=[]);const t=tint||[1,1,1],a=ao==null?1:ao;for(const k of[0,1,2,0,2,3])L.push(P[k][0],P[k][1],P[k][2],Nv[0],Nv[1],Nv[2],UV[k][0],UV[k][1],t[0],t[1],t[2],a)}
 function itxFloor(kind,x0,z0,x1,z1,y,sc,tint){itxQ(kind,[[x0,y,z0],[x0,y,z1],[x1,y,z1],[x1,y,z0]],[0,1,0],[[x0/sc,z0/sc],[x0/sc,z1/sc],[x1/sc,z1/sc],[x1/sc,z0/sc]],tint)}
@@ -5104,9 +5132,9 @@ function itxFloor(kind,x0,z0,x1,z1,y,sc,tint){itxQ(kind,[[x0,y,z0],[x0,y,z1],[x1
 function itxWall(v,mx,mz,o,len,y0,hh,th,kA,kB,sx,sy){const off=th/2+.004,a0=o-len/2,a1=o+len/2;
  for(const[sg,kind]of[[-1,kA],[1,kB]]){if(!kind)continue;const P=[],UV=[];for(const[a,y]of[[a0,y0],[a1,y0],[a1,y0+hh],[a0,y0+hh]]){const along=(v?mz:mx)+a;P.push(v?[mx+sg*off,y,mz+a]:[mx+a,y,mz+sg*off]);UV.push([along/sx,1-y/sy])}
   if((sg>0)!==v){P.reverse();UV.reverse()}itxQ(kind,P,v?[sg,0,0]:[0,0,sg],UV)}}
-function itxDraw(Lt,dayish,wins){const H=itxInit();if(!H){ITX.q={};return}const U=H.U;gl.useProgram(H.p);
+function itxDraw(Lt,dayish,wins,ext){const H=itxInit();if(!H){ITX.q={};return}const U=H.U;gl.useProgram(H.p);gl.uniform1f(U.cutm,ext?1:0);
  for(const k of['p','n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);for(let i=0;i<4;i++)gl.enableVertexAttribArray(i);
- gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniform3fv(U.ld,[-.35,.85,.4]);gl.uniform3fv(U.lc,[.62*dayish+.12,.52*dayish+.1,.38*dayish+.1]);gl.uniform3fv(U.sky,[.5,.46,.42]);gl.uniform3fv(U.gnd,[.34,.26,.2]);gl.uniform1f(U.day,Math.max(0,1-Lt.night*1.4));
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));if(ext){gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd)}else{gl.uniform3fv(U.ld,[-.35,.85,.4]);gl.uniform3fv(U.lc,[.62*dayish+.12,.52*dayish+.1,.38*dayish+.1]);gl.uniform3fv(U.sky,[.5,.46,.42]);gl.uniform3fv(U.gnd,[.34,.26,.2])}gl.uniform1f(U.day,Math.max(0,1-Lt.night*1.4));
  const wf=new Float32Array(48);wins.slice(0,12).forEach((q,i)=>wf.set(q,i*4));gl.uniform4fv(U.wins,wf);gl.uniform1f(U.nwin,Math.min(12,wins.length));
  gl.bindBuffer(gl.ARRAY_BUFFER,H.buf);gl.uniform1i(U.tx,2);
  for(const kind in ITX.q){const A=ITX.q[kind];if(!A.length)continue;gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,itxTex(kind));gl.activeTexture(gl.TEXTURE0);
