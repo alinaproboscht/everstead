@@ -1,7 +1,7 @@
 {
-  "build": 2026110804,
+  "build": 2026110805,
   "file": "everstead.html",
-  "notes": "Update 51: Realistischere Möbelgrößen in allen Gebäuden",
+  "notes": "Update 52: Herdzeile reicht bis zwei Drittel der Wandhöhe",
   "models": [
     {
       "file": "m_baeckerei.json",
