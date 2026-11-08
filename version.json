@@ -1,7 +1,7 @@
 {
-  "build": 2026110714,
+  "build": 2026110801,
   "file": "everstead.html",
-  "notes": "Update 47: 3D-Möbel und gemalte Böden in der Draufsicht, realistische Größen, versetzbare Marktstände, Zufriedenheit berücksichtigt alles",
+  "notes": "Update 48: Marktstände einzeln bearbeitbar und im Baumodus, Pflaster unter Markt und Brunnen, aufgeräumte Bäder, Möbel mit mehr Abstand",
   "models": [
     {
       "file": "m_baeckerei.json",

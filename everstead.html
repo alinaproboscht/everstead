@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110714">
+<meta name="everstead-build" content="2026110801">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -937,7 +937,11 @@ function furnishBath(fl,R){const inR=f=>{const[w,h]=fsize(f);return f.x>=R.x&&f.
  const cx=R.x+R.w/2-.5,cy=R.y+R.h/2-.5,C=[];for(let y=R.y;y<R.y+R.h;y++)for(let x=R.x;x<R.x+R.w;x++)if(!block.has(x+','+y)&&furnAt(fl,x,y)<0)C.push([x,y]);
  const corner=([x,y])=>(x===R.x||x===R.x+R.w-1?1:0)+(y===R.y||y===R.y+R.h-1?1:0);C.sort((a,b)=>corner(b)-corner(a)||Math.hypot(b[0]-cx,b[1]-cy)-Math.hypot(a[0]-cx,a[1]-cy));
  const face=(x,y)=>{const dx=cx-x,dy=cy-y;return Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?0:2)};
- for(const t of['badfass','abort','waschbank','handtuch','korb','schwall']){const c=C.shift();if(!c)break;fl.furn.push({t,x:c[0],y:c[1],r:face(c[0],c[1])})}}
+ const L=['badfass','abort','waschbank'];if(C.length>=6)L.push('handtuch');if(C.length>=8)L.push('korb');if(C.length>=10)L.push('schwall');
+ for(const t of L){const c=C.shift();if(!c)break;fl.furn.push({t,x:c[0],y:c[1],r:face(c[0],c[1])})}}
+// ältere Bäder entrümpeln: in kleinen Bädern bleiben Zuber, Abort und Waschtisch – genug Platz zum Bewegen
+function bathTidy(b){const p=b.plan;if(!p||p.bathT)return;p.bathT=1;let ch=false;for(const fl of p.floors)fl.rooms.forEach((R,ri)=>{if(!R.bath)return;const F=fl.furn.filter(f=>roomAt(fl,f.x,f.y)===ri);let free=R.w*R.h-F.reduce((a,f)=>{const[w,h]=fsize(f);return a+w*h},0);
+  for(const t of['schwall','korb','handtuch']){if(free>=3)break;const f=F.find(q=>q.t===t);if(f){fl.furn.splice(fl.furn.indexOf(f),1);free++;ch=true}}});if(ch)p.v=(p.v||0)+1}
 function bathRooms(fl){return fl.rooms.filter((R,i)=>{if(R.bath)return true;if(R.w*R.h>14)return false;const F=fl.furn.filter(f=>roomAt(fl,f.x,f.y)===i);return F.length&&F.every(f=>SANI.has(f.t))&&F.some(f=>f.t==='schwall'||f.t==='badfass')})}
 function fitFurn(fl,t,cands){for(const[x,y,r]of cands){const f={t,x,y,r:r||0},[w,h]=fsize(f);let ok=x>=0&&y>=0&&x+w<=PW&&y+h<=PH;const rm=ok?roomAt(fl,x,y):-1;if(rm<0)continue;
   for(let dy=0;dy<h&&ok;dy++)for(let dx=0;dx<w&&ok;dx++){if(roomAt(fl,x+dx,y+dy)!==rm||furnAt(fl,x+dx,y+dy)>=0)ok=false}if(ok){fl.furn.push(f);return true}}return false}
@@ -2731,9 +2735,10 @@ function tuft(x,z,s,sd){const y=BY+.002,n=4;for(let b=0;b<n;b++){const a=sd*2.17
 function flowerL(x,y,z,s,c,k){y+=BY;const h=(.07+.04*cRandS(k+x))*s,st=col('#4a6e2a'),w=.004*s,lx=.01*Math.cos(k)*s,lz=.01*Math.sin(k)*s;G.v(x-w,y,z,0,1,0,st,0);G.v(x+w,y,z,0,1,0,st,0);G.v(x+lx,y+h,z+lz,0,1,0,st,0);
  const hx=x+lx,hz=z+lz,hy=y+h,cc=col(c),r=.017*s,ce=col(c==='#f2d33d'?'#c0702a':'#f2c83a');for(let i=0;i<5;i++){const a1=k+i/5*6.283,a2=a1+.5,a3=a1-.5;G.v(hx,hy,hz,0,1,0,cc,0);G.v(hx+Math.cos(a3)*r,hy+.004,hz+Math.sin(a3)*r,0,1,0,cc,0);G.v(hx+Math.cos(a2)*r,hy+.004,hz+Math.sin(a2)*r,0,1,0,cc,0)}
  const q=.005*s;G.v(hx-q,hy+.003,hz-q,0,1,0,ce,0);G.v(hx+q,hy+.003,hz-q,0,1,0,ce,0);G.v(hx,hy+.003,hz+q,0,1,0,ce,0)}
+function plazaRd(i){const r=S.road[i],o=occ[i];if(r||!o)return r;const q=bById.get(o);if(!q||(q.t!=='markt'&&q.t!=='brunnen'))return r;const x=i%W;let n=0;for(const j of[i-1,i+1,i-W,i+W]){if(j<0||j>=W*H||(Math.abs((j%W)-x)>1))continue;if(S.road[j]===3)n++}return n>=2?3:r}
 function buildChunk(cx,cy){const k=cy*chN()+cx;let bt=CHB[k];if(!bt)bt=CHB[k]=new Batch();G=bt;G.n=0;BY=0;const TUF=[];const x0=cx*CH,y0=cy*CH,x1=Math.min(W,x0+CH),y1=Math.min(H,y0+CH);
  FALLS=FALLS.filter(f=>!(f.sx>=x0&&f.sx<x1&&f.sy>=y0&&f.sy<y1));LAMPS=LAMPS.filter(l=>!(l[3]%W>=x0&&l[3]%W<x1&&((l[3]/W)|0)>=y0&&((l[3]/W)|0)<y1));
- for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=y*W+x,t=S.map[i],v=hashf(x,y,0),rd=S.road[i];let c;const water=t===3;
+ for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=y*W+x,t=S.map[i],v=hashf(x,y,0),rd=plazaRd(i);let c;const water=t===3;
   if(rd===3&&!water)c=col(roadCol(rd));else if(water)c=col(isSeaT(i)?seaColor(i):hgtAt(i)<0?'#3f7aa6':'#4a86b0');else if(t===1)c=col('#456f34');else if(t===2)c=col(hgtAt(i)>=6?'#eef1f3':hgtAt(i)>=5?'#b9bab8':hgtAt(i)>=2?'#8a857b':'#6f7d55');else if(t===4)c=col((x+y)%2?'#c9b25a':'#b5b04e');else if(t===5)c=col('#e3d3a4');else if(t===6)c=col(['#4b7333','#486f31','#4f7735'][(v*3)|0]);
   else c=col(hgtAt(i)>0?['#45692f','#42652e','#486d31'][(v*3)|0]:['#4b7333','#486f31','#4f7735'][(v*3)|0]);
   const ty=topY(i);if(water&&!rd&&isSeaT(i))seaTile(x,y,ty);else if(water&&!rd)quad([x,ty,y],[x+1,ty,y],[x+1,ty,y+1],[x,ty,y+1],c,-1,[x+.5,ty-1,y+.5]);else gq(x,y,x+1,y+1,ty,c);
@@ -2882,7 +2887,7 @@ function interiorMesh(b){const p=b.plan,A=planA(b),fl=p.floors[0],a=A.floors[0],
 }
 let sig='',FGC={},ITXC={};
 function bsig(){return (S.era||0)+'#'+(S.decoV||0)+'#'+S.b.map(b=>b.id+':'+b.x+','+b.y+','+(b.rot||0)+':'+(b.built>=1?1:0)+':'+(b.d?b.d.f+b.d.fl+b.d.wc+b.d.rc+(b.d.deco||[]).join(''):'')+':'+(b.plan?b.plan.v:0)).join('|')}
-function buildStatic(){MKR.clear();MKI=null;try{mkSeed()}catch(e){console.warn(e)}SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42;ITXC=ITX.q;ITX.q={}}}
+function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bathTidy(b)}catch(e){}try{mkSeed()}catch(e){console.warn(e)}SOFTBOX=true;SOFTK=.16;try{buildStatic0()}finally{SOFTBOX=false;SOFTK=.42;ITXC=ITX.q;ITX.q={}}}
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
@@ -2966,7 +2971,7 @@ function _mkPlaceOld(k,tx,ty,dir,len,push,face){const H=HGM[k],ex=H.mx[0]-H.mn[0
  const c=Math.cos(best)*s,sn=Math.sin(best)*s,mx=(H.mn[0]+H.mx[0])/2,mz=(H.mn[2]+H.mx[2])/2,px=tx+.5-dir[0]*push,pz=ty+.5-dir[1]*push,y=hgtAt(ty*W+tx)*HS-H.mn[1]*s;
  return{M:[c,0,-sn,0, 0,s,0,0, sn,0,c,0, px-(mx*c+mz*sn),y,pz-(-mx*sn+mz*c),1]}}
 // Beim ersten Mal stellt jeder Markt Stände und Picknicktische auf den Platz – danach sind es normale, versetzbare Objekte.
-function mkSeed(){for(const b of S.b){if(b.t!=='markt'||b.built<1||b.mkSeed)continue;b.mkSeed=1;S.deco=S.deco||[];
+function mkSeed(){for(const b of S.b){if(b.t!=='markt'||b.built<1||b.mkSeed>=2)continue;S.deco=S.deco||[];{const v=1+b.id%4;S.deco.push({t:'mstand'+v,x:b.x+.5,y:b.y+.5,r:mkFaceR(v,[0,1])});S.decoV=(S.decoV||0)+1}if(b.mkSeed){b.mkSeed=2;continue}b.mkSeed=2;
   let x0=b.x,y0=b.y,x1=b.x,y1=b.y;const free=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&!occ[y*W+x]&&S.road[y*W+x]>=1,ok=(x,y)=>{if(x<0||y<0||x>=W||y>=H)return false;const o=occ[y*W+x];if(o){const q=bById.get(o);return !!q&&(q===b||q.t==='brunnen')}return S.road[y*W+x]>=1};
   const row=(y,a,c)=>{for(let x=a;x<=c;x++)if(!ok(x,y))return false;return true},colm=(x,a,c)=>{for(let y=a;y<=c;y++)if(!ok(x,y))return false;return true};
   for(let it=0;it<20;it++){let g=false;if(x1-x0<7&&colm(x0-1,y0,y1)){x0--;g=true}if(x1-x0<7&&colm(x1+1,y0,y1)){x1++;g=true}if(y1-y0<7&&row(y0-1,x0,x1)){y0--;g=true}if(y1-y0<7&&row(y1+1,x0,x1)){y1++;g=true}if(!g)break}
@@ -2984,7 +2989,6 @@ function mkMat(k,x,z,a,len){const H=HGM[k],ex=H.mx[0]-H.mn[0],ez=H.mx[2]-H.mn[2]
  return{M:[c,0,-sn,0, 0,s,0,0, sn,0,c,0, x-(mx*c+mz*sn),y,z-(-mx*sn+mz*c),1]}}
 function mkItems(){if(MKI)return MKI;const out={};if(!S)return out;const add=(k,it)=>(out[k]=out[k]||[]).push(it);let wait=false;
  const need=k=>{if(!HGD[k]){mLoad(k);wait=true;return false}return !!hgInit(k)};
- if(typeof eraOf!=='function'||eraOf()<=2)for(const b of S.b){if(b.t!=='markt'||b.built<1)continue;const q=MKSTAND[b.id%4];if(need(q.k))add(q.k,mkMat(q.k,b.x+.5,b.y+.5,(b.rot||0)*Math.PI/2,.85))}
  for(const d of S.deco||[]){const P=PLANT[d.t];if(!P||!P.glb)continue;if(need(P.glb))add(P.glb,mkMat(P.glb,d.x,d.y,d.r||0,P.len))}
  if(!wait)MKI=out;return out}
 function mkReady(){const q=MKSTAND[0].k;if(!HGD[q]){mLoad(q);return false}return !!hgInit(q)}
@@ -4279,7 +4283,7 @@ function hud(){
  if(c){$('ctrlname').textContent=`🎮 ${nm(c)}`;$('ctrlimg').src=portraitURL(c);const q=c.cmds.filter(x=>!x.auto)[0];$('ctrlstate').textContent=q?'Als Nächstes: '+cmdText(q):where(c)}
  const sel=ui.sel&&ui.sel.k==='s'&&pById.get(ui.sel.id);$('ctxbar').hidden=!sel||!!c&&c===sel||!!ui.mode||!!IM;$('ctrlbar').style.top=IM?'64px':'10px';$('tools').hidden=!!IM;
  if(sel){$('ctximg').src=portraitURL(sel);$('ctxname').textContent=`${sel.fn} ${sel.ln} · ${age(sel)} J. · ${jobTitle(sel)}`;$('cfav').textContent=sel.fav?'⭐':'☆';$('cfollow').classList.toggle('on',ui.follow)}
- $('modehint').hidden=!ui.mode;$('mhpan').hidden=!(ui.mode&&ui.mode.k==='road');{const pm=ui.mode&&(ui.mode.k==='place'||ui.mode.k==='move');$('mhrot').hidden=!pm;$('mhok').hidden=!pm||ui.mode.gx==null;if(pm)$('mhok').textContent=ui.mode.k==='move'?'✓ Hierhin':'✓ Bauen';$('mhsty').hidden=!pm||ui.mode.t!=='haus';if(pm&&ui.mode.t==='haus')$('mhsty').textContent='🏛 '+FORMS[(ui.mode.d&&ui.mode.d.f)||'fachwerk'].n}if(ui.mode)$('mhtext').textContent=ui.mode.hint;
+ $('modehint').hidden=!ui.mode;$('mhpan').hidden=!(ui.mode&&ui.mode.k==='road');{const pm=ui.mode&&(ui.mode.k==='place'||ui.mode.k==='move');$('mhrot').hidden=!pm&&!(ui.mode&&ui.mode.k==='plant'&&ui.mode.t==='move'&&ui.mode.pick!=null);$('mhok').hidden=!pm||ui.mode.gx==null;if(pm)$('mhok').textContent=ui.mode.k==='move'?'✓ Hierhin':'✓ Bauen';$('mhsty').hidden=!pm||ui.mode.t!=='haus';if(pm&&ui.mode.t==='haus')$('mhsty').textContent='🏛 '+FORMS[(ui.mode.d&&ui.mode.d.f)||'fachwerk'].n}if(ui.mode)$('mhtext').textContent=ui.mode.hint;
  $('panel').hidden=!(ui.tab)&&!wide();
 }
 function cmdText(c){const b=c.bid&&bById.get(c.bid),p=c.tid&&pById.get(c.tid);return({goto:'Hierhin gehen',work:'Arbeiten',eat:'Essen',buy:'Brot kaufen',sleep:'Schlafen',leisure:'Einkehren',social:'Leute treffen',visit:'Besuchen',home:'Nach Hause',interact:p?`${INTER[c.ik].n} (${p.fn})`:'Treffen'}[c.k]||c.k)+(b?' – '+bName(b):'')}
@@ -4389,8 +4393,7 @@ function pBuildings(){
  let h='<p class="hint">Gebäude sind Vorlagen: Nach dem Platzieren kannst du Bauform, Etagen, Farben und Schmuck ändern.</p><div class="grid">';
  const cats=[['','Wohnen & Gemeinschaft'],['gew','Handwerk & Versorgung'],['hobby','Freizeit & Hobbys']];h+='</div>';
  for(const[ck,cn]of cats){h+=`<h3>${cn}</h3><div class="grid">`;for(const[t,T]of Object.entries(BT)){if((T.cat||'')!==ck)continue;if(T.unique&&S.b.some(b=>b.t===t))continue;if((T.era||0)>eraOf()){h+=`<button class="bb poor" data-a="eralock" data-v="${T.era}"><span class="ic">${T.i}</span><span class="nm">${T.n}</span><span class="hb">🔒 ab ${eraName(T.era)}</span></button>`;continue}h+=`<button class="bb${afford(T.cost)?'':' poor'}" data-a="build" data-v="${t}"><span class="ic">${T.i}</span><span class="nm">${T.n}</span><span class="co">${costHTML(T.cost)}</span>${T.hobby?`<span class="hb">${T.hobby.n}</span>`:''}</button>`}if(!ck)h+=`<button class="bb${afford(BT.haus.cost)?'':' poor'}" data-a="villa"><span class="ic">🏛️</span><span class="nm">Stadtvilla</span><span class="co">${costHTML(BT.haus.cost)}</span><span class="hb">Wohnhaus</span></button><button class="bb${afford(BT.haus.cost)?'':' poor'}" data-a="chalet"><span class="ic">🏔️</span><span class="nm">Alpenchalet</span><span class="co">${costHTML(BT.haus.cost)}</span><span class="hb">Wohnhaus</span></button><button class="bb${afford(BT.haus.cost)?'':' poor'}" data-a="gut"><span class="ic">🏰</span><span class="nm">Adeliger Gutssitz</span><span class="co">${costHTML(BT.haus.cost)}</span><span class="hb">Wohnhaus</span></button>`;if(!ck)h+=`<button class="bb${afford(BT.haus.cost)?'':' poor'}" data-a="free"><span class="ic">📐</span><span class="nm">Freies Gebäude</span><span class="co">${costHTML(BT.haus.cost)}</span></button>`;h+='</div>'}
- h+='<div>';
- h+='</div>';
+ h+=`<h3>Marktstände & Platz</h3><p class="hint">Jeder Stand ist ein eigenes Objekt: aufs Pflaster stellen, danach antippen zum Versetzen, Drehen, Umbauen oder Entfernen.</p><div class="grid">${Object.entries(PLANTS.platz.items).map(([k,P])=>`<button class="bb${afford(P.cost)?'':' poor'}" data-a="plant" data-v="${k}"><span class="ic">${P.i}</span><span class="nm">${P.n}</span><span class="co">${costHTML(P.cost)}</span></button>`).join('')}</div>`;
  if(S.tpl.length)h+='<h3>Deine Vorlagen</h3><div class="grid">'+S.tpl.map((p,i)=>`<button class="bb${afford(BT[p.t].cost)?'':' poor'}" data-a="tpl" data-v="${i}"><span class="ic">${BT[p.t].i}</span><span class="nm">${esc(p.d.name||BT[p.t].n)}</span><span class="co">${costHTML(BT[p.t].cost)}</span></button>`).join('')+'</div>';
  h+='<p class="hint">„Freies Gebäude“ startet als leeres Grundstück: Du zeichnest Räume, setzt Türen und Möbel – die Funktion ergibt sich aus der Einrichtung.</p>';return h}
 function pRoads(){return '<p class="hint">Wege machen die Bewohner schneller. Viel begangene Wiesen werden von selbst zu Trampelpfaden.</p><div class="grid">'+
@@ -4480,7 +4483,7 @@ function cycleStyle(){const m=ui.mode;if(!m||m.t!=='haus')return;const cur=(m.d&
  m.d=Object.assign({},m.d||{fl:1,deco:[]},{f:nf,wc:F2.walls[0],rc:F2.roofs[0]});m.d.fl=Math.min(m.d.fl||1,F2.maxF,nf==='gotisch'||nf==='stadt'?2:1);if(nf==='gotisch'||nf==='stadt'||nf==='chalet')m.d.fl=Math.max(m.d.fl,2);m.d.fl=Math.min(m.d.fl,F2.maxF);toast(`Baustil: ${F2.n}`);refresh(true)}
 function startPlace(t,d){if((BT[t].era||0)>eraOf())return toast(`Erst ab der ${eraName(BT[t].era)} verfügbar.`);if(!afford(BT[t].cost))return toast('Nicht genug: '+Object.entries(BT[t].cost).filter(([k,n])=>S.res[k]<n).map(([k])=>RES[k][1]).join(', '));
  ui.mode={k:'place',t,d,hint:`${d&&d.name||BT[t].n}: Tippe auf einen Bauplatz – eine Blaupause erscheint.`};if(!wide())ui.tab=null;refresh(true)}
-$('mhdone').onclick=()=>{ui.mode=null;refresh(true)};$('mhrot').onclick=()=>{const m=ui.mode;if(!m)return;m.rot=((m.rot||0)+1)%4;m.userRot=1};$('mhsty').onclick=cycleStyle;$('mhok').onclick=placeConfirm;
+$('mhdone').onclick=()=>{ui.mode=null;refresh(true)};$('mhrot').onclick=()=>{const m=ui.mode;if(!m)return;if(m.k==='plant'&&m.pick!=null){const d=S.deco[m.pick];if(d){d.r=(Math.round((d.r||0)/(Math.PI/2))+1)%4*(Math.PI/2);S.decoV=(S.decoV||0)+1;bDirty=true}return}m.rot=((m.rot||0)+1)%4;m.userRot=1};$('mhsty').onclick=cycleStyle;$('mhok').onclick=placeConfirm;
 $('mhpan').onclick=()=>{if(ui.mode&&ui.mode.k==='road'){ui.mode.draw=!ui.mode.draw;$('mhpan').textContent=ui.mode.draw?'✋ Karte bewegen':'✏️ Zeichnen'}};
 
 // Kontextleiste (ausgewählte Person)
@@ -4498,6 +4501,13 @@ $('ctrlbar').addEventListener('click',e=>{const el=e.target.closest('[data-q]');
  refresh(true)});
 
 // ---------- Kontextmenü beim Steuern ----------
+function propPick(sx,sy,rad){let bi=-1,bd=1e9;(S.deco||[]).forEach((d,j)=>{const P=PLANT[d.t];if(!P||!P.glb)return;const ti=Math.min(W*H-1,Math.max(0,Math.floor(d.y)*W+Math.floor(d.x))),p=project(d.x,hgtAt(ti)*HS+.22,d.y);if(!p)return;const dd=Math.hypot(p[0]-sx,p[1]-sy)/(rad||Math.max(26,64/Math.max(.5,cam.dist/6)));if(dd<1&&dd<bd){bd=dd;bi=j}});return bi}
+function propSheet(j){const d=S.deco[j];if(!d)return;const P=PLANT[d.t],st=d.t.startsWith('mstand');
+ const opts=[{l:'✋ Versetzen',f:()=>{ui.mode={k:'plant',t:'move',pick:j,hint:'✋ '+P.n+' ausgewählt: Tippe auf den neuen Platz – mit ⟳ drehen.'}}},
+  {l:'⟳ Drehen (90°)',f:()=>{d.r=(Math.round((d.r||0)/(Math.PI/2))+1)%4*(Math.PI/2);S.decoV=(S.decoV||0)+1;bDirty=true;setTimeout(()=>propSheet(j),0)}}];
+ if(st)for(const k of['mstand1','mstand2','mstand3','mstand4'])if(k!==d.t)opts.push({l:'🔁 Umbauen zu '+PLANT[k].n.replace('Marktstand ',''),f:()=>{d.t=k;S.decoV=(S.decoV||0)+1;bDirty=true;setTimeout(()=>propSheet(j),0)}});
+ opts.push({l:'🧹 Entfernen',f:()=>{S.deco.splice(j,1);S.decoV=(S.decoV||0)+1;bDirty=true;if(P.cost&&P.cost.taler)S.res.taler+=Math.floor(P.cost.taler/2)}});
+ sheet(P.i+' '+P.n,opts)}
 function sheet(title,opts,hd){ui.sheet=opts;$('sheet').innerHTML=`<div class="sh">${hd||''}<h3>${esc(title)}</h3>${opts.map((o,i)=>`<button data-i="${i}" ${o.dis?'disabled':''}>${o.l}</button>`).join('')}<button data-i="x" class="cancel">Abbrechen</button></div>`;$('sheet').hidden=false}
 $('sheet').addEventListener('click',e=>{const el=e.target.closest('button');if(!el&&e.target.id!=='sheet')return;if(el&&el.dataset.a){$('sheet').hidden=true;act(el.dataset.a,el.dataset.v,el);return}$('sheet').hidden=true;if(!el||el.dataset.i==='x')return;const o=ui.sheet[+el.dataset.i];if(o&&!o.dis)o.f();refresh(true)});
 function buildingSheet(s,b){
@@ -4608,12 +4618,13 @@ function tap(sx,sy){if(cam.fp)return fpTap(sx,sy);
  if(m&&m.k==='place'){const gx=groundAt(sx,sy);const px=gx?Math.floor(gx[0]):x,py=gx?Math.floor(gx[1]):y;if(m.gx===px&&m.gy===py)return placeConfirm();
   m.gx=px;m.gy=py;if(!m.userRot)m.rot=faceRoad(m.t,px,py);const why=canPlace(m.t,px,py);m.hint=why?'⚠ '+why:'Blaupause gesetzt – ⟳ drehen, dann ✓ bauen.';refresh(true);return}
  if(m&&m.k==='bridge'){const gx=groundAt(sx,sy);if(gx)bridgeMoveTap(Math.floor(gx[1])*W+Math.floor(gx[0]));return}
- if(m&&m.k==='plant'){const gx=groundAt(sx,sy);if(!gx)return;const e=plantAt(m.t,gx[0],gx[1]);if(e)toast(e);else refresh(true);return}
+ if(m&&m.k==='plant'){const gx=groundAt(sx,sy);if(!gx)return;PLANT_TAP=[sx,sy];let e;try{e=plantAt(m.t,gx[0],gx[1])}finally{PLANT_TAP=null}if(e)toast(e);else refresh(true);return}
  if(m&&m.k==='road')return;
  if(m&&m.k==='pick'){const s=pById.get(m.sid);ui.mode=null;if(!s)return refresh(true);
   if(m.what==='visit'){if(!c)return toast('Bitte eine Person antippen.');queueCmd(s,{k:'interact',tid:c.id,ik:'reden',exp:8});toast(`${s.fn} macht sich auf den Weg zu ${c.fn}.`)}
   if(m.what==='job'){if(!b||!F(b).slots||b.built<1)return toast('Das ist kein Arbeitsplatz.');if(S.p.filter(p=>p.job===b.id).length>=F(b).slots)return toast('Dort ist keine Stelle frei.');s.job=b.id;s.noJob=false;mem(s,`hat eine neue Stelle: ${jobTitle(s)}`);story(s,'🔨',`wechselte die Stelle: ${jobTitle(s)} (${bName(b)})`);toast(`${s.fn} arbeitet nun als ${jobTitle(s)}.`)}
   ui.sel={k:'s',id:s.id};ui.tab='cit';refresh(true);return}
+ if(!c&&!m&&!dbl){const pj=propPick(sx,sy);if(pj>=0)return propSheet(pj)}
  if(!c&&!b&&!m){const bi=bridgeAt(sx,sy);if(bi>=0)return bridgeSheet(bi);if(isBr(y*W+x))return bridgeSheet(y*W+x)}
  if(dbl){if(b&&b.plan&&b.built>=1)return enterHouse(b);if(c)focusOn(c.x-.5,c.y-.5,4);else if(b)focusOn(b.x,b.y,4.5);return}
  const cc=ctrlCit();
@@ -5010,7 +5021,7 @@ const PLANTS={
  strauch:{n:'Sträucher',i:'🌿',items:{busch:{n:'Busch',i:'🌿',cost:{taler:2}},rose:{n:'Rosenstrauch',i:'🌹',cost:{taler:4}},hecke:{n:'Hecke',i:'🟩',cost:{taler:3}},beeren:{n:'Beerenstrauch',i:'🫐',cost:{taler:3}},buchs:{n:'Buchskugel',i:'🟢',cost:{taler:4}}}},
  platz:{n:'Platz & Markt',i:'⛺',items:{mstand1:{n:'Marktstand Fleisch',i:'🥩',cost:{bretter:2,taler:6},glb:'stand1',len:.78},mstand2:{n:'Marktstand Gemüse',i:'🥬',cost:{bretter:2,taler:6},glb:'stand2',len:.78},mstand3:{n:'Marktstand Kräuter',i:'🌿',cost:{bretter:2,taler:6},glb:'stand3',len:.78},mstand4:{n:'Marktstand Stoffe',i:'🧵',cost:{bretter:2,taler:6},glb:'stand4',len:.78},picknick:{n:'Picknicktisch',i:'🧺',cost:{bretter:2,taler:3},glb:'picknick',len:.62}}},
  blume:{n:'Blumen',i:'🌷',items:{blbeet:{n:'Blumenbeet',i:'🌷',cost:{taler:2}},lavendel:{n:'Lavendel',i:'🪻',cost:{taler:2}},sonnenbl:{n:'Sonnenblumen',i:'🌻',cost:{taler:2}},kuebel:{n:'Blumenkübel',i:'🪴',cost:{taler:3}},wildbl:{n:'Wildblumen',i:'🌼',cost:{taler:1}}}}};
-const PLANT={};for(const[g,G2]of Object.entries(PLANTS))for(const[k,v]of Object.entries(G2.items))PLANT[k]={...v,g};
+let PLANT_TAP=null;const PLANT={};for(const[g,G2]of Object.entries(PLANTS))for(const[k,v]of Object.entries(G2.items))PLANT[k]={...v,g};
 function plant3(d){if(PLANT[d.t]&&PLANT[d.t].glb)return;const x=d.x,z=d.y,r=d.r||0,sd=(x*7.13+z*3.71)%1,leafy=(cx,cy,cz,rx,ry,hex,k)=>{ell3(TR(cx,cy,cz),rx*.85,ry*.85,rx*.85,5,8,col(shade(hex,-.2)));leafCards(cx,cy,cz,rx,ry,hex,k)};
  switch(d.t){
   case 'eiche':tree3(x,z,1.55+sd*.3,0);break;
@@ -5031,12 +5042,13 @@ function plant3(d){if(PLANT[d.t]&&PLANT[d.t].glb)return;const x=d.x,z=d.y,r=d.r|
   case 'wildbl':{for(let i=0;i<14;i++){const a=i*2.4+sd*6,rr=.03+.09*((i*.37)%1);flower3(x+Math.cos(a)*rr,0,z+Math.sin(a)*rr,.4+((i*7)%3)*.06,['#f4efe4','#f2b33d','#e0547a','#8a5cc2','#5a8ad8'][i%5],i)}break}
  }}
 function plantAt(t,gx,gy){const x=Math.floor(gx),y=Math.floor(gy);if(x<0||y<0||x>=W||y>=H)return 'Außerhalb der Karte.';const i=y*W+x;S.deco=S.deco||[];
- const near=()=>{let bi=-1,bd=.65;S.deco.forEach((d,j)=>{const dd=Math.hypot(d.x-gx,d.y-gy);if(dd<bd){bd=dd;bi=j}});return bi};
+ const near=()=>{let bi=-1,bd=1e9;const T=PLANT_TAP;if(T){const pj=propPick(T[0],T[1]);if(pj>=0)return pj}S.deco.forEach((d,j)=>{let dd;if(T){const ti=Math.min(W*H-1,Math.max(0,Math.floor(d.y)*W+Math.floor(d.x))),gl2=PLANT[d.t]&&PLANT[d.t].glb,p=project(d.x,hgtAt(ti)*HS+(gl2?.22:.3),d.y);if(!p)return;dd=Math.hypot(p[0]-T[0],p[1]-T[1])/Math.max(28,70/Math.max(.5,cam.dist/6))}else dd=Math.hypot(d.x-gx,d.y-gy)/.65;if(dd<1&&dd<bd){bd=dd;bi=j}});return bi};
+ const occOk=i=>{const o=occ[i];if(!o)return true;const q=bById.get(o);return !!q&&q.t==='markt'};
  if(t==='rot'){const j=near();if(j<0)return 'Hier steht nichts zum Drehen.';const d=S.deco[j];d.r=Math.round(((d.r||0)+Math.PI/2)/(Math.PI/2))*(Math.PI/2)%(Math.PI*2);S.decoV=(S.decoV||0)+1;bDirty=true;return null}
- if(t==='move'){const m=ui.mode;if(m.pick==null){const j=near();if(j<0)return 'Tippe auf eine Pflanze oder ein Objekt.';m.pick=j;m.hint='✋ '+(PLANT[S.deco[j].t]||{n:'Objekt'}).n+': Tippe auf den neuen Platz.';return null}
-  const d=S.deco[m.pick];if(!d){m.pick=null;return null}const P=PLANT[d.t]||{};if(S.map[i]===3)return 'Nicht ins Wasser.';if(occ[i])return 'Hier steht ein Gebäude.';if(!P.glb&&S.road[i])return 'Pflanzen nicht auf Wege.';
+ if(t==='move'){const m=ui.mode;if(m.pick==null){const j=near();if(j<0)return 'Tippe auf eine Pflanze oder ein Objekt.';m.pick=j;m.hint='✋ '+(PLANT[S.deco[j].t]||{n:'Objekt'}).n+' ausgewählt: Tippe auf den neuen Platz – mit ⟳ drehen.';return null}
+  const d=S.deco[m.pick];if(!d){m.pick=null;return null}const P=PLANT[d.t]||{};if(S.map[i]===3)return 'Nicht ins Wasser.';if(P.glb&&!plazaRd(i))return 'Marktstände und Picknicktische gehören aufs Pflaster oder auf einen Weg.';if(P.glb?!occOk(i):occ[i])return 'Hier steht ein Gebäude.';if(!P.glb&&S.road[i])return 'Pflanzen nicht auf Wege.';
   d.x=Math.round(gx*100)/100;d.y=Math.round(gy*100)/100;m.pick=null;m.hint='✋ Tippe auf die nächste Pflanze oder das nächste Objekt zum Versetzen.';S.decoV=(S.decoV||0)+1;bDirty=true;return null}
- if(PLANT[t]&&PLANT[t].glb){const P=PLANT[t];if(occ[i])return 'Hier steht ein Gebäude.';if(S.map[i]===3)return 'Nicht ins Wasser.';if(S.deco.some(d=>Math.hypot(d.x-gx,d.y-gy)<.45))return 'Zu dicht an einem anderen Objekt.';if(!afford(P.cost))return 'Nicht genug Taler.';pay(P.cost);
+ if(PLANT[t]&&PLANT[t].glb){const P=PLANT[t];if(!occOk(i))return 'Hier steht ein Gebäude.';if(!plazaRd(i))return 'Marktstände und Picknicktische gehören aufs Pflaster oder auf einen Weg.';if(S.map[i]===3)return 'Nicht ins Wasser.';if(S.deco.some(d=>Math.hypot(d.x-gx,d.y-gy)<.45))return 'Zu dicht an einem anderen Objekt.';if(!afford(P.cost))return 'Nicht genug Taler.';pay(P.cost);
   S.deco.push({t,x:Math.round(gx*100)/100,y:Math.round(gy*100)/100,r:((Math.random()*4)|0)*Math.PI/2});S.decoV=(S.decoV||0)+1;bDirty=true;return null}
  if(t==='del'){let bi=-1,bd=.6;S.deco.forEach((d,j)=>{const dd=Math.hypot(d.x-gx,d.y-gy);if(dd<bd){bd=dd;bi=j}});if(bi<0)return 'Hier steht keine Pflanze.';const d=S.deco.splice(bi,1)[0];S.decoV=(S.decoV||0)+1;bDirty=true;toast(`${PLANT[d.t].i} ${PLANT[d.t].n} entfernt.`);return null}
  const P=PLANT[t];if(occ[i])return 'Hier steht ein Gebäude.';if(S.map[i]===3)return 'Im Wasser wächst das nicht.';if(S.road[i])return 'Nicht auf Wegen.';
@@ -5144,10 +5156,10 @@ function itxDraw(Lt,dayish,wins,ext){const H=itxInit();if(!H){ITX.q={};return}co
 const FLOORK={bad:'tiles',wasch:'tiles',sauna:'boards',barbier:'tiles',heil:'tiles',kueche:'terra',back:'terra',werk:'flags',lager:'flags',stall:'flags',schank:'flags',verkauf:'planks',flur:'flags'};
 const WALLK={fachwerk:'timber',stein:'stone',lehm:'lehm',holz:'boards'};
 // ===== Möbel als 3D-Modelle (GLB) =====
-const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',over:1.08,back:1},waschbank:{k:'fwasch',ry:-Math.PI/2,fit:'xz',over:1.1,back:1},waschtisch:{k:'fwasch',ry:-Math.PI/2,fit:'xz',back:1},zuber:{k:'fzuber',ry:0,fit:'xz'},badfass:{k:'fzuber',ry:0,fit:'xz',over:1.08},abort:{k:'fabort',ry:-Math.PI/2,fit:'h',h:1.4,back:1},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
+const FGM={bett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},doppelbett:{k:'fbett',ry:-Math.PI/2,fit:'stretch'},herd:{k:'fherd',ry:-Math.PI/2,fit:'xz',over:1.08,back:1},waschbank:{k:'fwasch',ry:-Math.PI/2,fit:'xz',fp:.8,back:1},waschtisch:{k:'fwasch',ry:-Math.PI/2,fit:'xz',back:1},zuber:{k:'fzuber',ry:0,fit:'xz'},badfass:{k:'fzuber',ry:0,fit:'xz',fp:.82},abort:{k:'fabort',ry:-Math.PI/2,fit:'h',h:1.15,back:1},stuhl:{k:'fstuhl',ry:-Math.PI/2,fit:'h',h:1.25},tisch:{k:'ftisch',ry:Math.PI/2,fit:'xz'}};
 function fgUse(f){const m=FGM[f.t];if(!m||HG_FAIL)return false;if(!HGD[m.k]){mLoad(m.k);return false}return !!hgInit(m.k)}
 function fgMat(f){const m=FGM[f.t],H=HGM[m.k],d=FURN[f.t],[fw,fd]=fsize(f),cx=f.x+fw/2,cz=f.y+fd/2,th=m.ry+f.r*Math.PI/2,sw=Math.abs(Math.sin(m.ry))>.5;
- const ex=H.mx[0]-H.mn[0],ey=H.mx[1]-H.mn[1],ez=H.mx[2]-H.mn[2],Wl=d.w*.92,Dl=d.h*.92,ax=sw?Dl:Wl,az=sw?Wl:Dl;let sx,sy,sz;
+ const ex=H.mx[0]-H.mn[0],ey=H.mx[1]-H.mn[1],ez=H.mx[2]-H.mn[2],Wl=d.w*(m.fp||.86),Dl=d.h*(m.fp||.86),ax=sw?Dl:Wl,az=sw?Wl:Dl;let sx,sy,sz;
  if(m.fit==='stretch'){sx=ax/ex;sz=az/ez;sy=Math.sqrt(sx*sz)}else if(m.fit==='h'){sx=sy=sz=m.h/ey}else{sx=sy=sz=Math.min(ax/ex,az/ez)*(m.over||1)}
  const c=Math.cos(th),sn=Math.sin(th),mx=(H.mn[0]+H.mx[0])/2*sx,mz=(H.mn[2]+H.mx[2])/2*sz;
  let ox=0,oz=0;if(m.back){const dep=(sw?ex*sx:ez*sz),o=Math.max(0,(Dl-dep)/2),R=f.r*Math.PI/2;ox=-o*Math.sin(R);oz=-o*Math.cos(R)}
