@@ -1,7 +1,7 @@
 {
-  "build": 2026110805,
+  "build": 2026110806,
   "file": "everstead.html",
-  "notes": "Update 52: Herdzeile reicht bis zwei Drittel der Wandhöhe",
+  "notes": "Update 53: Erwachsene Frauen als animierte 3D-Figuren (Stehen, Gehen, Laufen)",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -58,6 +58,10 @@
     {
       "file": "m_lagerhaus.json",
       "size": 1298607
+    },
+    {
+      "file": "m_pfrau.json",
+      "size": 1089386
     },
     {
       "file": "m_picknick.json",

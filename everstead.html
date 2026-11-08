@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="2026110805">
+<meta name="everstead-build" content="2026110806">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -4201,6 +4201,44 @@ function poseOf(s,inHouse){if(ageOf(s)<1){return{hy:0,lean:0,thL:-.3,thR:-.3,knL
   if(k==='interact'||k==='social'||s.talk){P.shR=-.5+.25*Math.sin(t*2.5+s.id);P.elR=-.9;P.head=.08*Math.sin(t*1.7)}}
  P.shL+=.04*Math.sin(t*1.3+s.id);P.shR+=.04*Math.sin(t*1.3+s.id+1);if(!P.lie&&!walking&&a!=='do'||(a==='do'&&(k==='interact'||k==='social'||k==='buy'||k==='visit'))){const id=s.id;P.hx=(P.hx||0)+.01*Math.sin(t*.45+id);P.tw=(P.tw||0)+.06*Math.sin(t*.31+id*2.1);P.hyaw=(P.hyaw||0)+.45*Math.sin(t*.21+id*1.7)*Math.max(0,Math.sin(t*.13+id));P.thL+=.05*Math.sin(t*.45+id);P.thR-=.03*Math.sin(t*.45+id);P.hy+=.004*Math.sin(t*1.7+id)}return P}
 // Zeichnen einer Figur (Welt- oder Hauskoordinaten)
+// ===== Animierte 3D-Figuren (geriggte GLB, Skelett-Animation auf der Grafikkarte) =====
+const SKM={f:'pfrau'};let SKP=null,SKQ=[],SK_FAIL=false;const SKH={};
+function skKey(s){if(SK_FAIL||s.dead||(typeof eraOf==='function'&&eraOf()>2))return null;const a=ageOf(s);if(a<16||a>=66)return null;const k=SKM[s.g==='f'?'f':'m'];return k||null}
+function skInit(k){if(SKH[k])return SKH[k].ok?SKH[k]:null;const M=HGD[k];if(!M){mLoad(k);return null}const H=SKH[k]={ok:false};
+ try{if(!SKP){const mk=(t,src)=>{const x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
+   const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 u;attribute vec4 j;attribute vec4 w;uniform mat4 vp;uniform mat4 mdl;uniform vec4 B[72];varying vec2 v;varying vec3 nn;varying vec3 wp;
+    vec3 tf(vec4 q,int k){return vec3(dot(B[k*3],q),dot(B[k*3+1],q),dot(B[k*3+2],q));}
+    void main(){vec4 q=vec4(p,1.),r=vec4(n,0.);vec3 P=vec3(0.),N=vec3(0.);
+     for(int i=0;i<4;i++){float wi=w[i];if(wi<=0.)continue;int k=int(j[i]+.5);P+=wi*tf(q,k);N+=wi*tf(r,k);}
+     vec4 W=mdl*vec4(P,1.);wp=W.xyz;nn=mat3(mdl)*N;v=u;gl_Position=vp*W;}`));
+   gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 v;varying vec3 nn;varying vec3 wp;uniform sampler2D tx;uniform vec3 lt;uniform vec3 fogc;uniform vec3 eye;uniform float fogOn;uniform vec3 tint;
+    void main(){vec3 N=normalize(nn);vec3 b=texture2D(tx,v).rgb*tint;float d=max(dot(N,normalize(vec3(-.4,.8,.45))),0.);vec3 V=normalize(eye-wp);float rim=pow(1.-max(dot(N,V),0.),3.)*.12;
+     vec3 c=b*lt*(.62+.5*d)+lt*rim;float dist=length(wp-eye);c=mix(c,fogc,fogOn*clamp((dist-30.)/80.,0.,.94));gl_FragColor=vec4(c,1.);}`));
+   ['p','n','u','j','w'].forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('skin link');
+   const U={};for(const q of['vp','mdl','B','tx','lt','fogc','eye','fogOn','tint'])U[q]=gl.getUniformLocation(p,q);U.B=gl.getUniformLocation(p,'B[0]')||U.B;SKP={p,U}}
+  const d=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
+  const q=d(M.p,Uint16Array),n=M.n,P=new Float32Array(n*3);for(let i=0;i<n*3;i++){const c=i%3;P[i]=M.mn[c]+q[i]/65535*(M.mx[c]-M.mn[c])}
+  const mkB=(arr,tgt)=>{const b=gl.createBuffer();gl.bindBuffer(tgt||gl.ARRAY_BUFFER,b);gl.bufferData(tgt||gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);return b};
+  H.bp=mkB(P);H.bn=mkB(d(M.nr,Int8Array));H.bu=mkB(d(M.uv,Uint16Array));H.bj=mkB(d(M.j,Uint8Array));H.bw=mkB(d(M.w,Uint8Array));const ix=d(M.ix,Uint16Array);H.bi=mkB(ix,gl.ELEMENT_ARRAY_BUFFER);H.ni=ix.length;
+  H.clips={};for(const[c,C]of Object.entries(M.clips))H.clips[c]={n:C.n,dur:C.dur,m:new Float32Array(C.m)};H.nj=M.nj;H.h=M.h;H.B=new Float32Array(M.nj*12);
+  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.activeTexture(gl.TEXTURE0);H.tex=t;H.ok=true};im.src=M.tex}
+ catch(e){console.warn('Figuren-Modell',e);SK_FAIL=true;return null}return null}
+let SKN=0;
+function skinQueue(s,x,y,z,yaw,h){const k=skKey(s);if(!k)return false;const t=s.task&&s.task.k;if(s.act==='do'&&(t==='sleep'||t==='nap'||t==='birth'||t==='trybaby'))return false;
+ const H=skInit(k);if(!H)return false;const dd=Math.hypot(x-EYE[0],y-EYE[1],z-EYE[2]);if(dd>24||SKN>=36)return false;SKN++;
+ const walk=s.act==='walk'||s.iwalk;SKQ.push({H,x,y,z,yaw,h,clip:walk?(s.run?'run':'walk'):'idle',ph:(s.id*.7311)%1,tint:s._skt||(s._skt=[.92+((s.id*37)%17)/100,.92+((s.id*53)%13)/100,.92+((s.id*71)%11)/100])});return true}
+function flushSkins(lt,fog){SKN=0;if(!SKQ.length||!SKP)return SKQ.length=0;const U=SKP.U;gl.useProgram(SKP.p);
+ for(const k of['p','n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);for(let i=0;i<5;i++)gl.enableVertexAttribArray(i);
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniform3fv(U.lt,lt);gl.uniform3fv(U.fogc,fog||[1,1,1]);gl.uniform3fv(U.eye,EYE);gl.uniform1f(U.fogOn,fog?1:0);gl.uniform1i(U.tx,2);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
+ const now=performance.now()/1000;let cur=null;
+ for(const q of SKQ){const H=q.H;if(cur!==H){cur=H;gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.activeTexture(gl.TEXTURE0);
+   gl.bindBuffer(gl.ARRAY_BUFFER,H.bp);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.bn);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.bu);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);
+   gl.bindBuffer(gl.ARRAY_BUFFER,H.bj);gl.vertexAttribPointer(3,4,gl.UNSIGNED_BYTE,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.bw);gl.vertexAttribPointer(4,4,gl.UNSIGNED_BYTE,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.bi)}
+  const C=H.clips[q.clip]||H.clips.idle||Object.values(H.clips)[0],f=((now/C.dur+q.ph)%1)*C.n,i0=Math.floor(f)%C.n,i1=(i0+1)%C.n,a=f-Math.floor(f),st=H.nj*12,B=H.B;
+  for(let i=0;i<st;i++)B[i]=C.m[i0*st+i]*(1-a)+C.m[i1*st+i]*a;gl.uniform4fv(U.B,B);
+  const sc=q.h/H.h,c=Math.cos(q.yaw)*sc,sn=Math.sin(q.yaw)*sc;gl.uniformMatrix4fv(U.mdl,false,new Float32Array([c,0,-sn,0, 0,sc,0,0, sn,0,c,0, q.x,q.y,q.z,1]));gl.uniform3fv(U.tint,q.tint);
+  gl.drawElements(gl.TRIANGLES,H.ni,gl.UNSIGNED_SHORT,0)}
+ SKQ.length=0;gl.disable(gl.CULL_FACE);for(let i=0;i<5;i++)gl.disableVertexAttribArray(i);gl.useProgram(P);for(const k of['p','n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
 // ===== Gemalte Figuren als Bild-Sprites (Ansichten vorne/seitlich/hinten aus den Figurenbögen) =====
 const SPR_MAP={20:17,21:0,22:18,23:7};let SPRP=null,SPRB=null,SPRQ=[],SPR_FAIL=false,SPR_ON=true;const SPRTX=[];
 function spriteIdx(s){if(!SPR_ON||SPR_FAIL||typeof SPRITES==='undefined')return -1;if((typeof eraOf==='function'?eraOf():0)!==0)return -1;if(s.dead||ageOf(s)<16)return -1;
@@ -4210,9 +4248,9 @@ function sprTex(i){let T=SPRTX[i];if(T)return T.ok?T:null;T=SPRTX[i]={ok:false};
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   gl.activeTexture(gl.TEXTURE0);T.t=t;T.ok=true}catch(e){SPR_FAIL=true}};im.src=SPRITES[i].src;return null}
 // Figur einreihen; liefert false, wenn (noch) kein Sprite verfügbar ist
-function spriteQueue(s,x,y,z,yaw,h){const i=spriteIdx(s);if(i<0)return false;const T=sprTex(i);if(!T)return false;
+function spriteQueue(s,x,y,z,yaw,h){if(skinQueue(s,x,y,z,yaw,h*.93))return true;const i=spriteIdx(s);if(i<0)return false;const T=sprTex(i);if(!T)return false;
  const walk=s.act==='walk'||s.iwalk,ph=s._wph||(S.t*9+s.id);SPRQ.push({i,x,y:y+(walk?Math.abs(Math.sin(ph))*h*.025:0),z,yaw,h,sq:walk?Math.sin(ph*2)*.03:Math.sin(S.t*.8+s.id)*.008});return true}
-function flushSprites(lt,fog){if(!SPRQ.length)return;if(!SPRP){try{const mk=(t,src)=>{const x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
+function flushSprites(lt,fog){try{flushSkins(lt,fog)}catch(e){console.warn(e);SK_FAIL=true;SKQ.length=0}if(!SPRQ.length)return;if(!SPRP){try{const mk=(t,src)=>{const x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
   const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 u;uniform mat4 vp;varying vec3 v;varying vec3 w;void main(){v=u;w=p;gl_Position=vp*vec4(p,1.);}`));
   gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec3 v;varying vec3 w;uniform sampler2D tx;uniform vec3 lt;uniform vec3 fogc;uniform vec3 eye;uniform float fogOn;uniform float lo;uniform float hi;
    void main(){vec4 t=texture2D(tx,v.xy);if(t.a<lo||t.a>hi)discard;vec3 c=t.rgb*lt*(.9+.1*v.z);float d=length(w-eye);c=mix(c,fogc,fogOn*clamp((d-30.)/80.,0.,.94));gl_FragColor=vec4(c,hi>1.?1.:t.a);}`));
