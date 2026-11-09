@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="61">
+<meta name="everstead-build" content="62">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -397,7 +397,7 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
 <div id="world" hidden><div class="whead"><b>🗺️ Weltkarte</b><button id="wfleet">⛵ Flotte</button><button id="wclose" aria-label="Schließen">✕</button></div><canvas id="wcv" aria-label="Weltkarte"></canvas><div id="wcard"></div></div>
 <div id="toast" role="status"></div>
 <script>
-(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=61')||await ld(GH+'m%20assets.json?v=61');
+(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=62')||await ld(GH+'m%20assets.json?v=62');
 (()=>{
 const __A=window.__EVA||{};if(!window.__EVA)setTimeout(()=>{try{toast("⚠ Bilddaten fehlen (m_assets.json) – Gesichter und Oberflächen fehlen, bis die Datei da ist.")}catch(e){}},2500);const TEXB64=__A.tex;const PHOTOS=__A.photos;const SPRITES=__A.sprites;const UIIMG=__A.ui;
 'use strict';
@@ -814,9 +814,12 @@ function bOpen(b){const h=hod(),T=BT[b.t],eve=T.hobby&&T.hobby.show;return eve?w
 function prodable(b){const T=F0(b);return b.built>=1&&!!T.wh&&!!T.slots&&!BT[b.t].builder}
 function updB(b,dh){const pre=b.built>=1,w=b._w||0;updB0(b,dh);if(!pre||!prodable(b)||!bOpen(b))return;const st=b.st||'';if(st.startsWith('Lager voll'))return;
  const T=F(b),eff=st==='In Betrieb'?Math.min(1.5,w/Math.max(1,T.slots)):st.startsWith('Holt')?.5*Math.min(1.5,w/Math.max(1,T.slots)):0;
- b.pr=b.pr==null?eff:b.pr+(eff-b.pr)*Math.min(1,dh/8);b.prH=(b.prH||0)+dh;
+ b.pr=b.pr==null?prodEst(b)+(eff-prodEst(b))*Math.min(1,dh/8):b.pr+(eff-b.pr)*Math.min(1,dh/8);b.prH=(b.prH||0)+dh;
  const k=st==='In Betrieb'?(w/Math.max(1,T.slots)<.9?'staff':'ok'):st.startsWith('Wartet auf')?'input':st.startsWith('Holt')?'fetch':'away';b.prW=b.prW||{};for(const q of['ok','staff','input','fetch','away'])b.prW[q]=(b.prW[q]||0)*(1-Math.min(1,dh/8))+(q===k?Math.min(1,dh/8):0)}
+function prodEst(b){const T=F(b),have=S.p.filter(p=>p.job===b.id).length,inOk=Object.entries(T.in||{}).every(([k,n])=>(S.res[k]||0)>=n);return Math.min(1,have/Math.max(1,T.slots))*(inOk?.85:.3)}
 function prodPct(b){return b.pr==null?null:Math.min(100,Math.round(b.pr*100))}
+function prodShow(b){const p=prodPct(b);return p!=null?[p,false]:[Math.round(prodEst(b)*100),true]}
+const workNow=()=>wday()<6&&hod()>=7&&hod()<17;
 function growCost(b){const L=(b.lvl||1)+1,c={},base=BT[b.t].cost||{};for(const[k,n]of Object.entries(base))c[k]=Math.ceil(n*(L===2?1:1.6));c.taler=Math.max(c.taler||0,60*(L-1));c.bretter=Math.max(c.bretter||0,8*(L-1));return c}
 function growWhy(b){if(!prodable(b))return 'Kein Produktionsbetrieb.';if((b.lvl||1)>=GROW_MAX)return 'Schon voll ausgebaut.';if((b.prH||0)<GROW_MINH)return `Noch zu kurz beobachtet (${Math.floor(b.prH||0)}/${GROW_MINH} Arbeitsstunden).`;
  if((b.pr||0)<GROW_AT)return `Erst ab ${Math.round(GROW_AT*100)} % Produktivität (jetzt ${prodPct(b)} %).`;const c=growCost(b);if(!afford(c))return 'Nicht genug: '+Object.entries(c).filter(([k,n])=>(S.res[k]||0)<n).map(([k])=>RES[k][1]).join(', ');return null}
@@ -829,13 +832,12 @@ function prodHint(b){const W=b.prW||{},T=F(b),have=S.p.filter(p=>p.job===b.id).l
  if((W.fetch||0)>.12)o.push('lange Wege zum Lagerhaus');if((W.away||0)>.12&&have)o.push('Personal oft nicht vor Ort');
  if((W.staff||0)>.15&&have>=T.slots)o.push((S.res.werkzeug||0)<1?'Werkzeug fehlt (+20 %)':'Personal noch ungeübt');return o}
 function prodBar(p){const c=p>=97?'#2f8a4a':p>=75?'#b8962e':'#c0503a';return `<span class="pbar"><i style="width:${Math.max(2,p)}%;background:${c}"></i></span>`}
-function prodBlock(b){if(!prodable(b))return '';const p=prodPct(b),L=b.lvl||1,T=F(b);let h=`<h3>📈 Produktivität</h3>`;
- if(p==null)h+=`<p class="hint">Wird während der Arbeitszeit gemessen – bald sichtbar.</p>`;
- else{const hs=prodHint(b);h+=`<div class="prow">${prodBar(p)}<b>${p} %</b></div><p class="sub">Stufe ${LVLN[L]} · ${T.slots} Arbeitsplätze${L>1?` · +${Math.round((lvlProd(b)-1)*100)} % Leistung`:''}</p>${hs.length&&p<97?`<p class="sub">Bremst: ${hs.join(' · ')}</p>`:''}`}
+function prodBlock(b){if(!prodable(b))return '';const[p,est]=prodShow(b),L=b.lvl||1,T=F(b);let h=`<h3>📈 Produktivität</h3>`;
+ {if(est)h+=`<p class="hint">Vorläufige Schätzung – gemessen wird während der Arbeitszeit (Mo–Sa, 7–17 Uhr).</p>`;const hs=prodHint(b);h+=`<div class="prow">${prodBar(p)}<b>${est?'≈ ':''}${p} %</b></div><p class="sub">Stufe ${LVLN[L]} · ${T.slots} Arbeitsplätze${L>1?` · +${Math.round((lvlProd(b)-1)*100)} % Leistung`:''}</p>${hs.length&&p<97?`<p class="sub">Bremst: ${hs.join(' · ')}</p>`:''}`}
  if(L<GROW_MAX){const e=growWhy(b),c=growCost(b),n2=Math.ceil(F0(b).slots*.5);h+=`<button class="growb" data-a="bgrow" data-v="${b.id}"${e?' disabled':''}>⬆️ Vergrößern auf Stufe ${LVLN[L+1]} · +${n2} Plätze, +25 % Leistung · ${Object.entries(c).map(([k,n])=>RES[k][0]+n).join(' ')}</button>${e?`<p class="hint">${e}</p>`:''}`}
  else h+='<p class="hint">Voll ausgebaut.</p>';return h}
-function prodList(){const L=S.b.filter(prodable);if(!L.length)return '';L.sort((a,c)=>(c.pr==null?-1:c.pr)-(a.pr==null?-1:a.pr));
- return `<h3>📈 Produktivität je Betrieb</h3><p class="hint">Gemessen während der Arbeitszeit. Ab ${Math.round(GROW_AT*100)} % lässt sich ein Betrieb vergrößern: mehr Arbeitsplätze und mehr Leistung.</p>`+L.map(b=>{const p=prodPct(b),e=growWhy(b);return `<div class="biz prod"><span class="bi">${BT[b.t].i}</span><div><b>${esc(bName(b))}</b> <small>Stufe ${LVLN[b.lvl||1]}</small><div class="prow">${p==null?'<small>noch keine Messung</small>':prodBar(p)+`<small>${p} %</small>`}</div></div>${!e?`<button data-a="bgrow" data-v="${b.id}">⬆️ Vergrößern</button>`:`<button data-a="bsel" data-v="${b.id}">Ansehen</button>`}</div>`}).join('')}
+function prodList(){const L=S.b.filter(prodable);if(!L.length)return '';L.sort((a,c)=>prodShow(c)[0]-prodShow(a)[0]);const avg=Math.round(L.reduce((a,b)=>a+prodShow(b)[0],0)/L.length);
+ return `<h3>📈 Produktivität je Betrieb</h3><p class="sub">Durchschnitt: <b>${avg} %</b> · ${L.filter(b=>prodShow(b)[0]>=97).length} von ${L.length} Betrieben über 97 %</p><p class="hint">Gemessen während der Arbeitszeit (Mo–Sa, 7–17 Uhr)${workNow()?'':' – gerade ist Feierabend, die Werte ändern sich erst wieder zur Arbeitszeit'}. ≈ = vorläufige Schätzung. Ab ${Math.round(GROW_AT*100)} % lässt sich ein Betrieb vergrößern: mehr Arbeitsplätze und mehr Leistung.</p>`+L.map(b=>{const[p,est]=prodShow(b),e=growWhy(b);return `<div class="biz prod"><span class="bi">${BT[b.t].i}</span><div><b>${esc(bName(b))}</b> <small>Stufe ${LVLN[b.lvl||1]}</small><div class="prow">${prodBar(p)+`<small>${est?'≈ ':''}${p} %</small>`}</div></div>${!e?`<button data-a="bgrow" data-v="${b.id}">⬆️ Vergrößern</button>`:`<button data-a="bsel" data-v="${b.id}">Ansehen</button>`}</div>`}).join('')}
 // ===== Stündliche/tägliche Abläufe =====
 const JP={bauernhof:1,muehle:2,baeckerei:3,holz:4,saege:5,bauhuette:6,markt:7,kraemer:7,heiler:8,steinbruch:9,schmiede:10,taverne:11,schule:12,badehaus:13,rathaus:14,schneider:15};
 function jobPrio(b){return JP[b.t]||20}
@@ -2464,7 +2466,7 @@ function pBiz(){const rows=bizRows(),opt=rows.filter(r=>!r.have&&!r.build&&!r.ne
  const groups={};for(const r of rows.filter(r=>r.have||r.build)){const g=r.kind==='svc'?'Versorgung & Dienste':(BIZGROUP[r.k]||'Weitere');(groups[g]=groups[g]||[]).push(r)}
  for(const[g,rs]of Object.entries(groups))h+=`<h3>${g}</h3>${rs.map(row).join('')}`;
  if(opt.length)h+=`<h3>💤 Noch nicht gebaut – derzeit kein Bedarf</h3><div class="optl">${opt.map(r=>`<button data-a="bizbuild" data-v="${r.t}">${r.T.i} ${esc(r.T.n)}</button>`).join('')}</div>`;
- h+=prodList();return h+`<p class="hint">Der Bedarf richtet sich nach Einwohnerzahl, dem Verbrauch von gestern und dem, was andere Betriebe als Rohstoff brauchen. „Benötigt“ ist eine Empfehlung bei voller Besetzung.</p>`}
+ return h+`<p class="hint">Der Bedarf richtet sich nach Einwohnerzahl, dem Verbrauch von gestern und dem, was andere Betriebe als Rohstoff brauchen. „Benötigt“ ist eine Empfehlung bei voller Besetzung.</p>`}
 // ===== Häuser stehen an der Straße =====
 const ROADFREE={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,viehhof:1,imker:1,garten:1,park:1,dorflinde:1,spielplatz:1,aussichtspunkt:1,bogen:1,angelsteg:1,bootssteg:1,badebereich:1,steinbruch:1,holz:1};
 function needsRoad(t){const T=BT[t];if(!T||ROADFREE[t]||T.onSand||T.onWater||T.nearW)return false;return t==='haus'||!!T.def}
@@ -5209,8 +5211,8 @@ function fillSlot(b){const jl=S.p.filter(s=>!s.job&&ageOf(s)>=16&&ageOf(s)<65).s
 
 const fmt0=n=>Math.round(n||0),fmt1=n=>(Math.round((n||0)*10)/10).toString().replace('.',',');
 const CATS=[['','Wohnen & Gemeinschaft'],['gew','Handwerk & Versorgung'],['hobby','Freizeit & Hobbys']];
-function bTabs(on){const n=S.b.filter(b=>b.built<1).length;return `<div class="seg">${[['list','🏘️ Gebäude'],['bau',`🏗️ Im Bau${n?' ('+n+')':''}`],['biz','📊 Betriebe']].map(([k,l])=>`<button data-a="btab" data-v="${k}" class="${on===k?'on':''}">${l}</button>`).join('')}</div>`}
-function pBlds(){if(ui.btab==='biz')return bTabs('biz')+pBiz();if(ui.btab==='bau')return bTabs('bau')+pBau();let h=bTabs('list')+`<p class="hint">${S.b.length} Gebäude · ${S.b.filter(b=>b.built<1).length} Baustellen · Baumeister: ${builderStaff()}</p>`;
+function bTabs(on){const n=S.b.filter(b=>b.built<1).length;return `<div class="seg">${[['list','🏘️ Gebäude'],['bau',`🏗️ Im Bau${n?' ('+n+')':''}`],['biz','📊 Betriebe'],['prod','📈 Leistung']].map(([k,l])=>`<button data-a="btab" data-v="${k}" class="${on===k?'on':''}">${l}</button>`).join('')}</div>`}
+function pBlds(){if(ui.btab==='biz')return bTabs('biz')+pBiz();if(ui.btab==='prod')return bTabs('prod')+(prodList()||'<p class="hint">Noch keine Produktionsbetriebe.</p>');if(ui.btab==='bau')return bTabs('bau')+pBau();let h=bTabs('list')+`<p class="hint">${S.b.length} Gebäude · ${S.b.filter(b=>b.built<1).length} Baustellen · Baumeister: ${builderStaff()}</p>`;
  for(const[ck,cn]of CATS){const list=S.b.filter(b=>(BT[b.t].cat||'')===ck);if(!list.length)continue;h+=`<h3>${cn} (${list.length})</h3><ul class="list">`;
   for(const b of list.sort((a,c)=>a.t.localeCompare(c.t))){const T=F(b),st=b.built<1?`🏗️ Baustelle ${Math.round(b.built*100)} %`:[beds(b)?`🛏️ ${residents(b).length}/${beds(b)}`:'',T.slots?`👷 ${S.p.filter(p=>p.job===b.id).length}/${T.slots}`:'',b.st||'',insideOf(b).length?`👤 ${insideOf(b).length} drinnen`:''].filter(Boolean).join(' · ');
    h+=`<li class="row"><button class="pr" data-a="selB" data-v="${b.id}"><span class="bic">${T.i||BT[b.t].i}</span><span class="tx"><span class="nm">${esc(bName(b))}</span><span class="sub">${esc(st)||'—'}</span></span></button>${b.plan&&b.built>=1?`<button class="mini" data-a="enterb" data-v="${b.id}" aria-label="Hausansicht">👁</button>`:''}</li>`}

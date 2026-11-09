@@ -1,7 +1,7 @@
 {
-  "build": 61,
+  "build": 62,
   "file": "everstead.html",
-  "notes": "Update 61: Uhrmacherei (Uhren, +5 % Leistung für alle Betriebe) und Lieferdienst (Lieferanten bringen Rohstoffe automatisch vom Lagerhaus zu den Betrieben)",
+  "notes": "Update 62: Eigener Reiter „📈 Leistung“ unter Gebäude; Produktivität sofort sichtbar (vorläufige Schätzung ≈), danach gemessen",
   "models": [
     {
       "file": "m_assets.json",
