@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="67">
-<meta name="everstead-build" content="2026110967">
+<meta name="everstead-update" content="68">
+<meta name="everstead-build" content="2026110968">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -158,6 +158,9 @@ h3{font-family:"Alegreya",Georgia,serif;font-size:1.05rem;margin:14px 0 6px}
 #joyk{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none}
 #joyx{border:0;border-radius:10px;padding:7px 12px;background:rgba(20,24,18,.8);color:#fff;font-weight:600}
 #verbn{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:100;max-width:560px;width:calc(100% - 32px);background:#2d4a2b;color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 6px 20px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:6px}#verbn span{font-size:.88rem;opacity:.92}#verbn button{align-self:flex-end;border:0;border-radius:9px;padding:6px 16px;background:#fff;color:#2d4a2b;font-weight:700}
+.tro{background:var(--chip);border-radius:14px;padding:10px 12px;margin:10px 0}.tro h3{margin-top:0}.tro label{display:flex;flex-direction:column;gap:3px;margin:8px 0;font-size:.85rem;color:var(--muted)}.tro select{font-size:.95rem;padding:8px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.trn{display:flex;align-items:center;gap:5px;margin:8px 0;flex-wrap:wrap}.trn span{font-size:.85rem;color:var(--muted);margin-right:4px}.trn b{min-width:42px;text-align:center;font-size:1.1rem}.trn button{min-height:36px;min-width:42px;border-radius:9px;border:1px solid var(--line);background:var(--panel)}
+.trq{background:var(--panel);border-radius:10px;padding:8px 10px;margin:8px 0;line-height:1.4}.trgo{width:100%;min-height:46px;margin-top:4px}
 #edfl button.undo{margin-left:auto}#edfl button:disabled{opacity:.4}
 #edfl button.on{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
 #edwrap{flex:1;min-height:0;position:relative}
@@ -1823,7 +1826,7 @@ function tradeTick(dt){if(!S.carts)return;
   let rem=dt;while(rem>0&&c.pi<c.path.length){const i=c.path[c.pi],tx=i%W+.5,ty=((i/W)|0)+.5,sp=1.4*spd(Math.floor(c.y)*W+Math.floor(c.x)),dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy);if(d>1e-4)c.hd=Math.atan2(dx,dy);
    if(sp*rem>=d){c.x=tx;c.y=ty;rem-=d/sp;c.pi++}else{c.x+=dx/d*sp*rem;c.y+=dy/d*sp*rem;rem=0}}
   if(c.pi>=c.path.length)arriveCart(c)}}
-function arriveCart(c){if(c.kind==='exp')return expCartArrive(c);const d=TD(c.town);
+function arriveCart(c){if(c.kind==='exp')return expCartArrive(c);if(c.kind==='order')return orderArrive(c);const d=TD(c.town);
  if(c.state==='out'){settle(c);c.state='away';c.until=S.t+d.days*24*HOUR*.6*(!d.sea&&vcount('reise')?.75:1)*(!d.sea&&S.b.some(x=>x.t==='bahnhof'&&x.built>=1)?.5:1);c.t0=S.t;c.path=null;return}
  if(c.imp)S.res[c.imp]=(S.res[c.imp]||0)+c.impN;S.res.taler+=c.money;flow(c.money>=0?'in':'out','Handel '+d.n,Math.abs(c.money));if(c.imp)flow('prod',c.imp,c.impN);
  const r=S.routes.find(x=>x.id===c.route);if(r){r.trips++;r.profit+=c.money}
@@ -1832,6 +1835,52 @@ function arriveCart(c){if(c.kind==='exp')return expCartArrive(c);const d=TD(c.to
  S.tradelog.unshift({d:day(),txt});if(S.tradelog.length>30)S.tradelog.pop();log(txt,c.pid);S.carts=S.carts.filter(x=>x!==c)}
 function treaty(t){if(t.treaty)return 'Abkommen besteht bereits.';if(t.rel<50)return 'Die Beziehung muss mindestens 50 betragen.';if(S.res.taler<60)return 'Ein Abkommen kostet 60 Taler.';S.res.taler-=60;flow('out','Abkommen',60);t.treaty=true;t.rel=clamp(t.rel+10,0,100);log(`🤝 Handelsabkommen mit ${TD(t.id).n} geschlossen: bessere Preise für beide Seiten.`);return null}
 function giftTown(t){if(S.res.taler<20)return 'Nicht genug Taler.';S.res.taler-=20;flow('out','Geschenke',20);t.rel=clamp(t.rel+8,0,100);return null}
+// ===== U68: Direkthandel – selbst kaufen/verkaufen, erst nach Bezahlung zieht der Händler los =====
+function troState(){initTrade();const T=S.towns.filter(t=>TD(t.id));ui.tro=ui.tro||{mode:'buy',n:10,pay:'taler'};const o=ui.tro;
+ if(!T.find(t=>t.id===o.town))o.town=T[0]&&T[0].id;const t=TS(o.town);
+ const buyable=t?TRADEABLE.filter(k=>k!=='taler'&&isFinite(townSell(t,k))).sort((a,b)=>(TD(t.id).sells.includes(b)?1:0)-(TD(t.id).sells.includes(a)?1:0)||townSell(t,a)-townSell(t,b)):[];
+ const sellable=t?TRADEABLE.filter(k=>k!=='taler'&&(S.res[k]||0)>=1&&isFinite(townBuy(t,k))).sort((a,b)=>(TD(t.id).buys.includes(b)?1:0)-(TD(t.id).buys.includes(a)?1:0)||townBuy(t,b)*(S.res[b]||0)-townBuy(t,a)*(S.res[a]||0)):[];
+ const list=o.mode==='buy'?buyable:sellable;if(!list.includes(o.k))o.k=list[0];
+ const d=t&&TD(t.id),cap=Math.round((d&&d.sea?60:30)*vehCargo());o.n=clamp(Math.round(o.n||10),1,cap);if(o.mode==='sell')o.n=Math.min(o.n,Math.floor(S.res[o.k]||0))||0;
+ return{o,t,d,cap,buyable,sellable,list}}
+function troQuote(){const{o,t,d,cap}=troState();if(!t||!o.k)return{err:'Keine Ware gewählt.'};
+ if(o.mode==='buy'){const unit=townSell(t,o.k),cost=Math.ceil(unit*o.n);let payN=cost,payK='taler',err=null;
+  if(o.pay!=='taler'){const v=townBuy(t,o.pay);if(!(v>0)||!isFinite(v))err='Diese Ware nimmt man dort nicht an.';else{payK=o.pay;payN=Math.ceil(cost/v);if((S.res[payK]||0)<payN)err=`Zu wenig ${RES[payK][1]} – gebraucht ${payN}, im Lager ${Math.floor(S.res[payK]||0)}.`}}
+  else if(S.res.taler<cost)err=`Nicht genug Taler – gebraucht ${cost}.`;
+  return{mode:'buy',unit,cost,payK,payN,err,cap}}
+ const unit=townBuy(t,o.k),gain=Math.floor(unit*o.n);return{mode:'sell',unit,gain,err:o.n<1?'Davon ist nichts im Lager.':null,cap}}
+function troDays(d){return d.days*.6*(!d.sea&&vcount('reise')?.75:1)*(!d.sea&&S.b.some(x=>x.t==='bahnhof'&&x.built>=1)?.5:1)*2}
+function troSend(){const{o,t,d}=troState(),q=troQuote();if(!t)return 'Keine Stadt gewählt.';if(q.err)return q.err;const w=routeOk({town:t.id});if(w)return w;const ft=freeTrader(d.sea);if(!ft)return 'Gerade ist kein Händler frei.';
+ // erst bezahlen …
+ if(q.mode==='buy'){if(q.payK==='taler'){S.res.taler-=q.payN;flow('out','Einkauf '+d.n,q.payN)}else{S.res[q.payK]-=q.payN;flow('cons',q.payK,q.payN)}}
+ else{S.res[o.k]-=o.n;flow('cons',o.k,o.n)}
+ // … dann zieht der Händler los
+ const p=ft.p;p.away=1;p.task=null;p.act='idle';p.inside=ft.b.id;p.left=999;
+ const c={id:S.rid++,kind:'order',mode:q.mode,town:t.id,sea:!!d.sea,good:o.k,n:o.n,payK:q.payK||null,payN:q.payN||0,money:q.mode==='sell'?q.gain:0,state:'out',from:ft.b.id,pid:p.id,x:ft.b.x+.5,y:ft.b.y+.5,path:null,pi:0,until:0,t0:S.t};
+ S.carts.push(c);t.rel=clamp(t.rel+1,0,100);
+ const what=q.mode==='buy'?`${o.n} ${RES[o.k][1]} für ${q.payN} ${q.payK==='taler'?'Taler':RES[q.payK][1]}`:`${o.n} ${RES[o.k][1]} für ${q.gain} Taler`;
+ story(p,d.sea?'⛵':'🐴',`brach nach ${d.n} auf: ${q.mode==='buy'?'kauft':'verkauft'} ${what}${ft.tmp?' (als Aushilfe)':''}`);log(`${d.sea?'⛵':'🐴'} ${nm(p)} ${q.mode==='buy'?'kauft':'verkauft'} in ${d.n} ${what} – bezahlt, unterwegs.`,p.id);return null}
+function orderArrive(c){const d=TD(c.town);
+ if(c.state==='out'){c.state='away';c.until=S.t+d.days*24*HOUR*.6*(!d.sea&&vcount('reise')?.75:1)*(!d.sea&&S.b.some(x=>x.t==='bahnhof'&&x.built>=1)?.5:1);c.path=null;return}
+ let txt;if(c.mode==='buy'){S.res[c.good]=(S.res[c.good]||0)+c.n;flow('prod',c.good,c.n);txt=`${d.sea?'⛵':'🐴'} Lieferung aus ${d.n}: +${c.n} ${RES[c.good][0]} ${RES[c.good][1]} (bezahlt mit ${c.payN} ${c.payK==='taler'?'Talern':RES[c.payK][1]})`}
+ else{S.res.taler+=c.money;flow('in','Verkauf '+d.n,c.money);txt=`${d.sea?'⛵':'🐴'} Verkauf in ${d.n}: −${c.n} ${RES[c.good][1]}, +${c.money} Taler`}
+ const p=pById.get(c.pid);if(p){p.away=0;p.left=0;p.act='idle';story(p,'🧭',`kehrte aus ${d.n} zurück`)}
+ S.tradelog.unshift({d:day(),txt});if(S.tradelog.length>30)S.tradelog.pop();log(txt,c.pid);S.carts=S.carts.filter(x=>x!==c)}
+function troHTML(){const kontor=S.b.some(b=>BT[b.t].trade&&b.built>=1);const{o,t,d,cap,list}=troState();if(!t)return '';const q=troQuote(),w=routeOk({town:t.id}),ft=!w&&freeTrader(d.sea);
+ const sel=(f,opts,v)=>`<select data-ch="tro" data-f="${f}">${opts.map(([k,l])=>`<option value="${k}" ${k===v?'selected':''}>${l}</option>`).join('')}</select>`;
+ const payOpts=[['taler','💰 Taler']].concat(TRADEABLE.filter(k=>k!=='taler'&&k!==o.k&&(S.res[k]||0)>=1&&isFinite(townBuy(t,k))).map(k=>[k,`🔁 ${RES[k][0]} ${RES[k][1]} (${Math.floor(S.res[k])} da · ${fmtP(townBuy(t,k))} je Stück)`]));
+ let h=`<div class="tro"><h3>🛒 Direkthandel</h3><div class="seg"><button data-a="tr_mode" data-v="buy" class="${o.mode==='buy'?'on':''}">Kaufen</button><button data-a="tr_mode" data-v="sell" class="${o.mode==='sell'?'on':''}">Verkaufen</button></div>
+ <label>Stadt ${sel('town',S.towns.filter(x=>TD(x.id)).map(x=>[x.id,`${TD(x.id).i} ${TD(x.id).n} · ${TD(x.id).days} ${TD(x.id).days===1?'Tag':'Tage'}${TD(x.id).sea?' ⛵':''}`]),o.town)}</label>`;
+ if(!list.length)return h+`<p class="hint">${o.mode==='buy'?'Diese Stadt verkauft gerade nichts.':'Du hast nichts im Lager, was man dort kauft.'}</p></div>`;
+ h+=`<label>Ware ${sel('k',list.map(k=>[k,`${RES[k][0]} ${RES[k][1]} · ${fmtP(o.mode==='buy'?townSell(t,k):townBuy(t,k))} Taler${(o.mode==='buy'?d.sells:d.buys).includes(k)?(o.mode==='buy'?' · günstig':' · gefragt'):''}${o.mode==='sell'?` · ${Math.floor(S.res[k])} da`:''}`]),o.k)}</label>
+ <div class="trn"><span>Menge</span>${[-10,-1].map(x=>`<button data-a="tr_n" data-v="${x}">${x}</button>`).join('')}<b>${o.n}</b>${[1,10].map(x=>`<button data-a="tr_n" data-v="${x}">+${x}</button>`).join('')}<button data-a="tr_n" data-v="max">max ${o.mode==='buy'?cap:Math.min(cap,Math.floor(S.res[o.k]||0))}</button></div>`;
+ if(o.mode==='buy')h+=`<label>Bezahlen mit ${sel('pay',payOpts,o.pay)}</label>`;
+ h+=`<div class="trq">${q.mode==='buy'?`<b>${o.n} ${RES[o.k][0]} ${RES[o.k][1]}</b> für <b>${q.payN} ${q.payK==='taler'?'💰 Taler':RES[q.payK][0]+' '+RES[q.payK][1]}</b>`:`<b>${o.n} ${RES[o.k][0]} ${RES[o.k][1]}</b> bringen <b>${q.gain} 💰 Taler</b>`}<br><small>Hin und zurück etwa ${fmtP(troDays(d))} Tage · ${o.mode==='buy'?'Preis wird jetzt festgemacht und sofort bezahlt':'Ware verlässt sofort das Lager'}</small></div>`;
+ const why=!kontor&&!d.sea?'Es fehlt ein Handelskontor.':w||(ft?null:'Gerade ist kein Händler frei.')||q.err;
+ h+=`<button class="growb trgo" data-a="tr_go" ${why?'disabled':''}>${o.mode==='buy'?'💰 Bezahlen & Händler losschicken':'📦 Verkaufen & Händler losschicken'}</button>${why?`<p class="warnp">${why}</p>`:''}`;
+ const ord=S.carts.filter(c=>c.kind==='order');if(ord.length)h+=`<h4>Unterwegs</h4><ul class="list">${ord.map(c=>{const dd=TD(c.town),p=pById.get(c.pid);return `<li><div><b>${dd.i} ${dd.n}</b> · ${c.mode==='buy'?'kauft':'verkauft'} ${c.n} ${RES[c.good][0]} ${RES[c.good][1]}<br><span class="sub">${p?esc(p.fn)+' · ':''}${c.state==='out'?'→ auf dem Hinweg':c.state==='away'?'🏙️ in '+dd.n+' – zurück in ca. '+fmtP(Math.max(0,(c.until-S.t)/(24*HOUR))+dd.days*.3)+' Tagen':'← auf dem Rückweg'}</span></div></li>`}).join('')}</ul>`;
+ return h+'</div>'}
+function troAct(a,v,el){const{o,cap}=troState();if(a==='tr_mode'){o.mode=v;o.k=null}else if(a==='tr_n'){if(v==='max')o.n=o.mode==='buy'?cap:Math.min(cap,Math.floor(S.res[o.k]||0));else o.n=clamp(o.n+(+v),1,cap)}else if(a==='tr_go'){const e=troSend();toast(e?'⚠ '+e:'✅ Bezahlt – der Händler ist unterwegs.')}refresh(true)}
 // ---- 3D: Karren & Schiffe ----
 function drawCarts(){if(!S.carts)return;for(const c of S.carts){if(c.state==='away'||c.kind==='exp')continue;const x=c.x,z=c.y,ry=c.hd||0;BY=c.sea?0:hgtAt(Math.floor(z)*W+Math.floor(x))*HS+(BRIDGEH[Math.floor(z)*W+Math.floor(x)]||0);
   if(c.sea){box(TR(x,-.05,z,ry),.16,.07,.46,col('#6b4a2e'));box(TR(x,.02,z,ry),.13,.015,.4,col('#a07a4a'));box(TR(x,0,z,ry),.014,.5,.014,col('#5a3d24'));box(TR(x,.12,z+0,ry),.012,.3,.22,col('#f4efe4'));for(let k=0;k<2;k++)box(TR(x,.03,z,ry),.06,.05,.06,col('#8a5a32'));continue}
@@ -3365,7 +3414,7 @@ function overlay(ui,cut,selS){const c=oc;c.setTransform(dpr,0,0,dpr,0,0);c.clear
  if(cut)for(const b of S.b){if(!b.plan||b.built<1)continue;const up=S.p.filter(p=>p.inside===b.id&&p.act!=='walk'&&p.spot&&p.spot.f>0).length;if(!up)continue;const p=project(b.x+.85,.3,b.y+.1);if(!p)continue;c.fillStyle='rgba(30,30,30,.75)';rr(c,p[0]-22,p[1]-9,44,18,9);c.fill();c.fillStyle='#fff';c.font='600 11px system-ui';c.fillText('OG: '+up,p[0],p[1])}
  if(cam.dist<11)for(const s of S.p){if(!s._v)continue;const _ti=s.talk&&hAbs()<s.talk.until?talkIcon(s):undefined,ic=_ti!==undefined?_ti:(s.act==='do'&&s.task?{sleep:'💤',eat:'🍞',work:'🔨',leisure:'🍺',social:'💬',visit:'☕',buy:'🧺'}[s.task.k]:null);if(!ic)continue;
   const p=project(s._v[0],s._v[1]+.22,s._v[2]);if(!p)continue;c.fillStyle='rgba(255,255,255,.92)';c.beginPath();c.arc(p[0]+8,p[1]-6,10,0,7);c.fill();c.font=`12px ${EMOJI}`;c.fillStyle='#000';c.fillText(ic,p[0]+8,p[1]-5)}
- if(S.carts&&cam.dist<22)for(const c2 of S.carts){if(c2.state==='away')continue;const p=project(c2.x,.45,c2.y);if(!p)continue;const g=c2.state==='out'?c2.exp:c2.imp;c.fillStyle='rgba(24,21,16,.8)';rr(c,p[0]-16,p[1]-12,32,20,10);c.fill();c.font=`12px ${EMOJI}`;c.fillStyle='#fff';c.fillText((c2.state==='out'?'→':'←')+(g?RES[g][0]:''),p[0],p[1]-1)}
+ if(S.carts&&cam.dist<22)for(const c2 of S.carts){if(c2.state==='away')continue;const p=project(c2.x,.45,c2.y);if(!p)continue;const g=c2.kind==='order'?(c2.mode==='buy'?(c2.state==='out'?c2.payK:c2.good):(c2.state==='out'?c2.good:'taler')):c2.state==='out'?c2.exp:c2.imp;c.fillStyle='rgba(24,21,16,.8)';rr(c,p[0]-16,p[1]-12,32,20,10);c.fill();c.font=`12px ${EMOJI}`;c.fillStyle='#fff';c.fillText((c2.state==='out'?'→':'←')+(g?RES[g][0]:''),p[0],p[1]-1)}
  for(const f of fx){const p=project(f.x,.6+f.t*.4,f.y+.5);if(!p)continue;c.globalAlpha=1-f.t/1.6;c.font=`16px ${EMOJI}`;c.fillText(f.i,p[0],p[1]);c.globalAlpha=1}
  const ss=selS&&pById.get(selS);
  if(ss){if(ss.path){c.strokeStyle='rgba(255,255,255,.8)';c.setLineDash([4,5]);c.lineWidth=2;c.beginPath();let st=project(ss.x,.02,ss.y);if(st){c.moveTo(st[0],st[1]);for(let i=ss.pi;i<ss.path.length;i++){const q=ss.path[i],p=project(q%W+.5,.02,((q/W)|0)+.5);if(p)c.lineTo(p[0],p[1])}c.stroke()}c.setLineDash([])}
@@ -4804,7 +4853,7 @@ function pLog(){return `<div class="acts"><button data-a="eco">${ui.eco?'🔋 En
 // ---------- Aktionen ----------
 $('pbody').addEventListener('pointerdown',()=>ui.hold=performance.now()+700);
 $('pbody').addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled)return;act(el.dataset.a,el.dataset.v,el)});
-$('pbody').addEventListener('change',e=>{const el=e.target.closest('[data-ch]');if(!el)return;if(el.dataset.ch==='fhouse'){ui.fh=+el.value;refresh(true)}});
+$('pbody').addEventListener('change',e=>{const el=e.target.closest('[data-ch]');if(!el)return;if(el.dataset.ch==='fhouse'){ui.fh=+el.value;refresh(true)}if(el.dataset.ch==='tro'){troState();ui.tro[el.dataset.f]=el.value;if(el.dataset.f==='town'||el.dataset.f==='k'){if(ui.tro.pay===ui.tro.k)ui.tro.pay='taler'}ui.hold=0;refresh(true)}});
 function act(a,v,el){if(a==='bgrow'){const b=bById.get(+v);if(b)growB(b);refresh(true);return}if(a==='bsel'){const b=bById.get(+v);if(b){ui.sel={k:'b',id:b.id};ui.tab='bld';focusOn(b.x,b.y)}refresh(true);return}if(a==='bauabbr'){const b=bById.get(+v);if(b&&b.built<1&&confirm(`Baustelle „${bName(b)}“ abbrechen? Die Hälfte der Kosten kommt zurück.`)){for(const[k,n]of Object.entries(BT[b.t].cost||{}))S.res[k]=(S.res[k]||0)+Math.floor(n/2);removeB(b);toast('Baustelle abgebrochen.');refresh(true)}return}if(a==='growland'){const e=growWorld(true);if(e)toast(e);refresh(true);return}if(a==='btab'){ui.btab=v;refresh(true);return}if(a==='bizbuild'){return startPlace(v)}if(a==='gfx'){ui.gfx=v;try{localStorage.setItem('everstead-gfx',v)}catch(e){}r3resize();refresh(true);return}if(a==='savenow'||a==='exportsave'||a==='importsave')return saveUIAct(a);if(a==='eralock')return toast(`Erst ab der ${eraName(+v)} verfügbar – siehe ⏳ Epoche.`);if(a==='eraadv'){const e=advanceEra(false);if(e)toast(e);refresh(true);return}if(a==='eralockt'){S.eraLock=!S.eraLock;refresh(true);return}if(a&&a.startsWith('tr_'))return tradeAct(a,v,el);if(['babyname','aspchg','care','famplan','trybaby','look'].includes(a)){const sp=ui.sel&&ui.sel.k==='s'&&pById.get(ui.sel.id);return famAct(a,v,sp)}if(a&&a.startsWith('veh_'))return vehAct(a,v,el);
  const s=ui.sel&&ui.sel.k==='s'&&pById.get(ui.sel.id),b=ui.sel&&ui.sel.k==='b'&&bById.get(ui.sel.id);
  switch(a){
@@ -5111,6 +5160,7 @@ const fmtP=v=>(Math.round(v*10)/10).toFixed(1).replace('.',',');
 function pTrade(){initTrade();const kontor=S.b.some(b=>BT[b.t].trade&&b.built>=1),hafen=S.b.some(b=>BT[b.t].port&&b.built>=1);
  let h=`<div class="stats"><div><b>${S.routes.filter(r=>r.on).length}</b><span>Routen aktiv</span></div><div><b>${S.carts.length}</b><span>Unterwegs</span></div><div><b>${Math.round(S.routes.reduce((a,r)=>a+r.profit,0))}</b><span>Handelsgewinn</span></div><div><b>${kontor?'✅':'❌'}${hafen?' ⚓':''}</b><span>Kontor/Hafen</span></div></div>`;
  if(!kontor)h+='<p class="warnp">Baue ein Handelskontor (Bauen → Handwerk & Versorgung), damit Händler losfahren können. Für Seewalde brauchst du zusätzlich einen Hafen am See.</p>';
+ h+=troHTML();
  h+=`<h3>Marktpreise im Dorf</h3><table class="ft mk"><tr><th>Ware</th><th>Lager</th><th>Preis</th><th>Verlauf</th></tr>${TRADEABLE.map(k=>{const hs=S.ph[k]||[];const tr=hs.length>1?(hs[hs.length-1]>hs[hs.length-2]?'▲':hs[hs.length-1]<hs[hs.length-2]?'▼':'•'):'•';
   return `<tr><td>${RES[k][0]} ${RES[k][1]}</td><td>${Math.floor(S.res[k]||0)}</td><td>${fmtP(price(k))} <small class="${tr==='▲'?'up':tr==='▼'?'dn':''}">${tr}</small></td><td>${spark(hs)}</td></tr>`}).join('')}</table>
  <p class="hint">Knappe Waren werden teurer, Überschüsse billiger. Brot und Gewänder kosten im Dorf den aktuellen Marktpreis.</p><h3>Nachbarstädte</h3>`;
@@ -5119,7 +5169,7 @@ function pTrade(){initTrade();const kontor=S.b.some(b=>BT[b.t].trade&&b.built>=1
   <div class="tg"><span>Verkauft günstig:</span>${d.sells.map(k=>`<span class="gp">${RES[k][0]} ${fmtP(townSell(t,k))}</span>`).join('')}</div><div class="tg"><span>Kauft teuer:</span>${d.buys.map(k=>`<span class="gp">${RES[k][0]} ${fmtP(townBuy(t,k))}</span>`).join('')}</div>
   <div class="acts"><button data-a="tr_treaty" data-v="${t.id}" ${t.treaty?'disabled':''}>🤝 Handelsabkommen (60)</button><button data-a="tr_gift" data-v="${t.id}">🎁 Geschenk (20)</button></div></div>`}
  const opt=(arr,sel)=>arr.map(k=>`<option value="${k}" ${k===sel?'selected':''}>${RES[k][0]} ${RES[k][1]}</option>`).join('');
- h+=`<h3>Handelsrouten</h3>${S.routes.length?`<ul class="list">${S.routes.map(r=>{const d=TD(r.town),w=routeOk(r),on=S.carts.find(c=>c.route===r.id);return `<li class="rt"><div><b>${d.i} ${d.n}</b> · alle ${r.every} ${r.every===1?'Tag':'Tage'}<br><span class="sub">↗ ${r.expN} ${RES[r.exp][0]} ${RES[r.exp][1]} · ↙ ${r.impN} ${RES[r.imp][0]} ${RES[r.imp][1]} · ${r.trips} Fahrten · ${r.profit>=0?'+':''}${Math.round(r.profit)} Taler</span>${w?`<br><span class="warnp">${w}</span>`:on?`<br><span class="sub">${on.state==='away'?'🏙️ in '+d.n:on.state==='out'?'→ unterwegs':'← auf dem Rückweg'}</span>`:''}</div><div class="b"><button data-a="tr_toggle" data-v="${r.id}">${r.on?'⏸':'▶️'}</button><button data-a="tr_del" data-v="${r.id}" aria-label="Löschen">🗑️</button></div></li>`}).join('')}</ul>`:'<p class="hint">Noch keine Route. Lege unten die erste an.</p>'}
+ h+=`<h3>🔁 Automatische Routen</h3><p class="hint">Optional: Der Händler fährt regelmäßig von selbst und rechnet erst in der Stadt ab.</p>${S.routes.length?`<ul class="list">${S.routes.map(r=>{const d=TD(r.town),w=routeOk(r),on=S.carts.find(c=>c.route===r.id);return `<li class="rt"><div><b>${d.i} ${d.n}</b> · alle ${r.every} ${r.every===1?'Tag':'Tage'}<br><span class="sub">↗ ${r.expN} ${RES[r.exp][0]} ${RES[r.exp][1]} · ↙ ${r.impN} ${RES[r.imp][0]} ${RES[r.imp][1]} · ${r.trips} Fahrten · ${r.profit>=0?'+':''}${Math.round(r.profit)} Taler</span>${w?`<br><span class="warnp">${w}</span>`:on?`<br><span class="sub">${on.state==='away'?'🏙️ in '+d.n:on.state==='out'?'→ unterwegs':'← auf dem Rückweg'}</span>`:''}</div><div class="b"><button data-a="tr_toggle" data-v="${r.id}">${r.on?'⏸':'▶️'}</button><button data-a="tr_del" data-v="${r.id}" aria-label="Löschen">🗑️</button></div></li>`}).join('')}</ul>`:'<p class="hint">Noch keine Route. Lege unten die erste an.</p>'}
  <div class="rform"><h4>Neue Route</h4><label>Ziel<select id="tr_town">${S.towns.map(t=>`<option value="${t.id}">${TD(t.id).i} ${TD(t.id).n}</option>`).join('')}</select></label>
  <label>Ausfuhr<select id="tr_exp">${opt(TRADEABLE,'brot')}</select><select id="tr_expN"><option>5</option><option selected>10</option><option>20</option></select></label>
  <label>Einfuhr<select id="tr_imp">${opt(TRADEABLE,'salz')}</select><select id="tr_impN"><option>5</option><option selected>10</option><option>20</option></select></label>
@@ -5127,7 +5177,7 @@ function pTrade(){initTrade();const kontor=S.b.some(b=>BT[b.t].trade&&b.built>=1
  <button class="pri" data-a="tr_new">➕ Route anlegen</button></div>
  ${S.tradelog.length?`<h3>Handelsbuch</h3><ul class="memo">${S.tradelog.slice(0,12).map(l=>`<li><b>Tag ${l.d+1}</b> ${esc(l.txt)}</li>`).join('')}</ul>`:''}`;
  return h}
-function tradeAct(a,v){initTrade();let err=null;const t=v&&S.towns.find(x=>x.id===v);
+function tradeAct(a,v,el){initTrade();if(a==='tr_mode'||a==='tr_n'||a==='tr_go')return troAct(a,v,el);let err=null;const t=v&&S.towns.find(x=>x.id===v);
  if(a==='tr_treaty'&&t)err=treaty(t);
  if(a==='tr_gift'&&t){err=giftTown(t);if(!err)toast(`${TD(t.id).n} freut sich über das Geschenk.`)}
  if(a==='tr_toggle'){const r=S.routes.find(x=>x.id===+v);if(r)r.on=!r.on}

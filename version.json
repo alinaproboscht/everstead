@@ -1,7 +1,7 @@
 {
-  "build": 2026110967,
+  "build": 2026110968,
   "file": "everstead.html",
-  "notes": "Update 67: Kinder und Jugendliche unter 18 arbeiten nicht mehr, sondern gehen zur Schule; die Frau dreht sich im Stehen nicht mehr seitlich weg",
+  "notes": "Update 68: Direkthandel – Ware, Menge und Stadt selbst wählen, mit Talern oder Tauschwaren bezahlen; erst danach zieht der Händler los. Auch direkt verkaufen.",
   "models": [
     {
       "file": "m_baeckerei.json",
