@@ -1,7 +1,7 @@
 {
-  "build": 63,
+  "build": 64,
   "file": "everstead.html",
-  "notes": "Update 63: Sims-Steuerung – Antippen wählt eine Person, Personen-HUD mit 8 Bedürfnissen (neu: Durst), freier Wille, Prioritäten, Aktionen an Brunnen/Linde/Park, Berufstätigkeiten, neue Gespräche, Warteschlange mit 8 Aktionen, Doppeltipp = Folgen, Direktsteuerung mit Joystick",
+  "notes": "Update 64: Hinweis im Spiel, wenn online eine neuere Version liegt",
   "models": [
     {
       "file": "m_assets.json",
