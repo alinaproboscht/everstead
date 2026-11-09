@@ -1,103 +1,132 @@
 {
-  "build": 57,
+  "build": 58,
   "file": "everstead.html",
-  "notes": "Update 57: Detailstufen und Sichtbarkeitsprüfung für 3D-Modelle, Grafik-Neustart, zuverlässigeres Antippen",
+  "notes": "Update 58: Gelände leichter (Bäume in der Ferne und im Schatten vereinfacht, nur Sichtbares wird gezeichnet), Objekte mit dem Finger ziehen, Deko in 45°-Schritten drehen, Rückgängig-Knopf (Dorf und Hausplaner), kleinere Updates (Bilddaten in m_assets.json)",
   "models": [
     {
+      "file": "m_assets.json",
+      "size": 3034433,
+      "sha": "7006d2a76b98"
+    },
+    {
       "file": "m_baeckerei.json",
-      "size": 1386208
+      "size": 1386208,
+      "sha": "357ec7678adc"
     },
     {
       "file": "m_brunnen.json",
-      "size": 1182226
+      "size": 1182226,
+      "sha": "8084e2418cc3"
     },
     {
       "file": "m_chalet.json",
-      "size": 1288339
+      "size": 1288339,
+      "sha": "3a8205264af3"
     },
     {
       "file": "m_dorflinde.json",
-      "size": 1444254
+      "size": 1444254,
+      "sha": "380072558a4f"
     },
     {
       "file": "m_fabort.json",
-      "size": 1334420
+      "size": 1334420,
+      "sha": "96571c824906"
     },
     {
       "file": "m_fbett.json",
-      "size": 1251323
+      "size": 1251323,
+      "sha": "761d5866ff1f"
     },
     {
       "file": "m_fherd.json",
-      "size": 1389052
+      "size": 1389052,
+      "sha": "83758d3a05d8"
     },
     {
       "file": "m_fstuhl.json",
-      "size": 1307510
+      "size": 1307510,
+      "sha": "236f4283faba"
     },
     {
       "file": "m_ftisch.json",
-      "size": 1372908
+      "size": 1372908,
+      "sha": "aa28df49772a"
     },
     {
       "file": "m_fwasch.json",
-      "size": 1301057
+      "size": 1301057,
+      "sha": "aa72f8eb70c4"
     },
     {
       "file": "m_fzuber.json",
-      "size": 1231395
+      "size": 1231395,
+      "sha": "7934828e50e8"
     },
     {
       "file": "m_gut.json",
-      "size": 1355135
+      "size": 1355135,
+      "sha": "0ba7de460c8b"
     },
     {
       "file": "m_haus.json",
-      "size": 1372403
+      "size": 1372403,
+      "sha": "cacc3ff16d8e"
     },
     {
       "file": "m_lagerhaus.json",
-      "size": 1298607
+      "size": 1298607,
+      "sha": "f1c9b2a8b4f3"
     },
     {
       "file": "m_lod.json",
-      "size": 2257967
+      "size": 2257967,
+      "sha": "1e1daa9eb599"
     },
     {
       "file": "m_pfrau.json",
-      "size": 2064889
+      "size": 2064889,
+      "sha": "10cece85b269"
     },
     {
       "file": "m_picknick.json",
-      "size": 1349001
+      "size": 1349001,
+      "sha": "8dd947b0f3dc"
     },
     {
       "file": "m_rathaus.json",
-      "size": 1346893
+      "size": 1346893,
+      "sha": "123907f82747"
     },
     {
       "file": "m_spielplatz.json",
-      "size": 1415662
+      "size": 1415662,
+      "sha": "040f923dbc54"
     },
     {
       "file": "m_stand1.json",
-      "size": 1301154
+      "size": 1301154,
+      "sha": "1e2320bb26e3"
     },
     {
       "file": "m_stand2.json",
-      "size": 1344243
+      "size": 1344243,
+      "sha": "0dcfec9c0606"
     },
     {
       "file": "m_stand3.json",
-      "size": 1381086
+      "size": 1381086,
+      "sha": "e3550b4dde3d"
     },
     {
       "file": "m_stand4.json",
-      "size": 1373141
+      "size": 1373141,
+      "sha": "683fc7567082"
     },
     {
       "file": "m_villa.json",
-      "size": 1363338
+      "size": 1363338,
+      "sha": "7255a28dbfb7"
     }
   ]
 }
