@@ -1,7 +1,7 @@
 {
-  "build": 55,
+  "build": 56,
   "file": "everstead.html",
-  "notes": "Update 55: Schärfere Grafik, detailreichere Frau, Bäder/Herd/Stühle geordnet, zweites Bad in vollen Häusern",
+  "notes": "Update 56: Apotheke, Geburtshaus, Alchemist, Gaukler, Eselfarm, Schafsfarm, Schweinezucht, Hühnerfarm, Bürgermeister & Schatzmeister",
   "models": [
     {
       "file": "m_baeckerei.json",

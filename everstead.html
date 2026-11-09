@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="55">
+<meta name="everstead-build" content="56">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -476,7 +476,7 @@ const WD=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonnt
 const clock=()=>{const h=hod();return String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor((h%1)*60/15)*15).padStart(2,'0')};
 const nm=s=>s?s.fn+' '+s.ln:'niemand';
 const bName=b=>b?(b.d&&b.d.name)||BT[b.t].n:'';
-const jobTitle=s=>{const b=s.job&&bById.get(s.job);if(!b)return ageOf(s)<16?'Kind':ageOf(s)>=65?'Im Ruhestand':'Ohne Arbeit';if(b.built<1)return (s.g==='f'?'Bauhelferin':'Bauhelfer')+(s.tmpJob?' (vorübergehend)':'');const j=F(b).job;return j?j[s.g==='f'?0:1]:'Helfer'};
+const jobTitle=s=>{const b=s.job&&bById.get(s.job);if(!b)return ageOf(s)<16?'Kind':ageOf(s)>=65?'Im Ruhestand':'Ohne Arbeit';if(b.built<1)return (s.g==='f'?'Bauhelferin':'Bauhelfer')+(s.tmpJob?' (vorübergehend)':'');const jl=BT[b.t].jobs;if(jl){const Wk=S.p.filter(p=>p.job===b.id).sort((a,c)=>a.id-c.id),ix=Wk.indexOf(s);if(ix>=0)return jl[Math.min(ix,jl.length-1)][s.g==='f'?0:1]}const j=F(b).job;return j?j[s.g==='f'?0:1]:'Helfer'};
 function log(txt,sid){S.log.unshift({d:day(),h:clock(),txt});if(S.log.length>200)S.log.pop();hooks.feed(txt,sid)}
 function mem(s,txt){s.mem.unshift(`${WD[wday()].slice(0,2)} ${clock()}: ${txt}`);if(s.mem.length>8)s.mem.pop()}
 // Große Wohnhäuser bekommen ein zweites Bad, Betriebe mindestens zwei Badezuber fürs Personal
@@ -564,7 +564,7 @@ function moodTips(){const M=moodParts(),N=Math.max(1,S.p.length),T=[],built=t=>S
  const n=M.needs,bread=S.res.brot||0,days=bread/Math.max(1,N*2),freeBeds=S.b.reduce((a,b)=>a+Math.max(0,beds(b)-residents(b).length),0);
  {const ft=foodTypes(),fs=foodStock(),miss=FOODS().filter(k=>!ft.includes(k)).map(k=>FOODN[k]||k),fd=fs/Math.max(1,N*2);
   if(n.h<75)add((75-n.h)/5,'🍞','Mehr Essen',`Sättigung ${Math.round(n.h)} %. Vorrat: ${ft.map(k=>(FOODN[k]||k)+' '+Math.floor(S.res[k])).join(', ')||'nichts'} – reicht ≈ ${fd.toFixed(1)} Tage. Alle Lebensmittel werden gegessen; mehr Sorten machen satter.`,'build:geb','Bauen');
-  if(ft.length<5)add((6-foodMood())*.9,'🥕','Abwechslung',`${ft.length} Sorten auf Lager (+${foodMood().toFixed(1)}). Es fehlen: ${miss.slice(0,4).join(', ')}. Baue Gemüsegarten, Viehhof, Imkerei oder Fischer – oder kaufe über den Handel.`,'build:geb','Bauen')}
+  if(ft.length<5)add((6-foodMood())*.9,'🥕','Abwechslung',`${ft.length} Sorten auf Lager (+${foodMood().toFixed(1)}). Es fehlen: ${miss.slice(0,4).join(', ')}. Baue Gemüsegarten, Viehhof, Hühnerfarm, Imkerei oder Fischer – oder kaufe über den Handel.`,'build:geb','Bauen')}
  if(n.e<70)add((70-n.e)/5,'💤','Mehr Ruhe',`Energie ${Math.round(n.e)} %. ${freeBeds<3?`Nur ${freeBeds} freie Betten – baue 1–2 Wohnhäuser oder stelle Betten dazu. `:''}Lange Wege kosten Kraft: pflastere Wege zwischen Wohnhäusern und Arbeitsplätzen.`,freeBeds<3?'build:geb':'roads','Bauen');
  if(n.s<75){const miss=['brunnen','markt','taverne','dorflinde','theater','spielstube'].filter(t=>BT[t]&&!built(t)).map(t=>BT[t].n);add((75-n.s)/5,'💬','Treffpunkte',`Geselligkeit ${Math.round(n.s)} %. ${miss.length?'Noch kein '+miss.slice(0,3).join(', ')+'.':'Ein zweiter Treffpunkt in einem anderen Viertel hilft.'}`,'build:geb','Bauen')}
  if(n.f<75){const miss=Object.entries(BT).filter(([t,Tt])=>Tt.hobby&&!built(t)&&(Tt.era||0)<=eraOf()).map(([,Tt])=>Tt.n);add((75-n.f)/5,'🎉','Freizeit',`Freizeit ${Math.round(n.f)} %. ${miss.length?'Baue z. B. '+miss.slice(0,3).join(', ')+' (Bauen › Freizeit & Hobbys).':'Mehr Hobbyorte verteilen die Leute besser.'}`,'build:geb','Bauen')}
@@ -586,20 +586,20 @@ function pMood(){const{M,T}=moodTips(),h=S._mh||[],tr=h.length>=24?S.mood-h[h.le
  <p class="hint">Grundbedürfnisse sind der Durchschnitt aus Essen, Energie, Geselligkeit, Freizeit und Hygiene. Alle Lebensmittel im Lager werden gegessen; jede Sorte macht satter und bringt einen Bonus. Alles andere kommt als Bonus dazu: jedes Möbelstück, Deko und eingerichtete Räume im eigenen Haus, die Vielfalt an Gebäuden, Treffpunkten, Pflanzen und Platz-Objekten im Dorf, alle Waren im Lager, Arbeit für alle und Fahrzeuge. Die Zufriedenheit wird stündlich neu berechnet.</p>
  <h3 class="orh">So erhöhst du sie</h3>${T.length?`<ol class="mtips">${T.slice(0,6).map(t=>`<li><span class="mi">${t.i}</span><div><b>${t.title} <small>bis +${Math.max(1,Math.round(t.gain))} %</small></b><p>${esc(t.txt)}</p></div><button data-a="goto" data-v="${t.go}">${t.gl} ›</button></li>`).join('')}</ol>`:'<p class="hint">Alles bestens – deine Bewohner sind rundum zufrieden.</p>'}`}
 // ---- Nahrung: alle Lebensmittel zählen ----
-const FOODS=()=>['brot','gemuese','fleisch','milch','honig','fisch','trauben','kaese','obst','wurst'].filter(k=>RES[k]);
+const FOODS=()=>['brot','gemuese','fleisch','milch','honig','fisch','trauben','kaese','obst','wurst','eier'].filter(k=>RES[k]);
 const foodTypes=()=>FOODS().filter(k=>(S.res[k]||0)>=1);
 const foodStock=()=>FOODS().reduce((a,k)=>a+Math.max(0,S.res[k]||0),0);
-const FOODN={brot:'Brot',gemuese:'Gemüse',fleisch:'Fleisch',milch:'Milch',honig:'Honig',fisch:'Fisch',trauben:'Trauben',kaese:'Käse',obst:'Obst',wurst:'Wurst'};
+const FOODN={brot:'Brot',gemuese:'Gemüse',fleisch:'Fleisch',milch:'Milch',honig:'Honig',fisch:'Fisch',trauben:'Trauben',kaese:'Käse',obst:'Obst',wurst:'Wurst',eier:'Eier'};
 function takeFood(pref){const L=foodTypes().filter(k=>k!=='brot');if(!L.length)return null;const k=pref&&L.includes(pref)?pref:L[(Math.random()*L.length)|0];S.res[k]-=1;flow('cons',k,1);return k}
 // Stündlich: Hungrige essen aus dem Vorrat an Gemüse, Milch, Fleisch, Honig, Fisch … (etwa eine Portion pro Tag und Kopf)
 function foodHourly(){if(!foodTypes().some(k=>k!=='brot'))return;for(const s of S.p){if(s.away||s.n.h>82)continue;const p=s.n.h<50?.12:.06;if(Math.random()<p){const k=takeFood();if(!k)return;s.n.h=Math.min(100,s.n.h+10)}}}
 const foodMood=()=>Math.min(6,foodTypes().length*1.2);
-const VSOC=['brunnen','markt','taverne','kirche','heiler','badehaus','schule','dorflinde','theater','spielplatz','park','garten','musikhaus','spielstube'];
+const VSOC=['gaukler','brunnen','markt','taverne','kirche','heiler','badehaus','schule','dorflinde','theater','spielplatz','park','garten','musikhaus','spielstube'];
 function villageCalc(){const B=S.b.filter(b=>b.built>=1),T=new Set(B.map(b=>b.t)),D=S.deco||[],props=D.filter(d=>PLANT[d.t]&&PLANT[d.t].glb).length,plants=D.length-props;
  let pub=0;for(const b of B)if(b.t!=='haus'&&b.plan)for(const fl of b.plan.floors)pub+=fl.furn.length;
  const soc=VSOC.filter(t=>T.has(t)).length,paved=S.road?S.road.reduce((a,v)=>a+(v>=2?1:0),0):0;
  const P={types:Math.min(5,T.size*.3),soc:Math.min(2.5,soc*.35),plants:Math.min(2,plants*.04),props:Math.min(1,props*.15),pub:Math.min(1,pub*.01),paved:Math.min(.5,paved*.004)};
- P.sum=Math.min(12,P.types+P.soc+P.plants+P.props+P.pub+P.paved);P.T=T.size;P.socN=soc;P.plantN=plants;P.propN=props;return P}
+ P.mayor=typeof roleHolder==='function'&&roleHolder('rathaus',0)?1.5:0;P.sum=Math.min(12,P.types+P.soc+P.plants+P.props+P.pub+P.paved)+P.mayor;P.T=T.size;P.socN=soc;P.plantN=plants;P.propN=props;return P}
 const villageMood=()=>{if(S._vmT===(hAbs()|0)&&S._vm!=null)return S._vm;S._vd=villageCalc();S._vmT=hAbs()|0;S._vm=S._vd.sum;return S._vm};
 const goodsMood=()=>{if(S._gmT===(hAbs()|0)&&S._gm!=null)return S._gm;const n=Object.keys(RES).filter(k=>k!=='taler'&&(S.res[k]||0)>=1).length;S._gmN=n;S._gmT=hAbs()|0;S._gm=Math.min(4,n*.2);return S._gm};
 const workMood=()=>{if(S._wmT===(hAbs()|0)&&S._wm!=null)return S._wm;const A=S.p.filter(s=>!isKid(s)&&ageOf(s)<65),e=A.filter(s=>s.job).length;S._wmR=A.length?e/A.length:1;S._wmT=hAbs()|0;S._wm=3*S._wmR;return S._wm};
@@ -826,7 +826,7 @@ function assignHomes(){
   if(h){s.home=h.id;if(!h.owner||!pById.get(h.owner))h.owner=s.id;mem(s,'hat ein Zuhause gefunden')}}
 }
 function daily(){
- const d=day();
+ const d=day();try{u56Daily()}catch(e){console.warn(e)}
  for(const s of S.p.slice()){if(ageOf(s)>=s.life)die(s)}
  // Nachwuchs
  for(const a of S.p){if(!a.married||a.g!=='f')continue;const b=pById.get(a.partner);if(!b||a.home!==b.home||!a.home)continue;const h=bById.get(a.home);
@@ -1075,7 +1075,7 @@ function F(b){
  if(A.fn.back){fx.wh=1;fx.in={mehl:1};fx.out={brot:4};fx.slots+=Math.min(3,A.fn.back);fx.job=['Bäckerin','Bäcker']}
  if(A.fn.verkauf&&A.fn.back)fx.shop=1;
  if(A.fn.schank){fx.tavern=1;fx.social=1;fx.slots+=Math.min(2,A.fn.schank);fx.job=fx.job||['Wirtin','Wirt']}
- if(A.fn.schreib&&b.t==='rathaus'){fx.slots+=1;fx.job=fx.job||['Schreiberin','Schreiber']}
+ if(b.t==='rathaus'){fx.slots+=A.fn.schreib?3:2;fx.job=fx.job||['Schreiberin','Schreiber']}
  b._fx=fx;b._fxv=b.plan.v;return fx;
 }
 function fnSummary(fx){const o=[];if(fx.beds)o.push(`🛏️ ${fx.beds} ${fx.beds===1?'Bett':'Betten'}`);if(fx.wh)o.push(`🥖 Backstube (${fx.slots-(fx.tavern?Math.min(2,fx.A.fn.schank):0)-(fx.A.fn.schreib&&fx.job&&fx.job[0]==='Schreiberin'?1:0)} Plätze)`);
@@ -1084,7 +1084,7 @@ function planFloors(p){let n=0;p.floors.forEach((f,i)=>{if(f.rooms.length)n=i+1}
 // Platz eines Bewohners im Gebäude (für Innenansicht)
 function pickSpot(b,k,s){
  const p=b.plan;if(!p)return null;const A=planA(b);
- const HW={dorflinde:['linde','bank'],kegelbahn:['bahn','bank'],bogen:['ziel'],angelsteg:['steg'],theater:['bank'],reitstall:['pferd'],garten:['beet','bank','baum'],spielstube:['tisch','stuhl'],badehaus:['zuber','zuber','schwitzbank','bank','laute']};
+ const HW={gaukler:['bank','bank','buehne'],dorflinde:['linde','bank'],kegelbahn:['bahn','bank'],bogen:['ziel'],angelsteg:['steg'],theater:['bank'],reitstall:['pferd'],garten:['beet','bank','baum'],spielstube:['tisch','stuhl'],badehaus:['zuber','zuber','schwitzbank','bank','laute']};
  const want=k==='hobby'?(HW[b.t]||['bank']):{sleep:['bett','doppelbett'],work:['ofen','arbeitstisch','theke','pult','feld','muehlstein','saegebock','naehtisch','kraeuter','kessel','stand','heu','holzstapel'],eat:['tisch','herd','theke'],leisure:['bank','stuhl','tisch'],visit:['stuhl','bank','tisch'],home:['stuhl','bank','tisch','herd'],social:['bank','stuhl','brunnen'],buy:['theke','stand'],bathe:['zuber','badfass'],sauna:['schwitzbank'],shower:['schwall','badfass'],wash:['waschbank','waschtisch'],toilet:['abort'],groom:['barbier'],heal:['liege'],birth:['bett','doppelbett','liege'],trybaby:['doppelbett','bett'],baby:['bett','doppelbett'],nap:['bett','doppelbett','liege','bank']}[k]||['stuhl','tisch','bank'];
  const cand=[];p.floors.forEach((fl,fi)=>fl.furn.forEach((f,i)=>{const r=A.floors[fi].fr[i];if(r>=0&&A.floors[fi].rooms[r].acc&&want.includes(f.t)){const n=f.t==='doppelbett'?2:1;for(let j=0;j<n;j++){const u=usePos(fl,f,i,j,n);cand.push({f:fi,x:u.x,y:u.y,fi:i,cx:u.cx,cy:u.cy,seat:u.seat})}}}));
  if(!cand.length){for(let fi=0;fi<p.floors.length;fi++){const fl=p.floors[fi];const r=fl.rooms.findIndex((_,i)=>A.floors[fi].rooms[i].acc);if(r>=0){const R=fl.rooms[r];return{f:fi,x:R.x+1+((s.id*7)%Math.max(1,R.w-2)),y:R.y+1+((s.id*3)%Math.max(1,R.h-2))}}}return null}
@@ -1418,8 +1418,8 @@ function careTick(s,dh,t){const n=s.n,k=t.k;
  else if(k==='heal'&&s.left-dh<=0&&s.sick&&s._healer){const h=pById.get(s._healer);const ill=s.sick.n;s.sick=null;if(s.money>=3){s.money-=3;pf(s,'exp',3);S.res.taler+=3;flow('in','Heilkunst',3)}
   story(s,'🌿',`wurde ${h?'von '+h.fn+' ':''}von ${ill} geheilt`);if(h)story(h,'🌿',`heilte ${s.fn} von ${ill}`);s.th='Mir geht es schon viel besser!';log(`🌿 ${nm(s)} wurde von ${ill} geheilt.`,s.id)}}
 function sicknessDaily(){for(const s of S.p){
- if(s.sick){if(day()-s.sick.d>s.sick.sev*2+1){story(s,'💪',`erholte sich von ${s.sick.n}`);s.sick=null}continue}
- const p=.008+(s.n.y<30?.035:0)+(ageOf(s)>60?.015:0)+(s.n.h<25?.02:0);if(rnd()<p){s.sick={n:pick(ILL),d:day(),sev:1+((rnd()*3)|0)};story(s,'🤒',`erkrankte an ${s.sick.n}`);if(s.fav||s.ctrl||S.p.length<40)log(`🤒 ${nm(s)} ist an ${s.sick.n} erkrankt.`,s.id)}}}
+ if(s.sick){if(!s.sick.med&&(S.res.arznei||0)>=1){S.res.arznei-=1;flow('cons','arznei',1);s.sick.med=1}if(day()-s.sick.d>(s.sick.med?s.sick.sev:s.sick.sev*2+1)){story(s,'💪',`erholte sich von ${s.sick.n}${s.sick.med?' – dank Arznei aus der Apotheke':''}`);s.sick=null}continue}
+ const p=(.008+(s.n.y<30?.035:0)+(ageOf(s)>60?.015:0)+(s.n.h<25?.02:0))*((S.res.arznei||0)>=1?.7:1);if(rnd()<p){s.sick={n:pick(ILL),d:day(),sev:1+((rnd()*3)|0)};story(s,'🤒',`erkrankte an ${s.sick.n}`);if(s.fav||s.ctrl||S.p.length<40)log(`🤒 ${nm(s)} ist an ${s.sick.n} erkrankt.`,s.id)}}}
 const isBuilder=s=>{const b=s.job&&bById.get(s.job);return!!(b&&BT[b.t].builder&&b.built>=1)};
 const builderStaff=()=>S.p.filter(isBuilder).length;
 function nextSite(s){let best=null,bd=1e9;for(const b of S.b){if(b.built>=1)continue;const d=Math.abs(b.x-s.x)+Math.abs(b.y-s.y)+b.id*.01;if(d<bd){bd=d;best=b}}return best}
@@ -1729,7 +1729,7 @@ function updatePrices(){for(const k of TRADEABLE){const r=(targetStock(k)+2)/((S
  for(const t of S.towns)for(const k of TRADEABLE)t.f[k]=clamp(t.f[k]*(1+(rnd()-.5)*.12),.8,1.25)}
 // Luxusgüter: Wein, Salz (Stimmung), Tuch (Schneiderei)
 function luxDaily(){const need=Math.max(1,Math.ceil(S.p.length/12));for(const k of['wein','salz','gewuerze','seide','porzellan','zucker','fisch'].concat(typeof FOODLUX!=='undefined'?FOODLUX:[])){if(S.res[k]>=need){S.res[k]-=need;flow('cons',k,need);S.lux[k]=1}else S.lux[k]=0}}
-const luxMood=()=>S.lux?(S.lux.wein?3:0)+(S.lux.salz?3:0)+['gewuerze','seide','porzellan','zucker','fisch','gemuese','honig','fleisch','milch','stickerei'].reduce((a,k)=>a+(S.lux[k]?2:0),0):0;
+const luxMood=()=>S.lux?(S.lux.wein?3:0)+(S.lux.salz?3:0)+['gewuerze','seide','porzellan','zucker','fisch','gemuese','honig','fleisch','milch','stickerei','eier','elixier'].reduce((a,k)=>a+(S.lux[k]?(k==='elixier'?3:2):0),0):0;
 // ---- Wege zu den Kartenrändern ----
 function edgeExit(side){const c=W>>1;let best=null,bd=1e9;for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(S.map[i]===3&&!S.road[i])continue;const onEdge=side==='w'?x===0:side==='e'?x===W-1:side==='s'?y===H-1:y===0;if(!onEdge)continue;
   const d=(S.road[i]?0:40)+Math.abs((side==='w'||side==='e'?y:x)-c);if(d<bd){bd=d;best=[x,y]}}return best}
@@ -2216,20 +2216,20 @@ function pregHourly(s){const P=s.preg;if(!P)return;const wk=pregWeek(s);P.wk=wk;
  if(wk>=18&&wk<36&&rnd()<.06&&s.wish&&!s.wish.some(w=>w.preg)){const food=pick(['Honig','Fisch','eingelegtem Kohl','süßem Brot','Äpfeln']);s.wish.push({type:'task',k:'eat',i:'🤤',n:`Heißhunger auf ${food}`,t0:hAbs(),id:(S.wid=(S.wid||1)+1),preg:1})}
  if(wk>=28&&rnd()<.1)addM(s,'ruecken');if(wk>=33&&rnd()<.1&&s.home){addM(s,'nest');if(s.wish&&!s.wish.some(w=>w.nest))s.wish.push({type:'task',k:'tidy',i:'🧺',n:'Die Kinderecke vorbereiten',t0:hAbs(),id:(S.wid=(S.wid||1)+1),nest:1})}
  const due=38+((s.id*7)%4);if(wk>=due&&!P.labor)startLabor(s);if(P.labor&&hAbs()-P.labor>6)giveBirth(s)}
-function birthPlace(s){const h=nearest(s,b=>BT[b.t].heal&&b.built>=1);return h&&S.p.some(p=>p.job===h.id)?h:(s.home&&bById.get(s.home))||h}
+function birthPlace(s){const gb=nearest(s,b=>BT[b.t].birth&&b.built>=1&&S.p.some(p=>p.job===b.id));if(gb)return gb;const h=nearest(s,b=>BT[b.t].heal&&b.built>=1);return h&&S.p.some(p=>p.job===h.id)?h:(s.home&&bById.get(s.home))||h}
 function startLabor(s){const P=s.preg;P.labor=hAbs();addM(s,'wehen');const bp=birthPlace(s);s.cmds=s.cmds||[];s.cmds.unshift({k:'birth',bid:bp?bp.id:s.home,pri:9,exp:hAbs()+12});s.left=0;
  const f=pById.get(P.father);if(f&&!f.away){addM(f,'aufgeregt');f.cmds=f.cmds||[];f.cmds.unshift({k:'visit',bid:bp?bp.id:s.home,pri:8,exp:hAbs()+8});f.left=0}
  log(`😖 Bei ${nm(s)} setzen die Wehen ein – ${bp&&BT[bp.t].heal?'auf ins Heilerhaus zur Hebamme':'die Geburt findet zu Hause statt'}!`,s.id);if(typeof toast==='function')toast(`😖 ${s.fn}: Die Wehen setzen ein!`)}
 const BABYNAMES={f:['Anna','Marie','Lena','Clara','Ida','Greta','Hanna','Elisabeth','Margarete','Agnes','Johanna','Mathilda'],m:['Jakob','Konrad','Otto','Paul','Heinrich','Lukas','Simon','Friedrich','Ludwig','Matthias','Emil','Wilhelm']};
-function giveBirth(s){const P=s.preg;if(!P)return;const f=pById.get(P.father),place=bById.get(s.inside)||bById.get(s.home);const mid=place&&BT[place.t].heal?S.p.find(p=>p.job===place.id&&p.inside===place.id):null;const kids=[];
+function giveBirth(s){const P=s.preg;if(!P)return;const f=pById.get(P.father),place=bById.get(s.inside)||bById.get(s.home);const care=place&&(BT[place.t].heal||BT[place.t].birth),mid=care?(S.p.find(p=>p.job===place.id&&p.inside===place.id)||(BT[place.t].birth?S.p.find(p=>p.job===place.id):null)):null;const kids=[];
  for(let i=0;i<(P.twins?2:1);i++){const g=i?P.g2:P.g;const home=s.home&&bById.get(s.home);const c=mkCit((home||place).x+.5,(home||place).y+.6,0,s.ln,g);
   if(i===0&&P.name)c.fn=P.name;else if(i===1&&P.name2)c.fn=P.name2;else c.fn=pick(BABYNAMES[g].filter(n=>!S.p.some(q=>q.fn===n&&q.ln===s.ln)).concat(BABYNAMES[g]).slice(0,99));
   c.home=s.home;c.parents=[s.id].concat(f?[f.id]:[]);c.look=inheritLook(g,s,f||null);c.gen=Math.max(s.gen||1,f?f.gen||1:1)+1;c.origin='hier';c.inside=c.home;c.act='do';c.task={k:'baby',bid:c.home};c.left=1;c.n={h:80,e:80,s:80,f:80,y:90};c.up={lesen:0,spielen:0,lob:0,natur:0};
-  adj(c,s,50);if(f)adj(c,f,50);story(c,'👶',`kam ${place&&BT[place.t].heal?'im Heilerhaus':'zu Hause'} in ${S.name} zur Welt${mid?' – die Hebamme '+mid.fn+' half':''}`);kids.push(c);
+  adj(c,s,50);if(f)adj(c,f,50);story(c,'👶',`kam ${care?'im '+bName(place):'zu Hause'} in ${S.name} zur Welt${mid?' – die Hebamme '+mid.fn+' half':''}`);kids.push(c);
   for(const sib of S.p)if(sib!==c&&sib.parents&&sib.parents.includes(s.id)&&!kids.includes(sib))addM(sib,'geschwister')}
  const word=kids.length>1?'Zwillinge':kids[0].g==='f'?'eine Tochter':'einen Sohn',names=kids.map(k=>k.fn).join(' und ');
  story(s,'👶',`brachte ${word} zur Welt: ${names}`);if(f)story(f,'👶',`wurde Vater von ${names}`);if(mid)story(mid,'👶',`half als Hebamme bei der Geburt von ${names}`);
- addM(s,'stolz');addM(s,'erschoepft');s.n.e=Math.min(s.n.e,25);if(f)addM(f,'stolz');s.preg=null;s.lastBirth=hAbs();s.wochenbett=hAbs()+8;
+ addM(s,'stolz');addM(s,'erschoepft');s.n.e=Math.min(s.n.e,25);if(f)addM(f,'stolz');s.preg=null;s.lastBirth=hAbs();s.wochenbett=hAbs()+(place&&BT[place.t].birth&&mid?5:8);if(place&&BT[place.t].birth&&mid){s.n.e=Math.max(s.n.e,40);s.n.f=Math.min(100,s.n.f+15)}
  log(`👶 Willkommen, ${names}! ${nm(s)}${f?' und '+f.fn:''} haben ${word} bekommen.`,kids[0].id);if(typeof toast==='function')toast(`👶 ${names} ist da!`)}
 // ---- Babys & Kinder ----
 function babyTick(s,dt){if(ageOf(s)>=1)return false;const dh=dt/HOUR,n=s.n,h=s.home&&bById.get(s.home);if(h){s.inside=h.id;s.x=h.x+.5;s.y=h.y+.6}
@@ -2373,9 +2373,9 @@ function whSync(){const L=whList();if(!L.length)return;for(const b of S.b)if(b.b
 function whNear(b,k){const L=whList().filter(w=>!k||((w.inv&&w.inv[k])||0)>=1);if(!L.length)return null;return L.sort((a,c)=>dist2(a,b)-dist2(c,b))[0]}
 // Betriebe holen ihre Rohstoffe im Lagerhaus ab
 function fetchArrive(s,wh,t){const jb=bById.get(t.jb);if(!jb){s.left=.1;return}const T=F(jb);jb.buf=jb.buf||{};const got=[];
- for(const[k,n]of Object.entries(T.in||{})){const want=Math.max(0,n*3-(jb.buf[k]||0));if(want<=0)continue;let otherBuf=0;for(const b of S.b)if(b!==jb&&b.buf&&b.buf[k])otherBuf+=b.buf[k];const avail=Math.max(0,(S.res[k]||0)-otherBuf-(jb.buf[k]||0));const q=Math.min(want,Math.floor(avail));if(q<=0)continue;
+ for(const[k,n]of Object.entries(T.in||{})){const want=Math.max(0,n*(eselOn()?6:3)-(jb.buf[k]||0));if(want<=0)continue;let otherBuf=0;for(const b of S.b)if(b!==jb&&b.buf&&b.buf[k])otherBuf+=b.buf[k];const avail=Math.max(0,(S.res[k]||0)-otherBuf-(jb.buf[k]||0));const q=Math.min(want,Math.floor(avail));if(q<=0)continue;
   let tk=whTake(k,q,wh);jb.buf[k]=(jb.buf[k]||0)+q;got.push(q+' '+RES[k][1])}
- jb.need=0;jb.fetchBy=0;s.th=got.length?`Hole ${got.join(', ')} aus dem Lagerhaus.`:'Im Lagerhaus ist nichts mehr da.';s.left=.35;
+ jb.need=0;jb.fetchBy=0;s.th=got.length?`Hole ${got.join(', ')} aus dem Lagerhaus${eselOn()?' – mit dem Esel':''}.`:'Im Lagerhaus ist nichts mehr da.';s.left=.35;
  s.cmds.unshift({k:'work',bid:jb.id,exp:hAbs()+4,auto:1})}
 function whView(b){const inv=b.inv||{},used=whUsed(b),cap=whCap(b),p=Math.min(100,used/cap*100),ks=Object.keys(inv).filter(k=>inv[k]>=1).sort((a,c)=>inv[c]-inv[a]);
  const others=whList().filter(w=>w!==b);
@@ -2482,6 +2482,39 @@ Object.assign(BT,{
 BT.radwerkstatt.era=2;
 Object.assign(JP,{druckerei:9,universitaet:12,bank:12,fabrik:6,eisenhuette:7,bahnhof:9,kraftwerk:5,krankenhaus:6,supermarkt:7});
 Object.assign(HOBSK,{universitaet:'wissen'});Object.assign(JOBSK,{druckerei:'wissen',universitaet:'wissen',bank:'wissen',fabrik:'handwerk',eisenhuette:'fitness',bahnhof:'charisma',kraftwerk:'wissen',krankenhaus:'wissen',supermarkt:'charisma'});
+// ===== Update 56: Apotheke, Geburtshaus, Alchemist, Gaukler, Tierhöfe, Ämter im Rathaus =====
+Object.assign(RES,{arznei:['💊','Arznei'],elixier:['⚗️','Elixiere'],eier:['🥚','Eier'],esel:['🫏','Esel']});
+Object.assign(BASE,{arznei:8,elixier:22,eier:1.2,esel:12});for(const k of['arznei','elixier','eier','esel'])if(!TRADEABLE.includes(k))TRADEABLE.push(k);
+FOODLUX.push('eier','elixier');
+Object.assign(BT,{
+ apotheke:{n:'Apotheke',i:'⚕️',slots:2,job:['Apothekerin','Apotheker'],wh:1.6,in:{honig:1},out:{arznei:2},shop:1,cost:{bretter:12,taler:90},bh:8,def:{f:'fachwerk',fl:2},cat:'gew',d:'Mischt aus Honig und Kräutern Arznei. Mit Arznei auf Lager werden Kranke doppelt so schnell gesund und seltener krank.'},
+ geburtshaus:{n:'Geburtshaus',i:'👶',slots:2,job:['Hebamme','Geburtshelfer'],birth:1,cost:{bretter:14,taler:100},bh:8,def:{f:'fachwerk',fl:2},cat:'',d:'Hebammen begleiten Schwangere. Kinder kommen hier sicher zur Welt – die Mütter erholen sich schneller.'},
+ alchemist:{n:'Alchemistenturm',i:'⚗️',slots:1,job:['Alchemistin','Alchemist'],wh:2.5,in:{salz:1,wein:1},out:{elixier:1},cost:{bretter:10,stein:12,taler:140},bh:10,def:{f:'buerger',fl:3},cat:'gew',d:'Destilliert aus Wein und Salz kostbare Elixiere – ein Luxusgut, das die Stimmung hebt und teuer verkauft wird.'},
+ gaukler:{n:'Gauklerplatz',i:'🤹',slots:2,job:['Gauklerin','Gaukler'],hobby:{n:'Gaukelei',v:'staunt über die Gaukler',likes:['Theater','Musik','Tanzen','Geschichten'],open:[10,21],show:1},social:1,cost:{bretter:8,taler:60},bh:4,cat:'hobby',d:'Feuerspucker, Jongleure und Stelzenläufer zeigen tagsüber ihre Kunststücke.'},
+ eselfarm:{n:'Eselfarm',i:'🫏',sz:2,slots:2,job:['Eseltreiberin','Eseltreiber'],wh:3,out:{esel:1},cost:{bretter:14,taler:90},bh:7,def:{f:'lang',fl:1},cat:'gew',d:'Züchtet Esel als Lasttiere: Mit Eseln holen Betriebe doppelt so viel aus dem Lagerhaus (2×2 Felder).'},
+ schafsfarm:{n:'Schafsfarm',i:'🐑',sz:2,slots:2,job:['Schäferin','Schäfer'],wh:1.5,out:{wolle:2,milch:1},cost:{bretter:12,taler:80},bh:7,def:{f:'lang',fl:1},cat:'gew',d:'Eine Herde auf der Weide liefert Wolle für die Tuchmacher und Schafsmilch (2×2 Felder).'},
+ schweinezucht:{n:'Schweinezucht',i:'🐖',slots:2,job:['Schweinehirtin','Schweinehirt'],wh:1.6,out:{vieh:2},cost:{bretter:8,taler:60},bh:5,cat:'gew',d:'Schweine im Koben – Vieh für die Fleischerei.'},
+ huehnerfarm:{n:'Hühnerfarm',i:'🐔',slots:2,job:['Magd','Knecht'],wh:1.2,out:{eier:3},cost:{bretter:6,taler:45},bh:4,cat:'gew',d:'Mägde und Knechte versorgen Hühner und sammeln frische Eier.'}});
+Object.assign(BT.rathaus,{slots:3,jobs:[['Bürgermeisterin','Bürgermeister'],['Schatzmeisterin','Schatzmeister'],['Schreiberin','Schreiber']],d:'Verwaltung mit Bürgermeister (Dorfleben +1,5), Schatzmeister (täglich 1 % Zinsen auf die Stadtkasse) und Schreiber. Nur mit Rathaus ziehen neue Familien zu.'});
+Object.assign(TEMPLATES,{
+ apotheke:{v:1,floors:[{rooms:[Rm(0,4,12,6,'fachwerk'),Rm(0,0,12,4,'stein')],furn:[Fu('theke',4,6),Fu('kraeuter',0,4),Fu('kraeuter',10,4),Fu('regal',9,8),Fu('kessel',1,1),Fu('kessel',3,1),Fu('arbeitstisch',6,1),Fu('kraeuter',9,0),Fu('fass',11,2)],edges:{'h:6:10':'door','h:2:4':'door','v:0:7':'window','v:12:7':'window'}},{rooms:[Rm(0,0,7,10,'fachwerk'),Rm(7,0,5,10,'fachwerk')],furn:[Fu('doppelbett',1,1),Fu('truhe',4,1),Fu('tisch',2,6),Fu('stuhl',2,7),Fu('bett',9,1),Fu('regal',8,8)],edges:{'v:7:5':'door','v:0:3':'window','v:12:3':'window'}}]},
+ geburtshaus:{v:1,floors:[{rooms:[Rm(0,0,7,10,'fachwerk'),Rm(7,0,5,6,'fachwerk'),Rm(7,6,5,4,'stein')],furn:[Fu('bett',1,1),Fu('bett',3,1),Fu('wiege',5,1),Fu('wiege',5,2),Fu('tisch',2,6),Fu('stuhl',2,7),Fu('stuhl',3,5),Fu('liege',9,1),Fu('kessel',10,4),Fu('kraeuter',8,0)],edges:{'h:3:10':'door','v:7:3':'door','v:7:8':'door','v:0:3':'window','v:12:2':'window'}}]},
+ alchemist:{v:1,floors:[{rooms:[Rm(0,0,12,10,'stein')],furn:[Fu('kessel',2,2),Fu('kessel',4,2),Fu('arbeitstisch',7,2),Fu('buecher',0,0),Fu('kraeuter',9,0),Fu('regal',10,6),Fu('pult',2,7),Fu('stuhl',2,8),Fu('fass',11,9)],edges:{'h:6:10':'door','v:0:5':'window','v:12:4':'window'}}]},
+ gaukler:{v:1,floors:[{rooms:[Ro(0,0,12,10)],furn:[Fu('buehne',2,1),Fu('bank',1,5),Fu('bank',4,5),Fu('bank',7,5),Fu('bank',1,7),Fu('bank',4,7),Fu('bank',7,7),Fu('truhe',11,1),Fu('laute',10,8)],edges:{}}]},
+ eselfarm:{v:1,floors:[{rooms:[Rm(0,0,6,5,'holz'),Ro(6,0,6,10),Ro(0,5,6,5)],furn:[Fu('heu',0,0),Fu('heu',1,0),Fu('pferd',3,0),Fu('pferd',4,0),Fu('fass',5,3),Fu('pferd',8,2),Fu('pferd',10,5),Fu('heu',2,8)],edges:{'v:6:3':'door'}}]},
+ schafsfarm:{v:1,floors:[{rooms:[Rm(0,0,6,5,'holz'),Ro(6,0,6,10),Ro(0,5,6,5)],furn:[Fu('heu',0,0),Fu('heu',1,0),Fu('arbeitstisch',2,3),Fu('fass',5,3),Fu('heu',9,6),Fu('beet',1,7),Fu('bank',8,1)],edges:{'v:6:3':'door'}}]},
+ schweinezucht:{v:1,floors:[{rooms:[Rm(0,0,12,4,'holz'),Ro(0,4,12,6)],furn:[Fu('heu',0,0),Fu('heu',1,0),Fu('fass',10,0),Fu('fass',11,0),Fu('heu',3,6),Fu('beet',7,7)],edges:{'h:6:4':'door'}}]},
+ huehnerfarm:{v:1,floors:[{rooms:[Rm(0,0,5,4,'holz'),Ro(5,0,7,10),Ro(0,4,5,6)],furn:[Fu('heu',0,0),Fu('heu',1,0),Fu('truhe',3,0),Fu('fass',4,2),Fu('beet',7,6),Fu('heu',9,2)],edges:{'v:5:2':'door'}}]}});
+for(const t of['apotheke','geburtshaus','alchemist','gaukler','eselfarm','schafsfarm','schweinezucht','huehnerfarm'])PLAN_TYPES[t]=1;
+Object.assign(JP,{apotheke:10,geburtshaus:10,alchemist:13,gaukler:7,eselfarm:5,schafsfarm:4,schweinezucht:3,huehnerfarm:3});
+Object.assign(JOBSK,{apotheke:'wissen',geburtshaus:'wissen',alchemist:'wissen',gaukler:'kreativ',eselfarm:'fitness',schafsfarm:'garten',schweinezucht:'garten',huehnerfarm:'garten'});
+Object.assign(JOBPROP,{apotheke:'krug',geburtshaus:'tuch',alchemist:'krug',gaukler:'kugel',eselfarm:'korb',schafsfarm:'korb',schweinezucht:'korb',huehnerfarm:'korb'});
+Object.assign(HOBSK,{gaukler:'kreativ'});Object.assign(HOBPROP,{gaukler:null});
+for(const t of['eselfarm','schafsfarm','schweinezucht','huehnerfarm','gaukler'])ROADFREE[t]=1;
+// Ämter mit eigenem Titel je Stelle (z. B. Rathaus)
+function roleHolder(t,i){const b=S.b.find(x=>x.t===t&&x.built>=1);if(!b)return null;const W=S.p.filter(p=>p.job===b.id&&!p.dead).sort((a,c)=>a.id-c.id);return W[i]||null}
+const eselOn=()=>(S.res.esel||0)>=1||S.b.some(b=>b.t==='eselfarm'&&b.built>=1&&S.p.some(p=>p.job===b.id));
+function u56Daily(){const sm=roleHolder('rathaus',1);if(sm&&S.res.taler>0){const z=Math.min(40,Math.floor(S.res.taler*.01));if(z>0){S.res.taler+=z;flow('in','Zinsen (Schatzmeister)',z)}}}
 Object.assign(JOBPROP,{druckerei:'buch',universitaet:'buch',bank:'feder',fabrik:'tuch',eisenhuette:'hammer',kraftwerk:'hammer',krankenhaus:'kraut',supermarkt:'korb'});
 for(const k of['laufrad','tretrad','stadtrad','lastenrad','sportrad','hochrad'])VEH[k].era=2;
 VEH.auto={n:'Automobil',cat:'kutsche',shop:'wagnerei',era:3,cost:{werkzeug:12,tuch:4,taler:300},days:2,d:'Motorisiert: alle Bewohner +8 % schneller, +3 Gäste.'};
@@ -2530,6 +2563,7 @@ const seasonIdx=()=>Math.floor(day()/SEASON_DAYS)%4,seasonDay=()=>day()%SEASON_D
 function seasonWeights(){if(hAbs()/24<SEASON_DAYS)return[1,0,0,0];const t=hAbs()/24/SEASON_DAYS,i=Math.floor(t)%4,f=(t-Math.floor(t))*SEASON_DAYS,bl=Math.min(1,f/2),w=[0,0,0,0];w[i]+=bl;w[(i+3)%4]+=1-bl;return w}
 Object.assign(MOODLET,{frieren:{i:'🥶',n:'Es ist bitterkalt',v:-8,h:24,e:'traurig'},schnee:{i:'⛄',n:'Spaß im Schnee',v:6,h:12,e:'glueck'},fruehling:{i:'🌸',n:'Frühlingsgefühle',v:5,h:24,e:'glueck'},sommer:{i:'☀️',n:'Sommerlaune',v:4,h:24,e:'glueck'},herbst:{i:'🍂',n:'Gemütlicher Herbst',v:3,h:24,e:'ruhig'}});
 const FARM={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,imker:1,garten:1,viehhof:.5};
+Object.assign(FARM,{eselfarm:.5,schafsfarm:.5,schweinezucht:1,huehnerfarm:1});
 function seasonProd(b){const f=FARM[b.t];if(!f)return 1;const m=[1.0,1.15,1.35,.3][seasonIdx()];return 1+(m-1)*f}
 function seasonBanner(si,pre){if(typeof document==='undefined')return;const SE=SEASONS[si],el=document.createElement('div');el.className='seasonban s'+si;
  el.innerHTML=pre?`<span>${SE[1]}</span><div><b>Bald beginnt der ${SE[2]}</b><small>in ${pre} ${pre>1?'Tagen':'Tag'}${si===3?' – lege jetzt Brennholz für den Winter an!':si===2?' – die Erntezeit naht.':''}</small></div>`:`<span>${SE[1]}</span><div><b>Der ${SE[2]} beginnt</b><small>${['Die Natur erwacht – Felder und Gärten blühen auf.','Lange, warme Tage – die Strände füllen sich.','Erntezeit – die Felder tragen besonders viel.','Schnee und Kälte – die Häuser brauchen Brennholz.'][si]}</small></div>`;
@@ -3858,6 +3892,38 @@ dress('druckerei',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.36,fz,(x,y,z)=>{b
 dress('bauhuette',(b,cx,cz,w,dd,top,fz)=>{for(let k=0;k<5;k++)box(TR(cx-.25,.02+k*.03,fz+.18),.3,.03,.03+((k*7)%3)*.005,col(k%2?'#c9a26a':'#b8915c'));for(const s of[-1,1])box(TR(cx+.22+s*.06,0,fz+.15),.015,.4,.015,col('#8a6a42'));box(TR(cx+.22,.38,fz+.15),.15,.015,.015,col('#8a6a42'));box(TR(cx+.22,.2,fz+.18),.004,.18,.004,col('#3a3a3a'));box(TR(cx+.22,.1,fz+.18),.05,.05,.05,col('#a9a49a'))});
 dress('holz',(b,cx,cz,w,dd,top,fz)=>{for(let r=0;r<3;r++)for(let k=0;k<4-r;k++)cyl(TR(cx-.28+k*.07+r*.035,.03+r*.055,fz+.16,0,0,Math.PI/2),.03,.03,.24,8,col(k%2?'#8a5a32':'#7a4e2a'));cyl(TR(cx+.22,0,fz+.15),.06,.06,.08,10,col('#9a7a52'));box(TR(cx+.22,.12,fz+.15,0,0,.4),.012,.12,.012,col('#6b4a2e'))});
 dress('saege',(b,cx,cz,w,dd,top,fz)=>{for(let k=0;k<6;k++)box(TR(cx-.22,.02+k*.02,fz+.16),.32,.02,.12,col(k%2?'#d0a870':'#c49a62'));for(let k=0;k<3;k++)cyl(TR(cx+.18,.03+k*.06,fz+.15,0,0,Math.PI/2),.03,.03,.22,8,col('#8a5a32'))});
+// ---- Update 56: Aussehen der neuen Gebäude ----
+function donkey3(x,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry),T=(a,y,b,r2)=>TR(x+a*cs+b*sn,y,z-a*sn+b*cs,ry,r2||0),c=col('#8c847a'),dk=col('#4e4842'),lt=col('#d8d2c8');
+ box(T(0,.1,0),.08,.075,.2,c);for(const[a,b]of[[-.03,-.075],[.03,-.075],[-.03,.075],[.03,.075]])box(T(a,0,b),.018,.11,.018,dk);
+ box(T(0,.15,.11,-.5),.04,.09,.04,c);box(T(0,.2,.15),.04,.045,.08,c);box(T(0,.19,.2),.035,.03,.03,lt);for(const a of[-.014,.014])box(T(a,.235,.13,.25),.01,.06,.012,c);box(T(0,.1,-.1,.4),.01,.06,.01,dk)}
+function fenceRect(x0,z0,x1,z1,cc){const c=col(cc||'#8a6a42'),n=Math.max(2,Math.round((x1-x0)/.2)),m=Math.max(2,Math.round((z1-z0)/.2));
+ for(let i=0;i<=n;i++){const x=x0+(x1-x0)*i/n;box(TR(x,0,z0),.022,.13,.022,c);box(TR(x,0,z1),.022,.13,.022,c)}for(let i=1;i<m;i++){const z=z0+(z1-z0)*i/m;box(TR(x0,0,z),.022,.13,.022,c);box(TR(x1,0,z),.022,.13,.022,c)}
+ for(const y of[.05,.11]){box(TR((x0+x1)/2,y,z0),x1-x0,.014,.014,c);box(TR((x0+x1)/2,y,z1),x1-x0,.014,.014,c);box(TR(x0,y,(z0+z1)/2),.014,.014,z1-z0,c);box(TR(x1,y,(z0+z1)/2),.014,.014,z1-z0,c)}}
+Object.assign(HMESH,{
+ eselfarm(b,cx,cz){const x0=b.x,z0=b.y;const t=houseMesh(b.d,x0+.6,z0+.45,1,b);gq(x0+.08,z0+1,x0+1.92,z0+1.92,.008,col('#8fa860'));gq(x0+1.15,z0+.1,x0+1.92,z0+.95,.008,col('#a08a62'));fenceRect(x0+.08,z0+1,x0+1.92,z0+1.92);
+  donkey3(x0+.45,z0+1.35,.5);donkey3(x0+.85,z0+1.7,-1.4);donkey3(x0+1.4,z0+1.3,2.2);donkey3(x0+1.6,z0+1.65,.2);donkey3(x0+1.5,z0+.55,1.6);
+  for(const[x,z]of[[x0+1.3,z0+.3],[x0+1.75,z0+.3]]){cyl(TR(x,0,z),.06,.07,.1,8,col('#c9a85a'));cyl(TR(x,.1,z),.07,.05,.03,8,col('#d9b86a'))}box(TR(x0+.25,0,z0+1.8),.24,.06,.08,col('#6b4a2e'));return t},
+ schafsfarm(b,cx,cz){const x0=b.x,z0=b.y;const t=houseMesh(b.d,x0+.6,z0+.45,1,b);gq(x0+.06,z0+.98,x0+1.94,z0+1.94,.008,col('#86b35a'));gq(x0+1.12,z0+.08,x0+1.94,z0+.95,.008,col('#93b862'));fenceRect(x0+.06,z0+.98,x0+1.94,z0+1.94,'#9a7a50');
+  const P=[[.3,1.3,.4],[.5,1.6,2],[.75,1.25,-1],[.95,1.55,1.2],[1.2,1.3,.2],[1.35,1.7,-2.2],[1.6,1.4,.9],[1.75,1.75,-.5],[1.4,.4,1.5],[1.65,.6,-.3],[1.3,.75,2.8]];for(const[a,c2,r]of P)sheep3(x0+a,z0+c2,r);
+  box(TR(x0+.3,0,z0+1.82),.3,.05,.08,col('#6b4a2e'));cyl(TR(x0+1.8,0,z0+.2),.05,.06,.12,8,col('#c9a85a'));return t},
+ schweinezucht(b,cx,cz){const x0=b.x,z0=b.y;box(TR(cx,0,z0+.22),.8,.22,.3,col('#9c7b55'));prism(TR(cx,.22,z0+.22),.88,.14,.36,col('#8a6e3c'));gq(x0+.08,z0+.42,x0+.92,z0+.94,.008,col('#7a5c3c'));
+  ell3(TR(cx+.15,.005,z0+.7),.18,.008,.12,3,8,col('#5e4630'));fenceRect(x0+.08,z0+.42,x0+.92,z0+.94,'#7a5a38');for(const[a,c2,r]of[[.25,.6,.4],[.45,.78,2],[.7,.62,-1.2],[.6,.85,.9],[.3,.82,-2.4]])pig3(x0+a,z0+c2,r);
+  box(TR(x0+.75,0,z0+.5),.18,.04,.06,col('#5a3d24'));return .36},
+ huehnerfarm(b,cx,cz){const x0=b.x,z0=b.y;gq(x0+.05,z0+.05,x0+.95,z0+.95,.008,col('#a8a070'));box(TR(x0+.28,.05,z0+.25),.36,.2,.26,col('#b08a5a'));for(const[a,c2]of[[.14,.14],[.42,.14],[.14,.36],[.42,.36]])box(TR(x0+a,0,z0+c2),.03,.06,.03,col('#6b4a2e'));
+  prism(TR(x0+.28,.25,z0+.25),.42,.12,.32,col('#a8452f'));box(TR(x0+.28,.06,z0+.4,0,-.7),.05,.012,.16,col('#8a6a42'));fenceRect(x0+.6,z0+.08,x0+.94,z0+.92,'#a08458');
+  for(let i=0;i<14;i++)hen3(x0+.1+((i*37)%85)/100,z0+.5+((i*23)%42)/100);for(let i=0;i<4;i++)hen3(x0+.68+(i%2)*.15,z0+.2+Math.floor(i/2)*.3);cyl(TR(x0+.85,0,z0+.88),.04,.04,.03,8,col('#7a7068'));return .4},
+ gaukler(b,cx,cz){const x0=b.x,z0=b.y;gq(x0+.04,z0+.04,x0+.96,z0+.96,.007,col('#c8b590'));box(TR(cx,0,z0+.3),.6,.07,.28,col('#8a6a42'));box(TR(cx,.07,z0+.3),.62,.01,.3,col('#a07a4a'));
+  cyl(TR(x0+.22,0,z0+.78),.14,.14,.16,10,col('#c0453a'));cone(TR(x0+.22,.16,z0+.78),.17,.18,10,col('#f2e6c8'));box(TR(x0+.22,.34,z0+.78),.008,.08,.008,col('#5a3d24'));box(TR(x0+.245,.39,z0+.78),.04,.025,.004,col('#e0b040'));
+  for(const s of[-1,1]){box(TR(cx+s*.28,0,z0+.18),.02,.38,.02,col('#5a3d24'));}box(TR(cx,.36,z0+.18),.58,.015,.015,col('#5a3d24'));for(let k=0;k<7;k++)prism(TR(cx-.24+k*.08,.3,z0+.18),.05,.05,.01,col(['#c0453a','#e0b040','#2f5f9a','#3d8a6a'][k%4]));
+  for(let k=0;k<3;k++)box(TR(cx-.05+k*.05,.24+(k%2)*.06,z0+.3),.022,.022,.022,col(['#e0b040','#c0453a','#2f5f9a'][k]));
+  for(const z of[.62,.8])box(TR(cx+.15,0,z0+z),.34,.05,.06,col('#8a5a32'));return .4}});
+dress('apotheke',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{cyl(TR(x,y-.035,z),.018,.024,.03,8,col('#3d8a6a'));box(TR(x,y,z),.006,.03,.004,col('#5a3d24'))});box(TR(cx-.18,0,fz+.1),.24,.06,.08,col('#6b4a2e'));
+ for(let k=0;k<5;k++)cyl(TR(cx-.27+k*.045,.06,fz+.1),.012,.012,.035,6,col(['#3d8a6a','#8a5cc2','#c0453a','#e0b040','#2f5f9a'][k]));for(let k=0;k<4;k++)flower3(cx+.14+(k%2)*.07,.0,fz+.1+Math.floor(k/2)*.06,.6,['#f4efe4','#8a5cc2'][k%2],k)});
+dress('geburtshaus',(b,cx,cz,w,dd,top,fz)=>{for(const s of[-1,1]){box(TR(cx+s*.26,0,fz+.16),.2,.04,.16,col('#6b4a2e'));for(let k=0;k<6;k++)flower3(cx+s*.26-.06+(k%3)*.06,.04,fz+.11+Math.floor(k/3)*.08,.6,['#f2a0b8','#f4efe4','#9ac0e8'][k%3],k)}
+ cyl(TR(cx+w*.25,top-.02,cz),.07,.08,.04,10,col('#7a5a38'));ell3(TR(cx+w*.25,top+.07,cz),.03,.035,.05,4,6,col('#f4f2ec'));box(TR(cx+w*.25,top+.09,cz+.05),.008,.01,.04,col('#d9662e'));
+ box(TR(cx+.02,0,fz+.12),.1,.04,.06,col('#c9a85a'));});
+dress('alchemist',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{ell3(TR(x,y-.03,z),.02,.02,.008,4,6,col('#8a5cc2'));box(TR(x,y,z),.006,.03,.004,col('#5a3d24'))});
+ cyl(TR(cx-.2,0,fz+.12),.06,.07,.07,10,col('#3a3530'));ell3(TR(cx-.2,.07,fz+.12),.05,.012,.05,3,8,col('#7ad08a'),{e:1});for(let k=0;k<4;k++)cyl(TR(cx+.1+k*.05,0,fz+.1),.014,.01,.05,6,col(['#8a5cc2','#3d8a6a','#e0b040','#c0453a'][k]))});
 // Badehaus: Zuber, Dampf, Schild
 if(HMESH.badehaus){const _bh=HMESH.badehaus;HMESH.badehaus=function(b,cx,cz){const t=_bh(b,cx,cz);for(const s of[-1,1]){const x=cx+s*.28,z=cz+.38;cyl(TR(x,0,z),.09,.08,.09,12,col('#8a5a32'));cyl(TR(x,.085,z),.08,.08,.006,12,col('#7fc0d8'));for(const y of[.02,.065])cyl(TR(x,y,z),.092,.092,.008,12,col('#3a3a3a'))}
  for(let k=0;k<3;k++)box(TR(cx,.02+k*.02,cz+.42),.1,.02,.06,col(k%2?'#f4efe4':'#e0d6c4'));for(let k=0;k<4;k++)ell3(TR(cx+.05+k*.02,t+.05+k*.07,cz-.1),.05+k*.015,.04+k*.01,.05+k*.015,4,6,col('#f2f4f6'));
