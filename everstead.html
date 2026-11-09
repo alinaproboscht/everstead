@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="56">
+<meta name="everstead-build" content="57">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2588,6 +2588,9 @@ function cRandS(k){const x=Math.sin(k*12.9898)*43758.5453;return x-Math.floor(x)
 
 // ===== 3D-Renderer (WebGL, eigener Mini-Motor) =====
 const cv=document.getElementById('cv'),ov=document.getElementById('ov'),oc=ov.getContext('2d');
+// Wenn iPadOS die Grafik entzieht (App-Wechsel, Speichermangel): sichern und sauber neu starten statt schwarzem Bild
+cv.addEventListener('webglcontextlost',e=>{e.preventDefault();try{if(typeof saveAll==='function')saveAll()}catch(_){}try{toast('🔄 Grafik wird neu gestartet …')}catch(_){}},false);
+cv.addEventListener('webglcontextrestored',()=>{setTimeout(()=>location.reload(),300)},false);
 const gl=cv.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:false});const skyc=document.getElementById('sky'),skx=skyc.getContext('2d');
 let cw=0,ch=0,dpr=1;let IM=null;
 const cam={x:22,y:22,dist:30,yaw:.45,pitch:.55,tx:null};
@@ -3053,9 +3056,9 @@ varying vec2 v;varying vec3 nn;varying vec3 w;varying vec4 vl;varying vec3 lp;un
   const U={};for(const k of['vp','mdl','lvp','tx','smap','shOn','ld','lc','sky','gnd','eye','fogc','night','mnv','mxv','sw','day','indoor','plt'])U[k]=gl.getUniformLocation(p,k);
   const mb=(a)=>{const B=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,B);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return B};
   const H={p,U,pb:mb(pos),nb:mb(new Int8Array(dec(M.nm))),ub:mb(new Uint16Array(dec(M.uv))),ib:gl.createBuffer(),cnt:M.i,tex:null,mn:M.mn,mx:M.mx};
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(dec(M.ix)),gl.STATIC_DRAW);
+  const IX=new Uint16Array(dec(M.ix));gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,IX,gl.STATIC_DRAW);try{hgLodBuild(H,qp,new Uint16Array(dec(M.uv)),new Int8Array(dec(M.nm)),IX)}catch(e){console.warn('LOD',e)}
   const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.activeTexture(gl.TEXTURE0);H.tex=t;bDirty=true};im.src=M.tex;
-  HGM[key]=H;return H}catch(e){console.warn('Hausmodell',e);HG_FAIL=true;return null}}
+  H.key=key;HGM[key]=H;if(!HGD.lod)mLoad('lod');return H}catch(e){console.warn('Hausmodell',e);HG_FAIL=true;return null}}
 // Modellmatrix: Grundfläche füllt das Grundstück, Unterkante auf Bodenhöhe
 // Marktplatz füllt den ganzen gepflasterten Platz rund um den Markt (inkl. Brunnen)
 const MKR=new Map();let MKFIT=false;
@@ -3100,6 +3103,21 @@ function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,z=
  ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
 const hgList=()=>S.b.filter(useGlb);
 function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):szOf(b.t)*MDEF[K].sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s}
+// ---- Detailstufen (LOD) und Sichtbarkeitsprüfung für 3D-Modelle ----
+let SHLV=null;
+function hgLodBuild(H,qp,uv,nm,ix){const n=qp.length/3;
+ const mk=(G,UG,useN)=>{const map=new Map(),rep=new Int32Array(n);for(let i=0;i<n;i++){const c=((qp[i*3]*G)>>16)*G*G+((qp[i*3+1]*G)>>16)*G+((qp[i*3+2]*G)>>16);let k=c;
+   if(UG)k=k*UG*UG+((uv[i*2]*UG)>>16)*UG+((uv[i*2+1]*UG)>>16);if(useN){const a=Math.abs(nm[i*3]),b2=Math.abs(nm[i*3+1]),c2=Math.abs(nm[i*3+2]);const ax=a>=b2&&a>=c2?0:b2>=c2?1:2;k=k*6+ax*2+(nm[i*3+ax]>0?1:0)}
+   let r=map.get(k);if(r===undefined){r=i;map.set(k,i)}rep[i]=r}
+  const out=[],seen=new Set();for(let t=0;t<ix.length;t+=3){const a=rep[ix[t]],b2=rep[ix[t+1]],c=rep[ix[t+2]];if(a===b2||b2===c||a===c)continue;const lo=Math.min(a,b2,c),hi=Math.max(a,b2,c),key=lo*n*4+hi*4+((a+b2+c-lo-hi)%4);if(seen.has(key))continue;seen.add(key);out.push(a,b2,c)}
+  const B=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,B);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(out),gl.STATIC_DRAW);return[B,out.length]};
+ [H.ib1,H.c1]=mk(40,12,1);[H.ib2,H.c2]=mk(18,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
+ H.rad=.5*Math.hypot(H.mx[0]-H.mn[0],H.mx[1]-H.mn[1],H.mx[2]-H.mn[2])}
+function frPlanes(m){const P=[];for(const[i,s]of[[0,1],[0,-1],[1,1],[1,-1],[2,1]]){const a=m[3]+s*m[i],b=m[7]+s*m[4+i],c=m[11]+s*m[8+i],d=m[15]+s*m[12+i],l=Math.hypot(a,b,c)||1;P.push([a/l,b/l,c/l,d/l])}return P}
+function mScale(M){return Math.max(Math.hypot(M[0],M[1],M[2]),Math.hypot(M[4],M[5],M[6]),Math.hypot(M[8],M[9],M[10]))}
+function frIn(P,M,H){const r=(H.rad||1)*mScale(M)*1.1,x=M[12],y=M[13],z=M[14];for(const p of P)if(p[0]*x+p[1]*y+p[2]*z+p[3]<-r)return false;return true}
+function hgLv(M,H){if(!H.ib1)return 0;if(H.ibq===undefined&&HGD.lod){const Q=HGD.lod[H.key];H.ibq=null;if(Q)try{const ix=Uint8Array.from(atob(Q.ix),c=>c.charCodeAt(0));H.ibq=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ibq);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(ix.buffer),gl.STATIC_DRAW);H.cq=Q.n*3;gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib)}catch(e){H.ibq=null}}
+ const r=(H.rad||1)*mScale(M),d=Math.hypot(M[12]-EYE[0],M[13]-EYE[1],M[14]-EYE[2])/Math.max(.05,r);return d<12?0:d<30?(H.ibq?3:0):1}
 function hgDraw(Lt,shOn,cut){for(const key of GLBK){const H=hgInit(key);if(!H||!H.tex)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDraw1(H,L2,Lt,shOn,MDEF[key].np)}
  if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&H.tex&&I[k].length)hgDraw1(H,I[k],Lt,shOn,1)}}
  else{ITX.q=Object.assign({},ITXC);itxDraw(Lt,1,[],1);const L3=Object.assign({},Lt,{indoor:1});for(const k in FGC){const H=hgInit(k);if(H&&H.tex)hgDraw1(H,FGC[k],L3,shOn,1)}}}
@@ -3108,12 +3126,12 @@ function hgDraw1(H,L2,Lt,shOn,np){const U=H.U;gl.useProgram(H.p);
  gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.nb);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.ub);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
  gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniformMatrix4fv(U.lvp,false,new Float32Array(LASTLV||ID4));gl.uniform1f(U.shOn,shOn?1:0);gl.uniform3fv(U.ld,Lt.ld);gl.uniform3fv(U.lc,Lt.lc);gl.uniform3fv(U.sky,Lt.sky);gl.uniform3fv(U.gnd,Lt.gnd);gl.uniform3fv(U.eye,EYE);gl.uniform3fv(U.fogc,Lt.fog);gl.uniform1f(U.night,Lt.night||0);gl.uniform3fv(U.mnv,H.mn);gl.uniform3fv(U.mxv,H.mx);gl.uniform4fv(U.sw,seasonWeights());gl.uniform1f(U.day,Lt.day==null?1:Lt.day);gl.uniform1f(U.indoor,Lt.indoor?1:0);gl.uniform1f(U.plt,np?0:1);
  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.uniform1i(U.tx,2);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX||null);gl.uniform1i(U.smap,0);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
- for(const b of L2){gl.uniformMatrix4fv(U.mdl,false,new Float32Array(b.M||hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}
+ const FP=frPlanes(VPM);let cur=0;for(const b of L2){const Mb=b.M||hgMat(b);if(!frIn(FP,Mb,H))continue;const lv=Lt.indoor?0:hgLv(Mb,H);if(lv!==cur){cur=lv;gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lv===3?H.ibq:lv===2?H.ib2:lv===1?H.ib1:H.ib)}gl.uniformMatrix4fv(U.mdl,false,new Float32Array(Mb));gl.drawElements(gl.TRIANGLES,lv===3?H.cq:lv===2?H.c2:lv===1?H.c1:H.cnt,gl.UNSIGNED_SHORT,0)}if(cur)gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
  gl.disable(gl.CULL_FACE);gl.disableVertexAttribArray(2);gl.useProgram(P);for(const k of['n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
 function hgDrawS(cut){for(const key of GLBK){const H=hgInit(key);if(!H)continue;const L2=S.b.filter(b=>glbKey(b)===key&&(!cut||!b.plan));if(L2.length)hgDrawS1(H,L2)}
  if(!cut){const I=mkItems();for(const k in I){const H=hgInit(k);if(H&&I[k].length)hgDrawS1(H,I[k])}}}
-function hgDrawS1(H,L2){gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);
- for(const b of L2){gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(b.M||hgMat(b)));gl.drawElements(gl.TRIANGLES,H.cnt,gl.UNSIGNED_SHORT,0)}gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4))}
+function hgDrawS1(H,L2){gl.bindBuffer(gl.ARRAY_BUFFER,H.pb);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);const lo=!!H.ib2;gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lo?H.ib2:H.ib);const FP=SHLV?frPlanes(SHLV):null;
+ for(const b of L2){const Mb=b.M||hgMat(b);if(FP&&!frIn(FP,Mb,H))continue;gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(Mb));gl.drawElements(gl.TRIANGLES,lo?H.c2:H.cnt,gl.UNSIGNED_SHORT,0)}if(lo)gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.ib);gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4))}
 function buildStatic0(){BT_OPEN.n=0;BT_EXT.n=0;BT_INT.n=0;BT_SH.n=0;SMOKE=[];FGC={};ITX.q={};
  for(const b of S.b){if(b.built<1)continue;BY=hgtAt(b.y*W+b.x)*HS;setRot(b);G=b.plan&&b.d?BT_EXT:BT_OPEN;if(useGlb(b)&&hgInit(glbKey(b))){b._top=hgTop(b)+hgtAt(b.y*W+b.x)*HS}else if(b.t==='markt'&&mkReady()){b._top=hgtAt(b.y*W+b.x)*HS+.75}else if(underMarkt(b)){b._top=hgtAt(b.y*W+b.x)*HS+.4}else b._top=bldMesh(b);if(b.plan&&b.d){G=BT_INT;interiorMesh(b)}
   if(b.d&&!SH_OK){const z=szOf(b.t);G=BT_SH;gq(b.x+.12,b.y+.18,b.x+z+.02,b.y+z,.006,col('#000000',.16))}BY=0;BROT=null}
@@ -3147,7 +3165,7 @@ function panCam(x0,y0,x1,y1){const a=groundAt(x0,y0),b=groundAt(x1,y1);if(!a||!b
 const cutaway=()=>ui.cut||cam.dist<4;
 function pick3d(sx,sy){camMats();const r=ray(sx,sy);let best=null,bt=1e9;
  for(const s of S.p){if(!s._v)continue;const[px,py,pz]=s._v,vx=px-r.o[0],vy=py-r.o[1],vz=pz-r.o[2],t=vx*r.d[0]+vy*r.d[1]+vz*r.d[2];if(t<0)continue;const qx=r.o[0]+r.d[0]*t-px,qy=r.o[1]+r.d[1]*t-py,qz=r.o[2]+r.d[2]*t-pz;
-  if(Math.hypot(qx,qy,qz)<(s._r||.16)&&t<bt){bt=t;best=s}}
+  const dq=Math.hypot(qx,qy,qz),rr=Math.max(s._r||.16,.013*(cam.dist||10));if(dq<rr&&t+dq*4<bt){bt=t+dq*4;best=s}}
  if(best)return{c:best};
  let bb=null;bt=1e9;const cut=cutaway();
  for(const b of S.b){const z9=szOf(b.t),hgt=b.built<1?.3:(cut&&b.plan?.16:(b._top||topOf(b))),mn=[b.x+.05,0,b.y+.05],mx=[b.x+z9-.05,hgt,b.y+z9-.05];let t0=0,t1=1e9,ok=true;
@@ -3221,7 +3239,7 @@ function drawScene(ui){
  if(shOn&&!shNow&&LASTLV){gl.uniformMatrix4fv(L.lvp,false,new Float32Array(LASTLV));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX)}
  if(shOn&&shNow){const c0=[cam.x,0,cam.y],le=[c0[0]+Lt.ld[0]*60,Lt.ld[1]*60,c0[2]+Lt.ld[2]*60],o=clamp(cam.dist*1.15+4,7,30),LV=mmul([1/o,0,0,0,0,1/o,0,0,0,0,-2/119,0,0,0,-121/119,1],lookAt(le,c0));
   gl.bindFramebuffer(gl.FRAMEBUFFER,SFB);gl.viewport(0,0,SSZ,SSZ);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(SP);gl.disableVertexAttribArray(1);gl.disableVertexAttribArray(2);gl.disableVertexAttribArray(3);
-  gl.uniformMatrix4fv(SL.lvp,false,new Float32Array(LV));gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4));terDrawS();BT_OPEN.drawS();(cut?BT_INT:BT_EXT).drawS();hgDrawS(cut);BT_DYN.drawS();
+  gl.uniformMatrix4fv(SL.lvp,false,new Float32Array(LV));SHLV=LV;gl.uniformMatrix4fv(SL.mdl,false,new Float32Array(ID4));terDrawS();BT_OPEN.drawS();(cut?BT_INT:BT_EXT).drawS();hgDrawS(cut);BT_DYN.drawS();
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.useProgram(P);gl.viewport(0,0,cv.width,cv.height);gl.uniformMatrix4fv(L.lvp,false,new Float32Array(LV));LASTLV=LV;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,STX)}
  gl.uniform1f(L.shOn,shOn?1:0);
  const PP=postBegin();if(!drawSkyGL(Lt)&&SKY_FAIL)drawSky(Lt);
@@ -4765,17 +4783,17 @@ const ptrs=new Map();let gest=null,lastTap={t:0,x:0,y:0},lastPaint=-1;
 const relP=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);const[x,y]=relP(e);ptrs.set(e.pointerId,{x,y});
- if(ptrs.size===1){gest={k:'one',sx:x,sy:y,t:performance.now(),moved:false,btn:e.button};lastPaint=-1;if(ui.mode&&ui.mode.k==='road'&&ui.mode.draw&&e.button===0)paint(x,y)}
+ if(ptrs.size===1){gest={k:'one',sx:x,sy:y,t:performance.now(),moved:false,btn:e.button,touch:e.pointerType!=='mouse'};lastPaint=-1;if(ui.mode&&ui.mode.k==='road'&&ui.mode.draw&&e.button===0)paint(x,y)}
  else if(ptrs.size===2){const[a,b]=[...ptrs.values()];gest={k:'two',d:Math.hypot(a.x-b.x,a.y-b.y),ang:Math.atan2(b.y-a.y,b.x-a.x),my:(a.y+b.y)/2}}});
 cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const[x,y]=relP(e),px=p.x,py=p.y;p.x=x;p.y=y;
- if(cam.fp){if(gest&&gest.k==='one'){if(Math.hypot(x-gest.sx,y-gest.sy)>8)gest.moved=true;cam.fp.yaw+=(x-px)*.006;cam.fp.pitch=clamp(cam.fp.pitch+(y-py)*.004,-.7,.6)}return}
- if(gest&&gest.k==='one'){if(Math.hypot(x-gest.sx,y-gest.sy)>8)gest.moved=true;
+ if(cam.fp){if(gest&&gest.k==='one'){if(Math.hypot(x-gest.sx,y-gest.sy)>(gest.touch?14:8))gest.moved=true;cam.fp.yaw+=(x-px)*.006;cam.fp.pitch=clamp(cam.fp.pitch+(y-py)*.004,-.7,.6)}return}
+ if(gest&&gest.k==='one'){if(Math.hypot(x-gest.sx,y-gest.sy)>(gest.touch?14:8))gest.moved=true;
   if(ui.mode&&ui.mode.k==='road'&&ui.mode.draw&&gest.btn===0){paint(x,y);return}if(!gest.moved)return;
   if(gest.btn===2||e.shiftKey){cam.yaw-=(x-px)*.008;cam.pitch+=(y-py)*.006}else panCam(px,py,x,y);cam.tx=null;ui.follow=false;clampCam()}
  else if(gest&&gest.k==='two'&&ptrs.size===2){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y),ang=Math.atan2(b.y-a.y,b.x-a.x),my=(a.y+b.y)/2;
   cam.dist*=gest.d/Math.max(1,d);let da=ang-gest.ang;if(da>Math.PI)da-=2*Math.PI;if(da<-Math.PI)da+=2*Math.PI;cam.yaw-=da;
   if(Math.abs(d-gest.d)<3)cam.pitch+=(my-gest.my)*.006;gest.d=d;gest.ang=ang;gest.my=my;cam.tx=null;clampCam()}});
-function endPtr(e){if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);if(gest&&gest.k==='one'&&!gest.moved&&gest.btn!==2&&performance.now()-gest.t<450){const[x,y]=relP(e);tap(x,y)}if(ptrs.size===0)gest=null;else if(gest&&gest.k==='two')gest={k:'none'}}
+function endPtr(e){if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);if(gest&&gest.k==='one'&&!gest.moved&&gest.btn!==2&&performance.now()-gest.t<(gest.touch?600:450)){const[x,y]=relP(e);tap(x,y)}if(ptrs.size===0)gest=null;else if(gest&&gest.k==='two')gest={k:'none'}}
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);gest=null});
 cv.addEventListener('wheel',e=>{e.preventDefault();if(cam.fp){const f=cam.fp,s=e.deltaY<0?.35:-.35,nx=f.x+Math.sin(f.yaw)*s,nz=f.z+Math.cos(f.yaw)*s;if(fpWalkable(nx,nz)){f.x=nx;f.z=nz}return}cam.dist*=e.deltaY<0?1/1.12:1.12;cam.tx=null;clampCam()},{passive:false});
 function paint(sx,sy){const g=groundAt(sx,sy);if(!g)return;const x=Math.floor(g[0]),y=Math.floor(g[1]);if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;if(i===lastPaint)return;lastPaint=i;
