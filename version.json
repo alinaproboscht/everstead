@@ -1,13 +1,8 @@
 {
-  "build": 64,
+  "build": 65,
   "file": "everstead.html",
-  "notes": "Update 64: Hinweis im Spiel, wenn online eine neuere Version liegt",
+  "notes": "Update 65: Zuverlässiger Start in der App (Bilddaten wieder eingebettet), Anzeige der aktiven Version beim Start",
   "models": [
-    {
-      "file": "m_assets.json",
-      "size": 3034433,
-      "sha": "7006d2a76b98"
-    },
     {
       "file": "m_baeckerei.json",
       "size": 1386208,
