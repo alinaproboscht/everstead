@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="59">
+<meta name="everstead-build" content="60">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -397,7 +397,7 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
 <div id="world" hidden><div class="whead"><b>🗺️ Weltkarte</b><button id="wfleet">⛵ Flotte</button><button id="wclose" aria-label="Schließen">✕</button></div><canvas id="wcv" aria-label="Weltkarte"></canvas><div id="wcard"></div></div>
 <div id="toast" role="status"></div>
 <script>
-(async()=>{try{const r=await fetch('m_assets.json');if(r.ok)window.__EVA=await r.json()}catch(e){}
+(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=60')||await ld(GH+'m%20assets.json?v=60');
 (()=>{
 const __A=window.__EVA||{};if(!window.__EVA)setTimeout(()=>{try{toast("⚠ Bilddaten fehlen (m_assets.json) – Gesichter und Oberflächen fehlen, bis die Datei da ist.")}catch(e){}},2500);const TEXB64=__A.tex;const PHOTOS=__A.photos;const SPRITES=__A.sprites;const UIIMG=__A.ui;
 'use strict';

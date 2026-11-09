@@ -1,7 +1,7 @@
 {
-  "build": 59,
+  "build": 60,
   "file": "everstead.html",
-  "notes": "Update 59: Produktivität je Betrieb (Anzeige im Gebäude und unter Gebäude → Betriebe); ab 97 % lässt sich ein Betrieb vergrößern (Stufe II/III: mehr Arbeitsplätze, +25 % Leistung je Stufe)",
+  "notes": "Update 60: Bilddaten (Pflasterstraßen, Oberflächen, Gesichter) werden zuverlässig geladen – notfalls direkt von GitHub",
   "models": [
     {
       "file": "m_assets.json",
