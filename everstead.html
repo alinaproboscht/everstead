@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="66">
-<meta name="everstead-build" content="2026110966">
+<meta name="everstead-update" content="67">
+<meta name="everstead-build" content="2026110967">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -489,7 +489,7 @@ const WD=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonnt
 const clock=()=>{const h=hod();return String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor((h%1)*60/15)*15).padStart(2,'0')};
 const nm=s=>s?s.fn+' '+s.ln:'niemand';
 const bName=b=>b?(b.d&&b.d.name)||BT[b.t].n:'';
-const jobTitle=s=>{const b=s.job&&bById.get(s.job);if(!b)return ageOf(s)<16?'Kind':ageOf(s)>=65?'Im Ruhestand':'Ohne Arbeit';if(b.built<1)return (s.g==='f'?'Bauhelferin':'Bauhelfer')+(s.tmpJob?' (vorübergehend)':'');const jl=BT[b.t].jobs;if(jl){const Wk=S.p.filter(p=>p.job===b.id).sort((a,c)=>a.id-c.id),ix=Wk.indexOf(s);if(ix>=0)return jl[Math.min(ix,jl.length-1)][s.g==='f'?0:1]}const j=F(b).job;return j?j[s.g==='f'?0:1]:'Helfer'};
+const jobTitle=s=>{const b=s.job&&bById.get(s.job);if(!b)return ageOf(s)<18?(ageOf(s)>=6&&S.b.some(x=>BT[x.t].school&&x.built>=1)?(s.g==='f'?'Schülerin':'Schüler'):'Kind'):ageOf(s)>=65?'Im Ruhestand':'Ohne Arbeit';if(b.built<1)return (s.g==='f'?'Bauhelferin':'Bauhelfer')+(s.tmpJob?' (vorübergehend)':'');const jl=BT[b.t].jobs;if(jl){const Wk=S.p.filter(p=>p.job===b.id).sort((a,c)=>a.id-c.id),ix=Wk.indexOf(s);if(ix>=0)return jl[Math.min(ix,jl.length-1)][s.g==='f'?0:1]}const j=F(b).job;return j?j[s.g==='f'?0:1]:'Helfer'};
 function log(txt,sid){S.log.unshift({d:day(),h:clock(),txt});if(S.log.length>200)S.log.pop();hooks.feed(txt,sid)}
 function mem(s,txt){s.mem.unshift(`${WD[wday()].slice(0,2)} ${clock()}: ${txt}`);if(s.mem.length>8)s.mem.pop()}
 // Große Wohnhäuser bekommen ein zweites Bad, Betriebe mindestens zwei Badezuber fürs Personal
@@ -559,6 +559,7 @@ function adj(a,b,df,dr){const x=rel(a,b),y=rel(b,a),o=x.f;x.f=clamp(x.f+df,-100,
 function relLabel(a,b){if(a.partner===b.id)return a.married?'Ehepartner':'Partner';if(a.parents.includes(b.id))return 'Elternteil';if(b.parents.includes(a.id))return 'Kind';
  const f=(a.rel[b.id]||{f:0}).f;return f<-30?'Feindschaft':f<-5?'Abneigung':f<15?'Bekannt':f<40?'Freundlich':f<70?'Freundschaft':'Beste Freunde'}
 const isKid=s=>ageOf(s)<16;
+const minor=s=>ageOf(s)<18; // U67: arbeiten erst ab 18, bis dahin Schule
 // ===== Zufriedenheit: Wohnkomfort, Grün, Aufschlüsselung und konkrete Tipps =====
 const DECO_T=new Set(['teppich','fell','kerze','topf','vase','spiegel','buecher','lehnstuhl','kommode','wiege']);
 function homeComfort(b){if(!b||!b.plan)return 0;const v=b.plan.v||1;if(b._hcv===v)return b._hc;let n=0,deco=0;const ty=new Set(),rt=new Set();let bath=false;
@@ -717,7 +718,7 @@ function moveTogether(a,b){
 
 // Utility-KI
 function options(s){
- const h=hod(),n=s.n,O=[],jb0=s.job&&bById.get(s.job),eve=jb0&&BT[jb0.t].hobby&&BT[jb0.t].hobby.show,work=s.job&&(eve?wday()!==0&&h>=16&&h<23:wday()<6&&h>=7&&h<17)&&s.dayOff!==day()&&!isKid(s)&&ageOf(s)<65&&!(s.preg&&s.preg.wk>=34)&&!(s.wochenbett&&hAbs()<s.wochenbett),night=h>=21.5||h<6,FO=s.focus,home=s.home&&bById.get(s.home);
+ const h=hod(),n=s.n,O=[],jb0=s.job&&bById.get(s.job),eve=jb0&&BT[jb0.t].hobby&&BT[jb0.t].hobby.show,work=s.job&&(eve?wday()!==0&&h>=16&&h<23:wday()<6&&h>=7&&h<17)&&s.dayOff!==day()&&!minor(s)&&ageOf(s)<65&&!(s.preg&&s.preg.wk>=34)&&!(s.wochenbett&&hAbs()<s.wochenbett),night=h>=21.5||h<6,FO=s.focus,home=s.home&&bById.get(s.home);
  const add=(sc,task)=>{if(sc>0)O.push([sc+rnd()*12,task])};
  const sleepAt=home&&home.built>=1?home:null;
  add((100-n.e)*1.1+(night?70:0)-(h>8&&h<20?40:0),sleepAt?{k:'sleep',bid:sleepAt.id}:{k:'sleep',x:Math.floor(s.x),y:Math.floor(s.y)});
@@ -875,7 +876,7 @@ function assignJobs(){
  jobCount=new Map();for(const s of S.p)if(s.job)jobCount.set(s.job,(jobCount.get(s.job)||0)+1);
  const open=[];for(const b of S.b){const need=b.built<1?(builderStaff()?0:3):(F(b).slots||0),have=jobCount.get(b.id)||0;if(need>have)open.push({b,free:need-have,pr:b.built<1?0:(BT[b.t].builder&&!builderStaff()?-1:jobPrio(b))})}
  open.sort((a,b)=>a.pr-b.pr);
- for(const s of S.p){if(s.job||s.noJob||isKid(s)||ageOf(s)>=65||s.ctrl)continue;const o=open.find(o=>o.free>0);if(!o)break;
+ for(const s of S.p){if(s.job||s.noJob||minor(s)||ageOf(s)>=65||s.ctrl)continue;const o=open.find(o=>o.free>0);if(!o)break;
   s.job=o.b.id;o.free--;jobCount.set(o.b.id,(jobCount.get(o.b.id)||0)+1);if(o.b.built>=1){mem(s,`arbeitet jetzt als ${jobTitle(s)} (${bName(o.b)})`);story(s,'🔨',`fand Arbeit als ${jobTitle(s)} (${bName(o.b)})`)}}
 }
 function assignHomes(){
@@ -916,7 +917,7 @@ function goalMet(s,g){let ok=false;
  if(g==='heiraten')ok=s.married;else if(g==='familie')ok=S.p.some(c=>c.parents.includes(s.id));else if(g==='haus')ok=S.b.some(b=>b.owner===s.id);
  else if(g==='reich')ok=s.money>=200;else if(g==='freunde')ok=Object.values(s.rel).filter(r=>r.f>=40).length>=4;else if(g==='meister')ok=s.skill>=150;return ok}
 function checkGoal(s){const g=s.goal;if(goalMet(s,g)){log(`⭐ ${nm(s)} hat sich einen Wunsch erfüllt: ${GOALS[g]}.`,s.id);story(s,'⭐',`erfüllte sich einen Lebenstraum: ${GOALS[g]}`);mem(s,'hat sich einen Wunsch erfüllt: '+GOALS[g]);s.rep+=5;s.n.f=100;s.goal=pick(Object.keys(GOALS).filter(x=>x!==g&&!goalMet(s,x)))||'freunde'}}
-function hourly(){try{whSync()}catch(e){console.warn(e)}try{fullBaths()}catch(e){console.warn(e)}for(const b of S.b)if(b.plan&&!b.plan.tidy){b.plan.tidy=1;try{if(tidyPlan(b.plan))b._pa=null}catch(e){}}assignHomes();assignJobs();rebalanceJobs();constructionHelpers();emHourly();famHourly();railTick();if(hod()%3===0)shiftWorkers();for(const b of S.b)if(b.built<1){const pb=b._pb==null?b.built:b._pb;b.rate=(b.rate||0)*.6+Math.max(0,b.built-pb)*.4;b._pb=b.built};moreArrivals();extraJobs();if(hod()===6)autoGrow();foodHourly();greenCalc();let m=0;for(const s of S.p){s.mood=moodOf(s);m+=s.mood}S.mood=S.p.length?m/S.p.length:0;S._mh=(S._mh||[]);S._mh.push(Math.round(S.mood*10)/10);if(S._mh.length>48)S._mh.shift();for(let i=0;i<W*H;i++)S.traffic[i]*=.985}
+function hourly(){try{whSync()}catch(e){console.warn(e)}try{fullBaths()}catch(e){console.warn(e)}for(const b of S.b)if(b.plan&&!b.plan.tidy){b.plan.tidy=1;try{if(tidyPlan(b.plan))b._pa=null}catch(e){}}assignHomes();assignJobs();rebalanceJobs();constructionHelpers();emHourly();famHourly();railTick();if(hod()%3===0)shiftWorkers();for(const b of S.b)if(b.built<1){const pb=b._pb==null?b.built:b._pb;b.rate=(b.rate||0)*.6+Math.max(0,b.built-pb)*.4;b._pb=b.built};moreArrivals();extraJobs();kidsToSchool();if(hod()===6)autoGrow();foodHourly();greenCalc();let m=0;for(const s of S.p){s.mood=moodOf(s);m+=s.mood}S.mood=S.p.length?m/S.p.length:0;S._mh=(S._mh||[]);S._mh.push(Math.round(S.mood*10)/10);if(S._mh.length>48)S._mh.shift();for(let i=0;i<W*H;i++)S.traffic[i]*=.985}
 let lastHour=-1,lastDay=-1;
 function update(dt){
  S.t+=dt;const dh=dt/HOUR;
@@ -1494,7 +1495,7 @@ function constructionHelpers(){
  if(builderStaff()>0||!sites.length){for(const s of S.p)if(s.tmpJob&&(builderStaff()>0||!bById.get(s.job)||bById.get(s.job).built>=1))returnHelper(s);return}
  const cap=Math.max(2,Math.min(6,Math.floor(S.p.filter(p=>!isKid(p)&&ageOf(p)<65).length/4)));
  let helping=S.p.filter(p=>p.tmpJob).length;if(helping>=cap)return;
- const pool=S.p.filter(p=>{if(p.ctrl||p.tmpJob||isKid(p)||ageOf(p)>=65||!p.job)return false;const j=bById.get(p.job);return j&&j.built>=1&&jobPrio(j)>=4&&!BT[j.t].builder})
+ const pool=S.p.filter(p=>{if(p.ctrl||p.tmpJob||minor(p)||ageOf(p)>=65||!p.job)return false;const j=bById.get(p.job);return j&&j.built>=1&&jobPrio(j)>=4&&!BT[j.t].builder})
   .sort((a,c)=>{const ja=bById.get(a.job),jc=bById.get(c.job);return(CRAFT[jc.t]?1:0)-(CRAFT[ja.t]?1:0)||jobPrio(jc)-jobPrio(ja)});
  const order=sites.slice().sort((a,c)=>(BT[c.t].builder?1:0)-(BT[a.t].builder?1:0)||a.id-c.id);const moved=[];
  for(const site of order){let on=S.p.filter(p=>p.job===site.id).length;const max=BT[site.t].builder?3:2;
@@ -1502,7 +1503,7 @@ function constructionHelpers(){
  if(moved.length)log(`🧱 Keine Bauhütte im Betrieb – ${moved.map(p=>p.fn).join(', ')} ${moved.length>1?'helfen':'hilft'} vorübergehend auf den Baustellen.`,moved[0].id)}
 function recruitBuilders(){
  for(const bh of S.b.filter(b=>BT[b.t].builder&&b.built>=1)){let free=(BT[bh.t].slots||0)-S.p.filter(p=>p.job===bh.id).length;if(free<=0)continue;
-  const sc=p=>{if(p.ctrl||isKid(p)||ageOf(p)>=65||p.noJob)return 99;const j=p.job&&bById.get(p.job);if(!j)return 0;if(j.built<1)return p.tmpJob?(p.helpedBH?1:3):2;if(BT[j.t].builder)return 99;return jobPrio(j)>=9?10+(20-jobPrio(j)):99};
+  const sc=p=>{if(p.ctrl||minor(p)||ageOf(p)>=65||p.noJob)return 99;const j=p.job&&bById.get(p.job);if(!j)return 0;if(j.built<1)return p.tmpJob?(p.helpedBH?1:3):2;if(BT[j.t].builder)return 99;return jobPrio(j)>=9?10+(20-jobPrio(j)):99};
   const cand=S.p.map(p=>[sc(p),p]).filter(x=>x[0]<99).sort((a,c)=>a[0]-c[0]).map(x=>x[1]);
   while(free>0&&cand.length){const p=cand.shift();const old=p.job?jobTitle(p):'ohne Arbeit';p.job=bh.id;p.tmpJob=0;p.helpedBH=0;if(p.task&&p.task.k==='work')p.left=0;story(p,'🏗️',`wurde ${jobTitle(p)} in der Bauhütte (vorher ${old})`);log(`🏗️ ${nm(p)} arbeitet jetzt als ${jobTitle(p)} in der Bauhütte.`,p.id);free--}}}
 
@@ -1613,7 +1614,7 @@ Object.assign(ACT_NAME,{mass:'Gottesdienst',learn:'Schule'});Object.assign(ACT_I
 // Kirche, Schule
 function townOptions(s,add,h,n){
  const ch=nearest(s,b=>BT[b.t].church);if(ch&&wday()===6&&h>=9&&h<12)add(62+(100-n.s)*.3,{k:'mass',bid:ch.id});
- const a=ageOf(s);if(a>=6&&a<16&&wday()<6&&h>=8&&h<13){const sc=nearest(s,b=>BT[b.t].school);if(sc)add(95,{k:'learn',bid:sc.id})}}
+ const a=ageOf(s);if(a>=6&&a<18&&wday()<6&&h>=8&&h<14){const sc=nearest(s,b=>BT[b.t].school&&b.built>=1);if(sc)add(110,{k:'learn',bid:sc.id})}}
 function townArrive(s,b,k){if(k==='mass'){s.left=1.5;s.th='Ein feierlicher Gottesdienst.';return}if(k==='learn'){s.left=2;s.th=S.p.some(p=>p.job===b.id&&p.inside===b.id)?'Heute lernen wir Neues!':'Die Lehrerin ist noch nicht da …';return}s.left=.3}
 function townTick(s,dh,t){const n=s.n;if(t.k==='mass'){n.s+=10*dh;n.f+=8*dh;socialTick(s,dh)}
  else if(t.k==='learn'){const b=bById.get(t.bid),te=b&&S.p.some(p=>p.job===b.id&&p.inside===b.id);const o=s.edu||0;s.edu=o+dh*(te?1:.35);n.f+=1*dh;n.s+=4*dh;if(o<4&&s.edu>=4)story(s,'📖','lernte lesen und schreiben');if(o<12&&s.edu>=12){story(s,'🎓','schloss die Schule ab');s.skill=Math.min(200,s.skill+25)}}}
@@ -1877,7 +1878,10 @@ function moreArrivals(){if(!S.b.some(b=>b.t==='rathaus'&&b.built>=1)||S.mood<38)
   let k=Math.min(2,os.n-idle-1);for(const h of homes){if(k<=0)break;if(rnd()<.6){singleArrival(h);k--}}
   if(!S.b.some(vacant)&&!homes.length&&S._noHomeNote!==day()){S._noHomeNote=day();log(`🏠 ${os.n} Stellen sind offen, aber es fehlt Wohnraum – baue weitere Wohnhäuser, damit Arbeitskräfte zuziehen.`)}}}
 const LIGHT={markt:1,kraemer:1,schule:1,heiler:1,kontor:1,bank:1,musikhaus:1,schneider:1,imker:1,gemuese:1,garten:1,kirche:1,druckerei:1,seidensticker:1,weberei:1,lagerhaus:1,supermarkt:1,taverne:1,badehaus:1};
-function extraJobs(){const os=openJobSlots();if(!os.n)return;const pool=S.p.filter(s=>!s.job&&!s.noJob&&!s.away&&!s.ctrl&&((ageOf(s)>=14&&ageOf(s)<16)||(ageOf(s)>=65&&ageOf(s)<75)));
+// U67: Kinder arbeiten nicht – sie gehen zur Schule
+function kidsToSchool(){for(const s of S.p){if(!minor(s)||!s.job)continue;const b=bById.get(s.job);s.job=0;s.tmpJob=0;if(s.task&&s.task.k==='work'){s.task=null;s.act='idle';s.left=0}s.cmds=(s.cmds||[]).filter(c=>c.k!=='work');if(b)story(s,'📖',`hört bei ${bName(b)} auf – Kinder gehören in die Schule`)}
+ const kids=S.p.filter(s=>!s.away&&ageOf(s)>=6&&minor(s)).length;if(kids>=3&&!S.b.some(b=>BT[b.t].school&&b.built>=1)&&hod()===9&&(!S._noSchoolD||day()-S._noSchoolD>=5)){S._noSchoolD=day();log(`📖 ${kids} Kinder im Dorf haben keine Schule – baue eine Schule, damit sie lernen können.`)}}
+function extraJobs(){const os=openJobSlots();if(!os.n)return;const pool=S.p.filter(s=>!s.job&&!s.noJob&&!s.away&&!s.ctrl&&ageOf(s)>=65&&ageOf(s)<75);
  for(const s of pool){const young=ageOf(s)<16;const b=os.list.find(b=>S.p.filter(p=>p.job===b.id).length<(F(b).slots||0)&&(young||LIGHT[b.t]));if(!b)continue;s.job=b.id;
   story(s,young?'🛠️':'👴',young?`begann eine Lehre: ${jobTitle(s)}`:`hilft im Alter noch mit: ${jobTitle(s)}`)}}
 
@@ -1928,7 +1932,7 @@ function registerLand(id,silent){const l=landOf(id);if(!l)return;const c=cultOf(
 // ---- Schiffe ----
 function buildShip(type){const T=SHIPS[type];if(!S.b.some(b=>BT[b.t].shipyard&&b.built>=1))return 'Zuerst eine Werft bauen.';if(!afford(T.cost))return 'Nicht genug: '+Object.entries(T.cost).filter(([k,n])=>S.res[k]<n).map(([k])=>RES[k][1]).join(', ');
  pay(T.cost);const used=S.ships.map(s=>s.name);const nm2=SHIPNAMES.find(n=>!used.includes(n))||('Schiff '+(S.ships.length+1));S.ships.push({id:S.explore.sid++,type,name:nm2,state:'building',prog:0});log(`🚢 Auf der Werft wird die ${T.n} „${nm2}“ gebaut.`);return null}
-function crewFor(n){const ok=p=>!p.away&&!p.ctrl&&!isKid(p)&&ageOf(p)>=16&&ageOf(p)<60&&!p.sick;const pref=p=>{const j=p.job&&bById.get(p.job);return !j?0:(BT[j.t].port||BT[j.t].shipyard)?1:jobPrio(j)>=9?2:jobPrio(j)>=4?3:9};
+function crewFor(n){const ok=p=>!p.away&&!p.ctrl&&!minor(p)&&ageOf(p)<60&&!p.sick;const pref=p=>{const j=p.job&&bById.get(p.job);return !j?0:(BT[j.t].port||BT[j.t].shipyard)?1:jobPrio(j)>=9?2:jobPrio(j)>=4?3:9};
  return S.p.filter(ok).sort((a,c)=>pref(a)-pref(c)).filter(p=>pref(p)<9).slice(0,n)}
 function startExpedition(shipId,tx,ty){const sh=S.ships.find(s=>s.id===shipId);if(!sh||sh.state!=='dock')return 'Kein freies Schiff.';if(!S.b.some(b=>BT[b.t].port&&b.built>=1))return 'Ein Hafen wird gebraucht.';
  const T=SHIPS[sh.type],hp=wport(...WORLD.home),tp=wport(tx,ty),p=seaPath(hp,tp);if(!p)return 'Dorthin führt kein Seeweg.';
@@ -4898,10 +4902,10 @@ $('sheet').addEventListener('click',e=>{const el=e.target.closest('button');if(!
 function buildingSheet(s,b){
  const T=F(b),o=[...outActs(s,b)],home=b.id===s.home;
  o.push({l:'🚶 Hingehen',f:()=>queueCmd(s,{k:'enter',bid:b.id})});
- if(b.built<1){o.push({l:'🧱 Beim Bau helfen',f:()=>{s.job=b.id;s.noJob=false;queueCmd(s,{k:'work',bid:b.id})}})}
+ if(b.built<1&&!minor(s)){o.push({l:'🧱 Beim Bau helfen',f:()=>{s.job=b.id;s.noJob=false;queueCmd(s,{k:'work',bid:b.id})}})}
  else{
   if(s.job===b.id){o.push({l:'🔨 Arbeiten',f:()=>queueCmd(s,{k:'work',bid:b.id})});o.push(...jobActs(s,b))}
-  else if(T.slots&&!isKid(s)){const full=S.p.filter(p=>p.job===b.id).length>=T.slots;o.push({l:`📝 Hier anfangen (${T.job[s.g==='f'?0:1]})`,dis:full,f:()=>{s.job=b.id;s.noJob=false;mem(s,`arbeitet jetzt als ${jobTitle(s)}`);story(s,'🔨',`fing als ${jobTitle(s)} an (${bName(b)})`);queueCmd(s,{k:'work',bid:b.id})}})}
+  else if(T.slots&&!minor(s)){const full=S.p.filter(p=>p.job===b.id).length>=T.slots;o.push({l:`📝 Hier anfangen (${T.job[s.g==='f'?0:1]})`,dis:full,f:()=>{s.job=b.id;s.noJob=false;mem(s,`arbeitet jetzt als ${jobTitle(s)}`);story(s,'🔨',`fing als ${jobTitle(s)} an (${bName(b)})`);queueCmd(s,{k:'work',bid:b.id})}})}
   if(T.shop){o.push({l:'🧺 Brot kaufen',dis:s.money<2,f:()=>queueCmd(s,{k:'buy',bid:b.id})});o.push({l:'🍞 Brot essen (2 Taler)',dis:s.money<2,f:()=>queueCmd(s,{k:'eat',bid:b.id})})}
   if(T.tavern){o.push({l:'🍲 Essen (2 Taler)',dis:s.money<2,f:()=>queueCmd(s,{k:'eat',bid:b.id})});o.push({l:'🍺 Einkehren & feiern',f:()=>queueCmd(s,{k:'leisure',bid:b.id})})}
   if(T.social&&!T.tavern)o.push({l:'💬 Leute treffen',f:()=>queueCmd(s,{k:'social',bid:b.id})});
@@ -5007,7 +5011,7 @@ function tap(sx,sy){if(cam.fp)return fpTap(sx,sy);
  if(m&&m.k==='road')return;
  if(m&&m.k==='pick'){const s=pById.get(m.sid);ui.mode=null;if(!s)return refresh(true);
   if(m.what==='visit'){if(!c)return toast('Bitte eine Person antippen.');queueCmd(s,{k:'interact',tid:c.id,ik:'reden',exp:8});toast(`${s.fn} macht sich auf den Weg zu ${c.fn}.`)}
-  if(m.what==='job'){if(!b||!F(b).slots||b.built<1)return toast('Das ist kein Arbeitsplatz.');if(S.p.filter(p=>p.job===b.id).length>=F(b).slots)return toast('Dort ist keine Stelle frei.');s.job=b.id;s.noJob=false;mem(s,`hat eine neue Stelle: ${jobTitle(s)}`);story(s,'🔨',`wechselte die Stelle: ${jobTitle(s)} (${bName(b)})`);toast(`${s.fn} arbeitet nun als ${jobTitle(s)}.`)}
+  if(m.what==='job'){if(minor(s))return toast(`${s.fn} ist noch nicht 18 und geht zur Schule.`);if(!b||!F(b).slots||b.built<1)return toast('Das ist kein Arbeitsplatz.');if(S.p.filter(p=>p.job===b.id).length>=F(b).slots)return toast('Dort ist keine Stelle frei.');s.job=b.id;s.noJob=false;mem(s,`hat eine neue Stelle: ${jobTitle(s)}`);story(s,'🔨',`wechselte die Stelle: ${jobTitle(s)} (${bName(b)})`);toast(`${s.fn} arbeitet nun als ${jobTitle(s)}.`)}
   ui.sel={k:'s',id:s.id};ui.tab='cit';refresh(true);return}
  if(!c&&!m&&!dbl){const pj=propPick(sx,sy);if(pj>=0)return propSheet(pj)}
  if(!c&&!b&&!m){const bi=bridgeAt(sx,sy);if(bi>=0)return bridgeSheet(bi);if(isBr(y*W+x))return bridgeSheet(y*W+x)}
@@ -5241,7 +5245,7 @@ drawWorld=function(){_drawWorld0();if(!S.regions)return;const c=$('wcv').getCont
 
 function chips(){const CHIPS=[['pop','👥','Bewohner'],['mood','😊','Stimmung'],['job','💼','Ohne Arbeit'],['home','🏚️','Ohne Zuhause'],...Object.keys(RES).map(k=>[k,RES[k][0],RES[k][1]]),['more','⋯','Alle Waren']];const el=$('res');
  if(el._n!==CHIPS.length){el.innerHTML=CHIPS.map(([k,i,n])=>`<button class="chip${k==='more'?' more':''}" data-chip="${k}" aria-label="${n}">${i} <b></b></button>`).join('');el._n=CHIPS.length}
- const jl=S.p.filter(s=>!s.job&&ageOf(s)>=16&&ageOf(s)<65).length,hl=S.p.filter(s=>!s.home).length;const val={pop:S.p.length,mood:Math.round(S.mood)+'%',job:jl,home:hl};
+ const jl=S.p.filter(s=>!s.job&&ageOf(s)>=18&&ageOf(s)<65).length,hl=S.p.filter(s=>!s.home).length;const val={pop:S.p.length,mood:Math.round(S.mood)+'%',job:jl,home:hl};
  const low=k=>k==='brot'?S.res.brot<S.p.length*2:(typeof targetStock==='function'&&['holz','bretter','stein','werkzeug','getreide','mehl'].includes(k)&&(S.res[k]||0)<targetStock(k)*.25);
  const base=['taler','brot','holz','bretter','stein','werkzeug'],lows=Object.keys(RES).filter(k=>!base.includes(k)&&low(k));const room=Math.max(3,Math.floor((el.clientWidth||600)/92)-2-(jl?1:0)-(hl?1:0));
  const show=new Set(base.concat(lows).slice(0,room));let hidden=0;
@@ -5260,7 +5264,7 @@ function flowTable(kind,title){const t=(S.fl||{})[kind]||{},y=(S.flPrev||{})[kin
 const HOBBY_B=()=>Object.entries(BT).filter(([k,T])=>T.hobby);
 function chipInfo(k){let h='';const N=S.p.length;
  if(k==='mood'){const needs=[['h','Sättigung','🍞'],['e','Energie','💤'],['s','Geselligkeit','💬'],['f','Freizeit','🎉'],['y','Hygiene','🫧']].map(([key,n,i])=>({key,n,i,v:avg(s=>s.n[key]==null?70:s.n[key])})).sort((a,b)=>a.v-b.v);
-  const hl=S.p.filter(s=>!s.home).length,jl=S.p.filter(s=>!s.job&&ageOf(s)>=16&&ageOf(s)<65).length,built=t=>S.b.some(b=>b.t===t&&b.built>=1),hb=HOBBY_B().filter(([t])=>built(t)).map(([,T])=>T.n);
+  const hl=S.p.filter(s=>!s.home).length,jl=S.p.filter(s=>!s.job&&ageOf(s)>=18&&ageOf(s)<65).length,built=t=>S.b.some(b=>b.t===t&&b.built>=1),hb=HOBBY_B().filter(([t])=>built(t)).map(([,T])=>T.n);
   const tip={h:`Lebensmittel: ${foodTypes().map(k=>(FOODN[k]||k)+' '+Math.floor(S.res[k])).join(', ')||'keine'} für ${N} Menschen (≈ ${(foodStock()/Math.max(1,N*2)).toFixed(1)} Tage). ${S.b.filter(b=>F(b).wh&&F(b).out&&F(b).out.brot&&b.st!=='In Betrieb').map(b=>bName(b)+': '+(b.st||'ruht')).join(' · ')||'Bäckereien arbeiten.'}`,
    e:`${hod()>=17||hod()<6?'Abends ist das normal – nachts schlafen alle. ':''}Freie Betten: ${S.b.reduce((a,b)=>a+Math.max(0,beds(b)-residents(b).length),0)}. Lange Wege und harte Arbeit kosten Kraft – Wege bauen hilft.`,
    s:`Treffpunkte: ${['brunnen','markt','taverne','dorflinde','theater','badehaus','spielstube'].filter(built).map(t=>BT[t].n).join(', ')||'keine'}. Mehr Treffpunkte bringen Menschen zusammen.`,
@@ -5287,11 +5291,11 @@ function chipInfo(k){let h='';const N=S.p.length;
    ${use.length?`<h4>Verbrauch durch</h4><ul class="why">${use.map(b=>`<li>${esc(bName(b))}</li>`).join('')}</ul>`:''}
    ${k==='brot'&&S.res.brot<N*2?'<p class="warnp">⚠ Der Vorrat reicht keine zwei Tage. Mehr Personal in Backstube, Mühle und Bauernhof oder ein weiterer Betrieb hilft.</p>':''}`}
  infoSheet(h)}
-function pJob(){const jl=S.p.filter(s=>!s.job&&ageOf(s)>=16&&ageOf(s)<65),open=openSlots(),emp=S.p.filter(s=>s.job&&!isKid(s)).length;
+function pJob(){const jl=S.p.filter(s=>!s.job&&ageOf(s)>=18&&ageOf(s)<65),open=openSlots(),emp=S.p.filter(s=>s.job&&!minor(s)).length;
  return `<div class="stats"><div><b>${emp}</b><span>Beschäftigt</span></div><div><b>${jl.length}</b><span>Ohne Arbeit</span></div><div><b>${open.reduce((a,o)=>a+o.free,0)}</b><span>Offene Stellen</span></div><div><b>${S.p.filter(isKid).length+S.p.filter(s=>ageOf(s)>=65).length}</b><span>Kinder/Rente</span></div></div>
  <h3>Ohne Arbeit</h3>${jl.length?`<ul class="list">${jl.map(s=>`<li class="row"><button class="pr" data-a="selP" data-v="${s.id}">${pic(s,44)}<span class="tx"><span class="nm">${esc(nm(s))}</span><span class="sub">${age(s)} J. · ${esc(jobReason(s))}${s.likes&&s.likes.length?' · ♥ '+esc(s.likes[0]):''}</span></span></button><button class="mini" data-a="assignjob" data-v="${s.id}" aria-label="Arbeit zuweisen">💼</button></li>`).join('')}</ul>`:'<p class="hint">Alle Erwachsenen haben Arbeit. 👍</p>'}
  <h3>Offene Stellen</h3>${open.length?`<ul class="why">${open.map(o=>`<li><button class="link" data-a="selB" data-v="${o.b.id}">${esc(bName(o.b))}</button> – ${o.free}× ${o.b.built<1?'Bauhelfer':(F(o.b).job||['Helfer','Helfer'])[0]}${jl.length?` <button class="mini2" data-a="fillslot" data-v="${o.b.id}">Besetzen</button>`:''}</li>`).join('')}</ul>`:'<p class="hint">Keine offenen Stellen. Neue Betriebe schaffen Arbeit.</p>'}`}
-function fillSlot(b){const jl=S.p.filter(s=>!s.job&&ageOf(s)>=16&&ageOf(s)<65).sort((a,c)=>(Math.abs(a.x-b.x)+Math.abs(a.y-b.y))-(Math.abs(c.x-b.x)+Math.abs(c.y-b.y)));const s=jl[0];if(!s)return toast('Niemand ist frei.');
+function fillSlot(b){const jl=S.p.filter(s=>!s.job&&ageOf(s)>=18&&ageOf(s)<65).sort((a,c)=>(Math.abs(a.x-b.x)+Math.abs(a.y-b.y))-(Math.abs(c.x-b.x)+Math.abs(c.y-b.y)));const s=jl[0];if(!s)return toast('Niemand ist frei.');
  s.job=b.id;s.noJob=false;mem(s,`hat eine neue Stelle: ${jobTitle(s)}`);story(s,'🔨',`fand Arbeit als ${jobTitle(s)} (${bName(b)})`);toast(`${s.fn} arbeitet nun als ${jobTitle(s)}.`)}
 
 const fmt0=n=>Math.round(n||0),fmt1=n=>(Math.round((n||0)*10)/10).toString().replace('.',',');

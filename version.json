@@ -1,7 +1,7 @@
 {
-  "build": 2026110966,
+  "build": 2026110967,
   "file": "everstead.html",
-  "notes": "Update 66: Versionsnummern im Datumsformat, damit die App neue Updates erkennt",
+  "notes": "Update 67: Kinder und Jugendliche unter 18 arbeiten nicht mehr, sondern gehen zur Schule; die Frau dreht sich im Stehen nicht mehr seitlich weg",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -80,8 +80,8 @@
     },
     {
       "file": "m_pfrau.json",
-      "size": 2064889,
-      "sha": "10cece85b269"
+      "size": 2064861,
+      "sha": "bfc1fc69fe1f"
     },
     {
       "file": "m_picknick.json",
