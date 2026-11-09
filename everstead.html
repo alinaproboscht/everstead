@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="60">
+<meta name="everstead-build" content="61">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -397,7 +397,7 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
 <div id="world" hidden><div class="whead"><b>🗺️ Weltkarte</b><button id="wfleet">⛵ Flotte</button><button id="wclose" aria-label="Schließen">✕</button></div><canvas id="wcv" aria-label="Weltkarte"></canvas><div id="wcard"></div></div>
 <div id="toast" role="status"></div>
 <script>
-(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=60')||await ld(GH+'m%20assets.json?v=60');
+(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=61')||await ld(GH+'m%20assets.json?v=61');
 (()=>{
 const __A=window.__EVA||{};if(!window.__EVA)setTimeout(()=>{try{toast("⚠ Bilddaten fehlen (m_assets.json) – Gesichter und Oberflächen fehlen, bis die Datei da ist.")}catch(e){}},2500);const TEXB64=__A.tex;const PHOTOS=__A.photos;const SPRITES=__A.sprites;const UIIMG=__A.ui;
 'use strict';
@@ -639,6 +639,7 @@ function arrive(s){
    if(q<1){s.th='Ich habe kein Geld.';s.left=.1;break}S.res.brot-=q;s.money-=q*pz;pf(s,'exp',q*pz);S.res.taler+=q*pz;flow('in','Brotverkauf',q*pz);{const fee=Math.min(s.money,q*pz*(S.mfee==null?.1:S.mfee));if(fee>0){s.money-=fee;pf(s,'exp',fee);S.res.taler+=fee;flow('in','Marktstandgeld',fee)}}flow('cons','brot',q);s.brot+=q;s.th=`${q} Brote gekauft.`;mem(s,`hat ${q} Brote gekauft`);s.left=.25;
    if(s.home)s.cmds.unshift({k:'deliver',bid:s.home,pri:1,exp:hAbs()+6,auto:1});break}
   case 'fetch':fetchArrive(s,b,t);break;
+  case 'drop':dropArrive(s,b);break;
   case 'hobby':hobbyArrive(s,b);break;
   case 'mass':case 'learn':townArrive(s,b,t.k);break;
   case 'birth':s.left=2;s.th='Es geht los …';break;
@@ -709,7 +710,7 @@ function options(s){
  if(s.money>=bp()&&S.res.brot>0){const sh=nearest(s,b=>F(b).shop);if(sh&&h>=7&&h<20)add(hungry-8,{k:'eat',bid:sh.id})}
  if(s.money>=2){const tv=nearest(s,b=>F(b).tavern&&staffed(b));if(tv)add(hungry-12,{k:'eat',bid:tv.id})}
  if(s.money>=1&&foodTypes().some(k=>k!=='brot')){const sh=nearest(s,b=>F(b).shop||b.t==='markt');if(sh&&h>=7&&h<20)add(hungry+2,{k:'eat',bid:sh.id})}
- if(work){let b=bById.get(s.job);if(b&&BT[b.t].builder&&b.built>=1){const st=nextSite(s);if(st)b=st}if(b)add(72+(FO==='karriere'?25:0)+(FO==='wohlstand'?15:0)+(s.tr.includes('fleissig')?10:0),{k:'work',bid:b.id});if(b&&b.need&&b.built>=1&&(!b.fetchBy||b.fetchBy===s.id||hAbs()-(b.fetchT||0)>2)){const ks=Object.keys(F(b).in||{}),wh=whNear(b,ks.find(k=>whHas(k)>=1))||whNear(b);if(wh){b.fetchBy=s.id;b.fetchT=hAbs();add(95,{k:'fetch',bid:wh.id,jb:b.id})}}}
+ if(work){let b=bById.get(s.job);if(b&&BT[b.t].builder&&b.built>=1){const st=nextSite(s);if(st)b=st}if(b)add(72+(FO==='karriere'?25:0)+(FO==='wohlstand'?15:0)+(s.tr.includes('fleissig')?10:0),{k:'work',bid:b.id});if(b&&b.need&&b.built>=1&&(!b.fetchBy||b.fetchBy===s.id||hAbs()-(b.fetchT||0)>2)){const ks=Object.keys(F(b).in||{}),wh=whNear(b,ks.find(k=>whHas(k)>=1))||whNear(b);if(wh){b.fetchBy=s.id;b.fetchT=hAbs();add(95,{k:'fetch',bid:wh.id,jb:b.id})}}if(b&&b.t==='lieferdienst'&&b.built>=1){const o=delOrder(s,b);if(o){o.jb.delBy=s.id;o.jb.delT=hAbs();o.jb.fetchBy=s.id;o.jb.fetchT=hAbs();add(96,{k:'fetch',bid:o.wh.id,jb:o.jb.id,del:1})}}}
  if(home&&!isKid(s)&&h>=7&&h<19&&s.money>=bp()*2&&S.res.brot>0){const need=residents(home).length*3-(home.stock||0)-s.brot;const sh=nearest(s,b=>F(b).shop);if(need>0&&sh)add(30+need*6,{k:'buy',bid:sh.id})}
  const soc=(100-n.s)*(s.tr.includes('gesellig')?1.2:.9)*(FO==='freunde'?1.35:1)*(FO==='familie'?1.15:1);
  const fr=bestFriend(s);if(fr&&h>=8&&h<21)add(soc*.9,{k:'interact',tid:fr.id,ik:pickInter(s,fr)});
@@ -808,7 +809,7 @@ function updB0(b,dh){
 // ===== U59: Produktivität je Betrieb und Vergrößerung =====
 const GROW_MAX=3,GROW_AT=.97,GROW_MINH=10;
 const LVLN=['','I','II','III'];
-function lvlProd(b){return 1+.25*((b.lvl||1)-1)}
+function lvlProd(b){return (1+.25*((b.lvl||1)-1))*(uhrOn()?1.05:1)}
 function bOpen(b){const h=hod(),T=BT[b.t],eve=T.hobby&&T.hobby.show;return eve?wday()!==0&&h>=16&&h<23:wday()<6&&h>=7&&h<17}
 function prodable(b){const T=F0(b);return b.built>=1&&!!T.wh&&!!T.slots&&!BT[b.t].builder}
 function updB(b,dh){const pre=b.built>=1,w=b._w||0;updB0(b,dh);if(!pre||!prodable(b)||!bOpen(b))return;const st=b.st||'';if(st.startsWith('Lager voll'))return;
@@ -2213,7 +2214,7 @@ const JOBPROP={baeckerei:'teig',schmiede:'hammer',wagnerei:'hammer',radwerkstatt
 const HOBPROP={angelsteg:'angel',musikhaus:'laute',bogen:'bogen',kegelbahn:'kugel',garten:'giess',spielstube:'buch',dorflinde:null};
 function propOf(s){const t=s.task;if(s.act==='walk'||s.iwalk){return t&&(t.k==='deliver'||t.k==='buy')?'korb':null}if(s.act!=='do'||!t)return null;const b=t.bid&&bById.get(t.bid);
  switch(t.k){case 'cook':return 'loeffel';case 'eat':return 'schale';case 'write':case 'learn':return t.k==='write'?'feder':'buch';case 'drink':case 'leisure':return 'krug';case 'tidy':return 'besen';case 'wash':case 'shower':return 'tuch';
-  case 'work':return b?JOBPROP[b.t]||null:null;case 'hobby':return b?HOBPROP[b.t]||null:null;case 'sit':return rnd()<0?null:'buch';case 'buy':return 'korb';case 'fetch':return 'kiste'}return null}
+  case 'work':return b?JOBPROP[b.t]||null:null;case 'hobby':return b?HOBPROP[b.t]||null:null;case 'sit':return rnd()<0?null:'buch';case 'buy':return 'korb';case 'fetch':case 'drop':return 'kiste'}return null}
 function actPose(s,P,inHouse){const t=s.task;if(!t||s.act!=='do')return;const ph=S.t*5+s.id;
  switch(t.k){case 'cook':P.shR=-1+.25*Math.sin(ph);P.elR=-.9;P.spR=.15+.2*Math.cos(ph);P.shL=-.6;P.elL=-.8;P.lean=.08;break;
   case 'tidy':P.shR=P.shL=-.7+.35*Math.sin(ph*.8);P.elR=P.elL=-.3;P.lean=.15;break;case 'wash':case 'shower':P.shR=P.shL=-1.1+.2*Math.sin(ph*1.5);P.elR=P.elL=-1.2;break;
@@ -2406,9 +2407,10 @@ function whSync(){const L=whList();if(!L.length)return;for(const b of S.b)if(b.b
 function whNear(b,k){const L=whList().filter(w=>!k||((w.inv&&w.inv[k])||0)>=1);if(!L.length)return null;return L.sort((a,c)=>dist2(a,b)-dist2(c,b))[0]}
 // Betriebe holen ihre Rohstoffe im Lagerhaus ab
 function fetchArrive(s,wh,t){const jb=bById.get(t.jb);if(!jb){s.left=.1;return}const T=F(jb);jb.buf=jb.buf||{};const got=[];
- for(const[k,n]of Object.entries(T.in||{})){const want=Math.max(0,n*(eselOn()?6:3)-(jb.buf[k]||0));if(want<=0)continue;let otherBuf=0;for(const b of S.b)if(b!==jb&&b.buf&&b.buf[k])otherBuf+=b.buf[k];const avail=Math.max(0,(S.res[k]||0)-otherBuf-(jb.buf[k]||0));const q=Math.min(want,Math.floor(avail));if(q<=0)continue;
+ for(const[k,n]of Object.entries(T.in||{})){const want=Math.max(0,n*(t.del?(eselOn()?8:5):(eselOn()?6:3))-(jb.buf[k]||0));if(want<=0)continue;let otherBuf=0;for(const b of S.b)if(b!==jb&&b.buf&&b.buf[k])otherBuf+=b.buf[k];const avail=Math.max(0,(S.res[k]||0)-otherBuf-(jb.buf[k]||0));const q=Math.min(want,Math.floor(avail));if(q<=0)continue;
   let tk=whTake(k,q,wh);jb.buf[k]=(jb.buf[k]||0)+q;got.push(q+' '+RES[k][1])}
- jb.need=0;jb.fetchBy=0;s.th=got.length?`Hole ${got.join(', ')} aus dem Lagerhaus${eselOn()?' – mit dem Esel':''}.`:'Im Lagerhaus ist nichts mehr da.';s.left=.35;
+ jb.need=0;jb.fetchBy=0;if(t.del){s.th=got.length?`Lade ${got.join(', ')} für ${bName(jb)}.`:'Im Lagerhaus ist nichts mehr da.';s.left=.3;if(got.length){s.carry=1;s.cmds.unshift({k:'drop',bid:jb.id,exp:hAbs()+5,auto:1})}else{jb.delBy=0;const lb=bById.get(s.job);if(lb)s.cmds.unshift({k:'work',bid:lb.id,exp:hAbs()+3,auto:1})}return}
+ s.th=got.length?`Hole ${got.join(', ')} aus dem Lagerhaus${eselOn()?' – mit dem Esel':''}.`:'Im Lagerhaus ist nichts mehr da.';s.left=.35;
  s.cmds.unshift({k:'work',bid:jb.id,exp:hAbs()+4,auto:1})}
 function whView(b){const inv=b.inv||{},used=whUsed(b),cap=whCap(b),p=Math.min(100,used/cap*100),ks=Object.keys(inv).filter(k=>inv[k]>=1).sort((a,c)=>inv[c]-inv[a]);
  const others=whList().filter(w=>w!==b);
@@ -2548,6 +2550,25 @@ for(const t of['eselfarm','schafsfarm','schweinezucht','huehnerfarm','gaukler'])
 function roleHolder(t,i){const b=S.b.find(x=>x.t===t&&x.built>=1);if(!b)return null;const W=S.p.filter(p=>p.job===b.id&&!p.dead).sort((a,c)=>a.id-c.id);return W[i]||null}
 const eselOn=()=>(S.res.esel||0)>=1||S.b.some(b=>b.t==='eselfarm'&&b.built>=1&&S.p.some(p=>p.job===b.id));
 function u56Daily(){const sm=roleHolder('rathaus',1);if(sm&&S.res.taler>0){const z=Math.min(40,Math.floor(S.res.taler*.01));if(z>0){S.res.taler+=z;flow('in','Zinsen (Schatzmeister)',z)}}}
+// ===== Update 61: Uhrmacher und Lieferdienst =====
+Object.assign(RES,{uhr:['🕰️','Uhren']});Object.assign(BASE,{uhr:18});if(!TRADEABLE.includes('uhr'))TRADEABLE.push('uhr');
+Object.assign(BT,{
+ uhrmacher:{n:'Uhrmacherei',i:'🕰️',slots:2,job:['Uhrmacherin','Uhrmacher'],wh:3,in:{werkzeug:1,bretter:1},out:{uhr:1},cost:{bretter:12,stein:4,taler:110},bh:8,def:{f:'buerger',fl:2},cat:'gew',d:'Baut Stand- und Wanduhren. Mit Uhren im Lager sind alle Betriebe pünktlich: +5 % Leistung. Uhren lassen sich auch teuer verkaufen.'},
+ lieferdienst:{n:'Lieferdienst',i:'🛒',slots:2,job:['Lieferantin','Lieferant'],courier:1,cost:{bretter:10,taler:70},bh:6,def:{f:'lang',fl:1},cat:'gew',d:'Lieferanten bringen Rohstoffe automatisch aus dem Lagerhaus zu den Betrieben, bevor sie ausgehen – die Belegschaft bleibt dabei an der Arbeit. Braucht ein Lagerhaus.'}});
+Object.assign(TEMPLATES,{
+ uhrmacher:{v:1,floors:[{rooms:[Rm(0,4,12,6,'fachwerk'),Rm(0,0,12,4,'stein')],furn:[Fu('theke',4,6),Fu('regal',0,8),Fu('regal',10,8),Fu('arbeitstisch',1,1),Fu('arbeitstisch',5,1),Fu('pult',9,1),Fu('stuhl',9,2),Fu('truhe',11,5)],edges:{'h:6:10':'door','h:3:4':'door','v:0:6':'window','v:12:6':'window','h:8:0':'window'}},{rooms:[Rm(0,0,7,10,'fachwerk'),Rm(7,0,5,10,'fachwerk')],furn:[Fu('doppelbett',1,1),Fu('truhe',4,1),Fu('tisch',2,6),Fu('stuhl',2,7),Fu('bett',9,1),Fu('regal',8,8)],edges:{'v:7:5':'door','v:0:3':'window','v:12:3':'window'}}]},
+ lieferdienst:{v:1,floors:[{rooms:[Rm(0,0,12,6,'holz'),Ro(0,6,12,4)],furn:[Fu('fass',0,0),Fu('fass',1,0),Fu('regal',3,0),Fu('regal',6,0),Fu('truhe',10,0),Fu('pult',9,3),Fu('stuhl',9,4),Fu('pferd',2,7),Fu('heu',0,8)],edges:{'h:5:6':'door','v:0:3':'window','v:12:3':'window'}}]}});
+for(const t of['uhrmacher','lieferdienst'])PLAN_TYPES[t]=1;
+Object.assign(JP,{uhrmacher:12,lieferdienst:5});Object.assign(JOBSK,{uhrmacher:'handwerk',lieferdienst:'fitness'});Object.assign(JOBPROP,{uhrmacher:'hammer',lieferdienst:'kiste'});
+const uhrOn=()=>(S.res.uhr||0)>=1;
+// Lieferant sucht den dringendsten Auftrag: Betrieb mit knappem Rohstoff, der im Lagerhaus liegt
+function delOrder(s,lb){if(!whList().length)return null;let best=null,bd=1e18;
+ for(const b of S.b){if(b.built<1||b===lb)continue;const T=F(b);if(!T.in||!T.wh)continue;if(b.delBy&&b.delBy!==s.id&&hAbs()-(b.delT||0)<3)continue;
+  b.buf=b.buf||{};const low=Object.entries(T.in).find(([k,n])=>(b.buf[k]||0)<n*2&&whHas(k)>=1);if(!low)continue;if(!S.p.some(p=>p.job===b.id))continue;
+  const d=dist2(b,lb)-(b.need?1e6:0);if(d<bd){bd=d;best=[b,low[0]]}}
+ if(!best)return null;const wh=whNear(best[0],best[1]);return wh?{jb:best[0],wh}:null}
+function dropArrive(s,b){if(b){b.delBy=0;b.deliv=(b.deliv||0)+1}s.th=b?`Lieferung für ${bName(b)} abgegeben.`:'Lieferung abgegeben.';s.left=.2;if(s.carry)s.carry=null;const lb=bById.get(s.job);if(lb)s.cmds.unshift({k:'work',bid:lb.id,exp:hAbs()+3,auto:1})}
+function courierCount(){return S.b.filter(b=>b.t==='lieferdienst'&&b.built>=1).reduce((a,b)=>a+S.p.filter(p=>p.job===b.id).length,0)}
 Object.assign(JOBPROP,{druckerei:'buch',universitaet:'buch',bank:'feder',fabrik:'tuch',eisenhuette:'hammer',kraftwerk:'hammer',krankenhaus:'kraut',supermarkt:'korb'});
 for(const k of['laufrad','tretrad','stadtrad','lastenrad','sportrad','hochrad'])VEH[k].era=2;
 VEH.auto={n:'Automobil',cat:'kutsche',shop:'wagnerei',era:3,cost:{werkzeug:12,tuch:4,taler:300},days:2,d:'Motorisiert: alle Bewohner +8 % schneller, +3 Gäste.'};
@@ -4020,6 +4041,12 @@ dress('geburtshaus',(b,cx,cz,w,dd,top,fz)=>{for(const s of[-1,1]){box(TR(cx+s*.2
  box(TR(cx+.02,0,fz+.12),.1,.04,.06,col('#c9a85a'));});
 dress('alchemist',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{ell3(TR(x,y-.03,z),.02,.02,.008,4,6,col('#8a5cc2'));box(TR(x,y,z),.006,.03,.004,col('#5a3d24'))});
  cyl(TR(cx-.2,0,fz+.12),.06,.07,.07,10,col('#3a3530'));ell3(TR(cx-.2,.07,fz+.12),.05,.012,.05,3,8,col('#7ad08a'),{e:1});for(let k=0;k<4;k++)cyl(TR(cx+.1+k*.05,0,fz+.1),.014,.01,.05,6,col(['#8a5cc2','#3d8a6a','#e0b040','#c0453a'][k]))});
+// U61: Uhrmacherei (Uhrenschild, Turmuhr) und Lieferdienst (Kisten, Handkarren)
+dress('uhrmacher',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.34,fz,(x,y,z)=>{cyl(TR(x,y-.03,z,0,Math.PI/2,0),.03,.03,.008,12,col('#efe6cf'));box(TR(x,y-.03,z+.006),.003,.022,.002,col('#2f2a26'));box(TR(x+.008,y-.03,z+.006),.016,.003,.002,col('#2f2a26'))});
+ cyl(TR(cx,top-.02,fz+.005,0,Math.PI/2,0),.07,.07,.015,16,col('#e8dcc0'));cyl(TR(cx,top-.02,fz+.012,0,Math.PI/2,0),.075,.075,.006,16,col('#7a5232'));box(TR(cx,top-.005,fz+.022),.006,.05,.004,col('#2f2a26'));box(TR(cx+.018,top-.02,fz+.022),.036,.006,.004,col('#2f2a26'))});
+dress('lieferdienst',(b,cx,cz,w,dd,top,fz)=>{hangSign(cx+w/2-.05,.3,fz,(x,y,z)=>{box(TR(x,y-.035,z),.04,.03,.03,col('#b07a3e'));box(TR(x,y-.035,z+.016),.042,.004,.002,col('#5a3d24'))});
+ for(const[dx,dz,h]of[[-.28,.08,.07],[-.2,.1,.06],[-.24,.06,.13]])box(TR(cx+dx,h/2-.01+(h>.1?.03:0),fz+dz),.07,.06,.07,col('#a8743c'));
+ const kx=cx+.22,kz=fz+.16;box(TR(kx,.07,kz),.16,.03,.1,col('#7a5232'));box(TR(kx,.1,kz),.16,.03,.004,col('#6a4528'));for(const s2 of[-1,1])cyl(TR(kx-.03,.05,kz+s2*.055,0,Math.PI/2,0),.05,.05,.012,10,col('#4a3420'));box(TR(kx+.13,.08,kz),.12,.008,.008,col('#5a3d24'));box(TR(kx-.01,.11,kz),.09,.04,.07,col('#c49a5a'))});
 // Badehaus: Zuber, Dampf, Schild
 if(HMESH.badehaus){const _bh=HMESH.badehaus;HMESH.badehaus=function(b,cx,cz){const t=_bh(b,cx,cz);for(const s of[-1,1]){const x=cx+s*.28,z=cz+.38;cyl(TR(x,0,z),.09,.08,.09,12,col('#8a5a32'));cyl(TR(x,.085,z),.08,.08,.006,12,col('#7fc0d8'));for(const y of[.02,.065])cyl(TR(x,y,z),.092,.092,.008,12,col('#3a3a3a'))}
  for(let k=0;k<3;k++)box(TR(cx,.02+k*.02,cz+.42),.1,.02,.06,col(k%2?'#f4efe4':'#e0d6c4'));for(let k=0;k<4;k++)ell3(TR(cx+.05+k*.02,t+.05+k*.07,cz-.1),.05+k*.015,.04+k*.01,.05+k*.015,4,6,col('#f2f4f6'));
