@@ -1,7 +1,7 @@
 {
-  "build": 65,
+  "build": 2026110966,
   "file": "everstead.html",
-  "notes": "Update 65: Zuverlässiger Start in der App (Bilddaten wieder eingebettet), Anzeige der aktiven Version beim Start",
+  "notes": "Update 66: Versionsnummern im Datumsformat, damit die App neue Updates erkennt",
   "models": [
     {
       "file": "m_baeckerei.json",
