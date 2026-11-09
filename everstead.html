@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-build" content="62">
+<meta name="everstead-build" content="63">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -54,8 +54,8 @@ button:disabled{opacity:.45;cursor:default}
 #ctrlbar .top>div{flex:1;min-width:0}
 #ctrlname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;font-family:"Alegreya",Georgia,serif;font-weight:700;font-size:1.05rem;background:none;border:0;padding:0;text-align:left}
 #ctrlstate{font-size:.85rem;color:var(--muted);display:block}
-#ctrlbar .q{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
-#ctrlbar .q button{min-width:0;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--panel);padding:2px;font-size:.74rem;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+#ctrlbar .q{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:5px;margin-top:6px}
+#ctrlbar .q button{min-width:0;min-height:42px;border-radius:10px;border:1px solid var(--line);background:var(--panel);padding:2px;font-size:.74rem;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
 #ctrlbar .q button b{font-size:1.1rem;font-weight:400}
 #ctrlbar .end{margin-left:auto;background:var(--acc);color:var(--accink);border:0;border-radius:10px;min-height:36px;padding:0 12px;font-weight:700}
 #ctrlbar .hint{font-size:.78rem;color:var(--muted);margin:4px 0 0}
@@ -150,6 +150,12 @@ h3{font-family:"Alegreya",Georgia,serif;font-size:1.05rem;margin:14px 0 6px}
 #edsum{padding:6px 12px 0;font-size:.88rem;color:var(--muted)}
 #edfl{display:flex;gap:6px;padding:6px 10px;overflow-x:auto}
 #edfl button{min-height:36px;border-radius:999px;border:1px solid var(--line);background:transparent;padding:0 14px;white-space:nowrap}
+#ctrlneeds .needs{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 8px;margin:6px 0 2px}.nb{display:flex;align-items:center;gap:4px;font-size:.8rem}.nb i{font-style:normal;width:18px;text-align:center}.nb em{flex:1;height:7px;border-radius:4px;background:rgba(0,0,0,.14);overflow:hidden}.nb em b{display:block;height:100%;border-radius:4px}
+#ctrlneeds .nst{margin:3px 0 0;font-size:.78rem;opacity:.85}#ctrlbar .q button.on{background:var(--acc);color:var(--accink)}
+#joy{position:absolute;left:22px;bottom:26px;z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;touch-action:none}#joy[hidden]{display:none}
+#joyb{width:150px;height:150px;border-radius:50%;background:rgba(20,24,18,.28);border:2px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;touch-action:none;backdrop-filter:blur(3px)}
+#joyk{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none}
+#joyx{border:0;border-radius:10px;padding:7px 12px;background:rgba(20,24,18,.8);color:#fff;font-weight:600}
 #edfl button.undo{margin-left:auto}#edfl button:disabled{opacity:.4}
 #edfl button.on{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
 #edwrap{flex:1;min-height:0;position:relative}
@@ -367,8 +373,9 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
    </div>
    <div id="ctrlbar" class="float" hidden>
     <div class="top"><img id="ctrlimg" class="pt" width="40" height="40" alt=""><div><button id="ctrlname" data-q="profil"></button><span id="ctrlstate"></span></div><button class="end" data-q="end">Beenden</button></div>
-    <div class="q"><button data-q="eat"><b>🍞</b>Essen</button><button data-q="sleep"><b>🛏️</b>Schlafen</button><button data-q="home"><b>🏠</b>Heim</button><button data-q="work"><b>🔨</b>Arbeit</button></div>
-    <p class="hint">Tippe auf einen Ort, ein Gebäude oder eine Person.</p>
+    <div id="ctrlneeds"></div>
+    <div class="q"><button data-q="eat"><b>🍞</b>Essen</button><button data-q="drink"><b>💧</b>Trinken</button><button data-q="sleep"><b>🛏️</b>Schlafen</button><button data-q="home"><b>🏠</b>Heim</button><button data-q="work"><b>🔨</b>Arbeit</button><button data-q="follow" id="cqfollow"><b>🎥</b>Folgen</button><button data-q="will" id="cqwill"><b>🧠</b>Freier Wille</button><button data-q="direct" id="cqdirect"><b>🕹️</b>Direkt</button></div>
+    <p class="hint">Tippe auf einen Ort, ein Gebäude, einen Gegenstand oder eine Person.</p>
    </div>
    <div id="ctxbar" class="float" hidden>
     <div class="ctxh"><img id="ctximg" class="pt" width="36" height="36" alt=""><p id="ctxname"></p></div>
@@ -379,6 +386,7 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
    </div>
    <div id="hv" class="float" hidden><button data-hx="1" class="hvx">⬅ Dorf</button><b id="hvname"></b><span id="hvfl"></span></div>
    <div id="queue" class="float" hidden></div>
+   <div id="joy" hidden><div id="joyb"><div id="joyk"></div></div><button id="joyx">✕ Direkt beenden</button></div>
    <div id="modehint" class="float" hidden><span id="mhtext"></span><button id="mhpan">✋ Karte bewegen</button><button id="mhsty" hidden>🏛 Stil</button><button id="mhrot" hidden aria-label="Drehen">⟳ Drehen</button><button id="mhok" hidden class="okb">✓ Bauen</button><button id="mhundo" hidden>↶ Rückgängig</button><button id="mhdone">Fertig</button></div>
   </div>
   <aside id="panel" hidden><div id="phead"><h2 id="ptitle"></h2><button id="pclose" aria-label="Schließen">✕</button></div><div id="pbody"></div></aside>
@@ -397,7 +405,7 @@ body.svmode #tools,body.svmode #feed,body.svmode #modehint{display:none!importan
 <div id="world" hidden><div class="whead"><b>🗺️ Weltkarte</b><button id="wfleet">⛵ Flotte</button><button id="wclose" aria-label="Schließen">✕</button></div><canvas id="wcv" aria-label="Weltkarte"></canvas><div id="wcard"></div></div>
 <div id="toast" role="status"></div>
 <script>
-(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=62')||await ld(GH+'m%20assets.json?v=62');
+(async()=>{const ld=async u=>{try{const r=await fetch(u);if(r.ok){const j=await r.json();if(j&&j.tex)return j}}catch(e){}return null};const GH='https://alinaproboscht.github.io/everstead/';window.__EVA=await ld('m_assets.json')||await ld('m%20assets.json')||await ld(GH+'m_assets.json?v=63')||await ld(GH+'m%20assets.json?v=63');
 (()=>{
 const __A=window.__EVA||{};if(!window.__EVA)setTimeout(()=>{try{toast("⚠ Bilddaten fehlen (m_assets.json) – Gesichter und Oberflächen fehlen, bis die Datei da ist.")}catch(e){}},2500);const TEXB64=__A.tex;const PHOTOS=__A.photos;const SPRITES=__A.sprites;const UIIMG=__A.ui;
 'use strict';
@@ -604,7 +612,7 @@ function villageCalc(){const B=S.b.filter(b=>b.built>=1),T=new Set(B.map(b=>b.t)
 const villageMood=()=>{if(S._vmT===(hAbs()|0)&&S._vm!=null)return S._vm;S._vd=villageCalc();S._vmT=hAbs()|0;S._vm=S._vd.sum;return S._vm};
 const goodsMood=()=>{if(S._gmT===(hAbs()|0)&&S._gm!=null)return S._gm;const n=Object.keys(RES).filter(k=>k!=='taler'&&(S.res[k]||0)>=1).length;S._gmN=n;S._gmT=hAbs()|0;S._gm=Math.min(4,n*.2);return S._gm};
 const workMood=()=>{if(S._wmT===(hAbs()|0)&&S._wm!=null)return S._wm;const A=S.p.filter(s=>!isKid(s)&&ageOf(s)<65),e=A.filter(s=>s.job).length;S._wmR=A.length?e/A.length:1;S._wmT=hAbs()|0;S._wm=3*S._wmR;return S._wm};
-function moodOf(s){const n=s.n;let m=(n.h+n.e+n.s+n.f+(n.y==null?70:n.y))/5+(s.home?6:-15)+(s.partner?5:0)-(s.sick?10:0)+luxMood()+vehMood()+emSum(s)+comfortMood(s)+greenMood(s)+foodMood()+villageMood()+goodsMood()+workMood();return clamp(m,0,100)}
+function moodOf(s){const n=s.n;let m=(n.h+n.e+n.s+n.f+(n.y==null?70:n.y))/5-(n.d!=null&&n.d<20?(20-n.d)*.25:0)+(s.home?6:-15)+(s.partner?5:0)-(s.sick?10:0)+luxMood()+vehMood()+emSum(s)+comfortMood(s)+greenMood(s)+foodMood()+villageMood()+goodsMood()+workMood();return clamp(m,0,100)}
 
 // Orte & Ziele
 function locOf(t){if(t.bid){const b=bById.get(t.bid);return b?{x:b.x,y:b.y,b}:null}return{x:t.x,y:t.y}}
@@ -638,6 +646,11 @@ function arrive(s){
   case 'buy':{if(S.res.brot<1){s.th='Kein Brot mehr da!';s.left=.1;break}const pz=bp(),q=Math.min(S.res.brot,Math.floor(s.money/pz),s.tr.includes('sparsam')?3:5);
    if(q<1){s.th='Ich habe kein Geld.';s.left=.1;break}S.res.brot-=q;s.money-=q*pz;pf(s,'exp',q*pz);S.res.taler+=q*pz;flow('in','Brotverkauf',q*pz);{const fee=Math.min(s.money,q*pz*(S.mfee==null?.1:S.mfee));if(fee>0){s.money-=fee;pf(s,'exp',fee);S.res.taler+=fee;flow('in','Marktstandgeld',fee)}}flow('cons','brot',q);s.brot+=q;s.th=`${q} Brote gekauft.`;mem(s,`hat ${q} Brote gekauft`);s.left=.25;
    if(s.home)s.cmds.unshift({k:'deliver',bid:s.home,pri:1,exp:hAbs()+6,auto:1});break}
+  case 'water':s.left=.25;s.th=b&&b.t==='brunnen'?'Frisches Brunnenwasser!':'Ein Schluck Wasser.';if(t.fill&&s.home){const h=bById.get(s.home);if(h){h.water=(h.water||0)+6;s.th='Eimer gefüllt – Wasser für zu Hause.';s.left=.4}}break;
+  case 'musik':s.left=1;s.th=pick(['Ich spiele ein Lied auf der Laute.','Eine alte Weise auf der Flöte.','Alle summen mit!']);mem(s,'hat musiziert');break;
+  case 'picknick':{const h=s.home&&bById.get(s.home);if(s.brot>0)s.brot--;else if(h&&h.stock>0)h.stock--;else if(s.money>=2){s.money-=2;pf(s,'exp',2);S.res.taler+=2;flow('in','Lebensmittel',2)}else{s.th='Nichts zum Picknicken dabei.';s.left=.1;break}s.left=.8;s.th='Picknick im Grünen.';mem(s,'hat ein Picknick gemacht');break}
+  case 'play':s.left=1;s.th=pick(['Fangen spielen!','Verstecken!','Hüpfspiel!']);break;
+  case 'meeting':{const n2=b?meetingCall(s,b):0;s.left=1.2;s.th=n2?`Versammlung – ${n2} Leute kommen.`:'Niemand hat Zeit für eine Versammlung.';if(n2)log(`📣 ${nm(s)} ruft eine Versammlung ein (${bName(b)}).`,s.id);break}
   case 'fetch':fetchArrive(s,b,t);break;
   case 'drop':dropArrive(s,b);break;
   case 'hobby':hobbyArrive(s,b);break;
@@ -657,7 +670,7 @@ function arrive(s){
   case 'stand':s.left=.15;break;
   case 'deliver':if(b&&b.id===s.home){b.stock=(b.stock||0)+s.brot;s.brot=0;s.th='Vorräte verstaut.'}s.left=.1;break;
   case 'sleep':s.th=s.home===b?.id?'Gute Nacht.':'Ich schlafe unter freiem Himmel …';s.left=9;break;
-  case 'work':s.left=clamp((BT[b.t].hobby&&BT[b.t].hobby.show?23:17)-hod(),.5,3);s.th=b.built<1?'Wir bauen weiter!':'An die Arbeit.';break;
+  case 'work':s.left=clamp((BT[b.t].hobby&&BT[b.t].hobby.show?23:17)-hod(),.5,3);s.th=b.built<1?'Wir bauen weiter!':'An die Arbeit.';if(t.jt&&b.built>=1){s.left=1;s.th=t.jt.replace(/^\S+\s/,'')+' …'}break;
   case 'leisure':s.left=1+rnd();s.th=F(b).tavern?'Ein Krug in guter Gesellschaft.':'Schön, hier zu sein.';break;
   case 'social':s.left=.8+rnd()*.6;s.th='Mal sehen, wer hier ist.';break;
   case 'visit':s.left=1;s.th='Zu Besuch.';break;
@@ -704,6 +717,7 @@ function options(s){
  const add=(sc,task)=>{if(sc>0)O.push([sc+rnd()*12,task])};
  const sleepAt=home&&home.built>=1?home:null;
  add((100-n.e)*1.1+(night?70:0)-(h>8&&h<20?40:0),sleepAt?{k:'sleep',bid:sleepAt.id}:{k:'sleep',x:Math.floor(s.x),y:Math.floor(s.y)});
+ if(n.d!=null&&n.d<60){const wl=nearest(s,b=>b.t==='brunnen'&&b.built>=1),near=wl&&Math.hypot(wl.x-s.x,wl.y-s.y)<18;add((100-n.d)*1.3-18,near?{k:'water',bid:wl.id}:home&&home.built>=1?{k:'water',bid:home.id}:{k:'water',x:Math.floor(s.x),y:Math.floor(s.y)})}
  const hungry=(100-n.h)*1.35;
  if(s.brot>0)add(hungry+5,{k:'eat',x:Math.floor(s.x),y:Math.floor(s.y)});
  if(home&&home.stock>0)add(hungry,{k:'eat',bid:home.id});
@@ -732,11 +746,13 @@ function decide(s){
  s.path=null;
  // Notfälle
  if(s.n.e<3){s.task={k:'sleep',x:Math.floor(s.x),y:Math.floor(s.y)};s.act='do';s.left=6;s.th='Vor Erschöpfung eingeschlafen …';mem(s,'ist vor Erschöpfung eingeschlafen');return}
+ // Kritische Bedürfnisse gehen vor Spielerbefehlen
+ if(s.cmds.some(c=>!c.auto)){const cr=s.n.h<8?'hungrig':(s.n.d!=null&&s.n.d<8)?'durstig':s.n.e<8?'erschöpft':null;if(cr){if(!s._crT||hAbs()-s._crT>2){s._crT=hAbs();if(s.ctrl||s.fav)toast(`${s.fn} ist zu ${cr} – kümmert sich zuerst darum, dann geht es weiter.`)}const O=options(s);O.sort((a,b)=>b[0]-a[0]);if(O[0]){start(s,O[0][1]);return}}}
  // Befehle
- while(s.cmds.length){const c=s.cmds.shift();if(c.exp<hAbs())continue;
-  if(c.k==='goto'){start(s,{k:'goto',x:c.x,y:c.y});return}
-  start(s,{k:c.k,bid:c.bid,tid:c.tid,ik:c.ik,x:c.x,y:c.y,ff:c.ff,ispot:c.ispot,player:!c.auto});return}
- if(s.ctrl){s.act='idle';s.task=null;s.left=.25;s.th='Wartet auf deine Anweisung.';return}
+ while(s.cmds.length){const c=s.cmds.shift();if(c.exp<hAbs())continue;if(!c.auto)s._idle0=0;
+  if(c.k==='goto'){start(s,{k:'goto',x:c.x,y:c.y,player:!c.auto});return}
+  start(s,{k:c.k,bid:c.bid,tid:c.tid,ik:c.ik,x:c.x,y:c.y,ff:c.ff,ispot:c.ispot,jt:c.jt,fill:c.fill,player:!c.auto});return}
+ if(s.ctrl){if(s.freeWill===false||!s._idle0||hAbs()-s._idle0<.35){if(!s._idle0)s._idle0=hAbs();s.act='idle';s.task=null;s.left=.25;s.th=s.freeWill===false?'Wartet auf deine Anweisung.':'Überlegt, was als Nächstes kommt …';return}}
  if(s.hold>hAbs()){s.act='idle';s.left=.1;return}
  const O=options(s);O.sort((a,b)=>b[0]-a[0]);const t=O[0]?O[0][1]:{k:'walk',x:Math.floor(s.x),y:Math.floor(s.y)};start(s,t);
 }
@@ -749,7 +765,9 @@ function move(s,dt){
 function tread(i){if(S.road[i]||S.map[i]!==0||occ[i])return;S.traffic[i]+=1;if(S.traffic[i]>=40){S.road[i]=1;S.traffic[i]=0;hooks.tile(i)}}
 function updCit(s,dt){
  if(s.away)return;if(babyTick(s,dt))return;
+ if(s._direct){const dh=dt/HOUR,n=s.n;n.h=clamp(n.h-6*dh,0,100);n.e=clamp(n.e-4.2*dh,0,100);n.s=clamp(n.s-3*dh,0,100);n.d=clamp((n.d==null?80:n.d)-6.5*dh,0,100);if(n.y!=null)n.y=clamp(n.y-2.2*dh,0,100);return}
  const dh=dt/HOUR,n=s.n,t=s.task,doing=s.act==='do'&&t?t.k:'';
+ if(n.d==null)n.d=80;n.d-=(doing==='sleep'?1:doing==='work'?7:5.5)*dh;if(doing==='eat'||doing==='drink'||doing==='leisure'||doing==='picknick')n.d+=70*dh;
  n.h-=6*dh;n.s-=(s.tr.includes('gesellig')?4.2:3.2)*dh;n.f-=3*dh;if(n.y==null)n.y=70;n.y-=(doing==='work'?3:2.2)*dh;if(s.sick){n.e-=1.6*dh;n.f-=1*dh}
  if(doing==='sleep')n.e+=14*dh*(s.home===s.inside&&s.inside?1:.6);else n.e-=(doing==='work'?5.8:4.2)*dh;
  if(s.act==='walk'){move(s,dt)}
@@ -757,7 +775,7 @@ function updCit(s,dt){
   skillTick(s,dh,t);emTask(s,t,dh);
   switch(doing){
    case 'eat':n.h+=160*dh*(1+Math.min(.5,foodTypes().length*.08));break;
-   case 'work':{const b=bById.get(t.bid);const bld=b&&b.built<1&&isBuilder(s);if(b&&(s.job===b.id||bld)){b._w=(b._w||0)+(1+s.skill/250)*jobSkillMul(s,b)*(s.tr.includes('fleissig')?1.1:1)*(bld?1.8:1)*(s.sick?.6:1)*(S.res.werkzeug>=1?1.2:1)*(b.built<1?vehBuild():1);s.skill=Math.min(200,s.skill+dh*.8);s.rep+=dh*.1;if((b.built>=1||bld)&&S.res.taler>=dh){const tx=dh*(S.taxRate==null?.05:S.taxRate);S.res.taler-=dh-tx;s.money+=dh-tx;flow('out','Löhne',dh);flow('in','Lohnsteuer',tx);pf(s,'inc',dh-tx);pf(s,'tax',tx)}}else s.left=0;break}
+   case 'work':{const b=bById.get(t.bid);const bld=b&&b.built<1&&isBuilder(s);if(b&&(s.job===b.id||bld)){b._w=(b._w||0)+(1+s.skill/250)*jobSkillMul(s,b)*(s.tr.includes('fleissig')?1.1:1)*(bld?1.8:1)*(s.sick?.6:1)*(S.res.werkzeug>=1?1.2:1)*(b.built<1?vehBuild():1)*(t.jt?1.25:1);s.skill=Math.min(200,s.skill+dh*(t.jt?1.2:.8));s.rep+=dh*.1;if((b.built>=1||bld)&&S.res.taler>=dh){const tx=dh*(S.taxRate==null?.05:S.taxRate);S.res.taler-=dh-tx;s.money+=dh-tx;flow('out','Löhne',dh);flow('in','Lohnsteuer',tx);pf(s,'inc',dh-tx);pf(s,'tax',tx)}}else s.left=0;break}
    case 'leisure':n.f+=22*dh;n.s+=12*dh;if(rnd()<dh*.6&&s.money>=1){s.money-=1;pf(s,'exp',1);S.res.taler+=1;flow('in','Taverne',1)}socialTick(s,dh);break;
    case 'social':n.s+=10*dh;n.f+=4*dh;socialTick(s,dh);break;
    case 'visit':n.s+=16*dh;n.f+=8*dh;socialTick(s,dh);break;
@@ -774,11 +792,16 @@ function updCit(s,dt){
    case 'tidy':n.f+=3*dh;s.rep+=dh*.4;break;
    case 'cook':if(s.left-dh<=0&&t.bid){const hb=bById.get(t.bid);if(hb){hb.stock=(hb.stock||0)+3;s.th='Das Essen ist fertig – für alle reicht es.'}}n.f+=4*dh;break;
    case 'drink':n.f+=24*dh;n.s+=8*dh;socialTick(s,dh);break;
+   case 'water':n.d+=320*dh;break;
+   case 'musik':{n.f+=18*dh;gainSk(s,'kreativ',dh*.4);for(const p of S.p)if(p!==s&&p.inside&&p.inside===s.inside&&p.act==='do'){p.n.f+=8*dh}socialTick(s,dh);break}
+   case 'picknick':n.h+=110*dh;n.s+=8*dh;n.f+=12*dh;socialTick(s,dh);break;
+   case 'play':n.f+=32*dh;n.s+=8*dh;n.e-=2*dh;socialTick(s,dh);break;
+   case 'meeting':n.s+=14*dh;socialTick(s,dh);break;
    case 'sleep':if(n.e>=98&&(hod()>=6&&hod()<21||t.x!=null))s.left=0;break;
   }
   s.left-=dh;if(s.left<=0){if(t&&t.player)s.th='Erledigt.';s.task=null;s.act='idle';s.left=0;decide(s)}
  }else{s.left-=dh;if(s.left<=0)decide(s)}
- n.h=clamp(n.h,0,100);n.e=clamp(n.e,0,100);n.s=clamp(n.s,0,100);n.f=clamp(n.f,0,100);n.y=clamp(n.y,0,100);
+ n.h=clamp(n.h,0,100);n.e=clamp(n.e,0,100);n.s=clamp(n.s,0,100);n.f=clamp(n.f,0,100);n.y=clamp(n.y,0,100);n.d=clamp(n.d,0,100);
 }
 function socialTick(s,dh){if(!s.inside||rnd()>dh*1.5)return;const o=S.p.filter(p=>p!==s&&p.inside===s.inside&&p.act==='do');if(!o.length)return;const p=pick(o);interact(s,p,pickInter(s,p))}
 
@@ -902,8 +925,8 @@ function update(dt){
 }
 
 // ===== Befehle des Spielers =====
-function command(s,c){c.pri=9;c.exp=hAbs()+(c.exp||6);s.cmds=[c];s.hold=0;s.task=null;s.path=null;s.act='idle';s.left=0}
-function setCtrl(s,on){s.ctrl=on;s.auto=on?'direkt':(s.focus?'teil':'voll');if(!on){s.cmds=s.cmds.filter(c=>c.auto);s.left=0;s.th='Macht wieder selbstständig weiter.'}}
+function command(s,c){if(s._direct)directStop(true);c.pri=9;c.exp=hAbs()+(c.exp||6);s.cmds=[c];s.hold=0;s.task=null;s.path=null;s.act='idle';s.left=0}
+function setCtrl(s,on){if(!on&&s._direct)directStop(true);s.ctrl=on;s._idle0=0;s.auto=on?'direkt':(s.focus?'teil':'voll');if(!on){s.cmds=s.cmds.filter(c=>c.auto);s.left=0;s.th='Macht wieder selbstständig weiter.'}}
 
 // ===== Neues Spiel / Speichern =====
 function newGame(name){
@@ -1528,7 +1551,7 @@ function itick(s,dt){
  if(s.ipath&&!s.ipath.length&&s.ipStair){s.ip.f+=s.ipStair;s.ipStair=0;s.ipath=null;s.iptg=null}
 }
 // Warteschlange (Sims-artig)
-function queueCmd(s,c){const busy=s.task&&s.task.player&&s.act!=='idle';if(!busy){command(s,c);return}c.pri=9;c.exp=hAbs()+12;if(s.cmds.filter(x=>!x.auto).length>=5){toast('Die Warteschlange ist voll.');return}s.cmds.push(c)}
+function queueCmd(s,c){if(s._direct)directStop(true);const busy=s.task&&s.task.player&&s.act!=='idle';if(!busy){command(s,c);return}c.pri=9;c.exp=hAbs()+12;if(s.cmds.filter(x=>!x.auto).length>=8){toast('Die Warteschlange ist voll (8 Aktionen).');return}s.cmds.push(c)}
 function cancelCurrent(s){if(s.task&&s.task.player){s.task=null;s.act='idle';s.left=0;s.th='Abgebrochen.'}}
 
 // ===== Welt: Tal am See =====
@@ -2112,7 +2135,7 @@ function jobSkillMul(s,b){const k=JOBSK[b.t];return k?1+skLvl(s,k)*.03:1}
 function eduLabel(s){const e=s.edu||0,w=skLvl(s,'wissen');return w>=6?'Gelehrt':e>=12?'Schulabschluss':e>=4?'Kann lesen und schreiben':ageOf(s)<6?'Noch zu jung':'Keine Schulbildung'}
 // ---- Gespräche ----
 const _interactBase=interact;
-interact=function(a,b,k){const before=JSON.stringify(rel(a,b));const extra=newInter(a,b,k);const txt=extra!=null?extra:_interactBase(a,b,k);
+interact=function(a,b,k){const before=JSON.stringify(rel(a,b));const extra=u63Inter(a,b,k)??newInter(a,b,k);const txt=extra!=null?extra:_interactBase(a,b,k);
  const sq=TOPICS[k]||['💬'];const until=hAbs()+.5;a.talk={i:sq[0],until,with:b.id,k,seq:sq,t0:hAbs(),lead:1};b.talk={i:sq[0],until,with:a.id,k,seq:sq,t0:hAbs(),lead:0};b.hold=hAbs()+.5;
  gainSk(a,'charisma',.25);gainSk(b,'charisma',.1);const R=rel(a,b),o=JSON.parse(before),df=Math.round(R.f-o.f),dr=Math.round(R.r-o.r);
  const entry={h:hAbs(),k,w:b.id,txt:txt||'',df,dr};for(const[p,q]of[[a,b],[b,a]]){p.convs=p.convs||[];p.convs.unshift({...entry,w:q.id,me:p===a});if(p.convs.length>12)p.convs.pop()}
@@ -3818,6 +3841,64 @@ function roadStrokeEnd(){const R=ROADSTROKE;ROADSTROKE=null;if(!R)return;const c
 // ---- Hausplaner: Rückgängig ----
 function edHist(){if(!E)return;const j=JSON.stringify(E.plan);if(E.last!=null&&j!==E.last&&!E.undoing){(E.hist=E.hist||[]).push(E.last);if(E.hist.length>40)E.hist.shift()}E.last=j}
 function edUndo(){if(!E||!(E.hist||[]).length)return toast('Nichts zum Rückgängigmachen.');const j=E.hist.pop();E.plan=JSON.parse(j);E.last=j;E.fl=Math.min(E.fl,E.plan.floors.length-1);E.sel=null;E.drag=null;E.undoing=true;try{edUI()}finally{E.undoing=false}toast('↶ Rückgängig')}
+// ===== U63: Sims-Steuerung – HUD, Durst, freier Wille, Objekt-Aktionen, Berufstätigkeiten, Direktsteuerung =====
+Object.assign(ACT_NAME,{water:'Wasser trinken',musik:'Musizieren',picknick:'Picknick',play:'Spielen',meeting:'Versammlung'});
+Object.assign(ACT_ICON,{water:'💧',musik:'🎻',picknick:'🧺',play:'🤸',meeting:'📣'});
+Object.assign(INTER,{spazieren:{n:'Spazieren gehen',i:'🚶'},hilfe:{n:'Um Hilfe bitten',i:'🙏'}});
+const INTER_GATE={umarmen:(s,p)=>(s.rel[p.id]||{f:0}).f>=25||s.partner===p.id||(s.parents||[]).includes(p.id)||(p.parents||[]).includes(s.id),spazieren:(s,p)=>(s.rel[p.id]||{f:0}).f>=10||s.partner===p.id,flirt:(s,p)=>(s.rel[p.id]||{f:0}).f>=15||s.partner===p.id};
+function u63Inter(a,b,k){const R=rel(a,b);
+ if(k==='spazieren'){adj(a,b,7,a.partner===b.id?3:0);a.n.f+=12;b.n.f+=12;a.n.s+=12;b.n.s+=12;a.hold=b.hold=hAbs()+.5;return `${a.fn} und ${b.fn} drehen gemeinsam eine Runde durchs Dorf.`}
+ if(k==='hilfe'){if(R.f>=30||a.partner===b.id||(a.parents||[]).includes(b.id)||(b.parents||[]).includes(a.id)){const g=Math.min(10,Math.floor((b.money||0)/4));if(g>0){b.money-=g;a.money+=g}a.n.f+=8;adj(a,b,3);return g?`${b.fn} hilft ${a.fn} gern aus – mit ${g} Talern.`:`${b.fn} hört ${a.fn} zu und macht Mut.`}adj(a,b,-3);return `${b.fn} hat gerade keine Zeit für ${a.fn}.`}
+ return null}
+// ---- Werte fürs Personen-HUD ----
+function healthOf(s){let h=100;if(s.sick)h-=20+15*(s.sick.sev||1);const a=ageOf(s);if(a>60)h-=(a-60)*.8;return clamp(Math.round(h),0,100)}
+function comfortOf(s){return clamp(Math.round(50+comfortMood(s)*5),0,100)}
+function stressOf(s){const n=s.n;return clamp(Math.round((100-n.e)*.35+(100-n.f)*.3+(100-(n.d==null?80:n.d))*.15+(s.sick?20:0)+(s.task&&s.task.k==='work'?10:0)-n.s*.1),0,100)}
+const isWinter=()=>SEASONS[seasonIdx()][1]==='Winter';
+function needBar(i,l,v){const c=v<20?'#d0503a':v<45?'#e0a83a':'#4fae5a';return `<span class="nb" title="${l}: ${Math.round(v)} %"><i>${i}</i><em><b style="width:${Math.max(3,Math.round(v))}%;background:${c}"></b></em></span>`}
+function ctrlNeeds(s){const n=s.n,mo=Math.round(s.mood!=null?s.mood:moodOf(s)),st=stressOf(s),fr=isWinter()&&!s.inside;
+ return `<div class="needs">${needBar('❤️','Gesundheit',healthOf(s))+needBar('🍞','Hunger',n.h)+needBar('💧','Durst',n.d==null?80:n.d)+needBar('😴','Energie',n.e)+needBar('🧼','Hygiene',n.y==null?70:n.y)+needBar('🎭','Unterhaltung',n.f)+needBar('👥','Sozial',n.s)+needBar('🏠','Komfort',comfortOf(s))}</div>
+ <p class="nst">${mo>=70?'😊':mo>=45?'😐':'😟'} Stimmung ${mo} % · ${st>=60?'😣 Stress hoch':st>=35?'😮‍💨 etwas Stress':'😌 entspannt'}${fr?' · ❄️ friert':''}${s.sick?' · 🤒 '+esc(s.sick.n):''}</p>`}
+// ---- Aktionen an Gegenständen im Dorf ----
+function outActs(s,b){const o=[],t=b.t,kid=isKid(s),Q=(k,x)=>queueCmd(s,Object.assign({k,bid:b.id},x||{}));if(b.built<1)return o;
+ if(t==='brunnen'){o.push({l:'💧 Wasser trinken',f:()=>Q('water')});o.push({l:'🫧 Am Brunnen waschen',f:()=>Q('wash')});o.push({l:'🪣 Wasser holen (für zu Hause)',dis:!s.home,f:()=>{Q('water',{fill:1})}});o.push({l:'💬 Mit Leuten plaudern',f:()=>Q('social')})}
+ const green=['dorflinde','park','garten','aussichtspunkt','spielplatz','picknick'].includes(t)||(BT[t].hobby&&!BT[t].hobby.show&&!BT[t].tavern);
+ if(['dorflinde','park','garten','aussichtspunkt','spielplatz'].includes(t)){o.push({l:'🪑 Hinsetzen',f:()=>Q('sit')});o.push({l:'💬 Unterhalten',f:()=>Q('social')});
+  if(!kid)o.push({l:'🎻 Musizieren',f:()=>Q('musik')});o.push({l:'🧺 Picknick machen',dis:!(s.brot>0||(s.home&&(bById.get(s.home)||{}).stock>0)||s.money>=2),f:()=>Q('picknick')});
+  if(kid||t==='spielplatz')o.push({l:'🤸 Spielen',f:()=>Q('play')});
+  const kids=S.p.filter(p=>isKid(p)&&ageOf(p)>=2&&((p.parents||[]).includes(s.id))&&!p.away);if(!kid&&kids.length)o.push({l:`🧒 ${esc(kids.map(k=>k.fn).join(' & '))} spielen lassen`,f:()=>{for(const k of kids)queueCmd(k,{k:'play',bid:b.id});Q('sit');toast(`${kids.map(k=>k.fn).join(' & ')} ${kids.length>1?'kommen':'kommt'} zum Spielen.`)}});
+  if(!kid&&t==='dorflinde')o.push({l:'📣 Versammlung abhalten',f:()=>Q('meeting')})}
+ return o}
+function meetingCall(s,b){const L=S.p.filter(p=>p!==s&&!isKid(p)&&!p.away&&!p._direct&&!(p.task&&(p.task.k==='sleep'||p.task.k==='birth'))&&Math.hypot(p.x-b.x,p.y-b.y)<28).sort((a,c)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(c.x-b.x,c.y-b.y)).slice(0,8);
+ for(const p of L)p.cmds.unshift({k:'social',bid:b.id,exp:hAbs()+3,auto:1,pri:5});s.rep=(s.rep||0)+2;story(s,'📣',`rief eine Versammlung unter der ${bName(b)} ein`);return L.length}
+// ---- Berufe als spielbare Tätigkeiten ----
+const JOBTASKS={muehle:['🌾 Getreide einfüllen','⚙️ Mahlwerk starten','🫙 Mehlsäcke füllen','🪨 Mühlstein warten','🛒 Mehl verladen'],baeckerei:['🥣 Teig kneten','🔥 Ofen anheizen','🍞 Brot backen','🧺 Brot verkaufen'],
+ schmiede:['🔥 Feuer anfachen','⚒️ Eisen erhitzen','🔨 Schmieden','🪣 Werkstück abkühlen','🗄️ Werkzeug einlagern'],holz:['🪓 Bäume fällen','🪵 Stämme entasten','🛒 Holz stapeln'],saege:['🪚 Stämme sägen','📏 Bretter zuschneiden','🗄️ Bretter stapeln'],
+ bauernhof:['🌱 Säen','💧 Felder gießen','🌾 Ernten','🧺 Garben binden'],steinbruch:['⛏️ Stein brechen','🔨 Blöcke behauen','🛒 Steine verladen'],schneider:['🧶 Stoff zuschneiden','🪡 Nähen','👕 Gewänder anprobieren lassen'],
+ taverne:['🍲 Eintopf kochen','🍺 Bier zapfen','🧹 Gaststube fegen'],apotheke:['🌿 Kräuter mörsern','⚗️ Arznei mischen','💊 Arznei abfüllen'],uhrmacher:['⚙️ Zahnräder feilen','🕰️ Uhrwerk zusammensetzen','🔧 Uhren justieren'],
+ alchemist:['🔥 Destille anheizen','⚗️ Elixier destillieren','📜 Rezepturen studieren'],lieferdienst:['📋 Aufträge sortieren','📦 Kisten packen'],huehnerfarm:['🐔 Hühner füttern','🥚 Eier sammeln'],schafsfarm:['🐑 Schafe hüten','✂️ Schafe scheren'],
+ eselfarm:['🫏 Esel füttern','🧹 Stall misten'],schweinezucht:['🐖 Schweine füttern','🧹 Koben ausmisten'],imker:['🐝 Bienenstöcke prüfen','🍯 Honig schleudern'],weinberg:['🍇 Trauben lesen','🍷 Most pressen'],fischerei:['🎣 Netze auswerfen','🐟 Fang sortieren']};
+function jobActs(s,b){const L=JOBTASKS[b.t]||['📋 Vorräte prüfen','🧹 Werkstatt aufräumen','🛠️ Werkzeug pflegen'];return L.map(l=>({l:l+' <small>(+25 % mit vollem Einsatz)</small>',f:()=>{queueCmd(s,{k:'work',bid:b.id,jt:l});toast(`${s.fn}: ${l.replace(/^\S+\s/,'')} eingereiht.`)}}))}
+// ---- Direktsteuerung mit Joystick ----
+let JOY=null;
+function directStart(s){if(!s)return;joyInit();if(s.inside){const b=bById.get(s.inside);s.inside=0;s.ip=null;s.spot=null;if(b){s.x=b.x+.5;s.y=Math.min(H-1.2,b.y+szOf(b.t)+.35)}}
+ s.task=null;s.path=null;s.cmds=[];s.act='idle';s.left=0;s._direct=1;ui.direct=s.id;ui.follow=false;cam.tx=null;cam.dist=Math.min(cam.dist,4.2);cam.pitch=.42;
+ const j=$('joy');if(j)j.hidden=false;toast(`🕹️ Du steuerst ${s.fn} direkt – Stick links unten, mit einem Finger drehst du die Kamera.`);refresh(true)}
+function directStop(quiet){const s=ui.direct&&pById.get(ui.direct);if(s){s._direct=0;s.act='idle';s.left=0;s.run=false;s.th='Macht weiter.'}ui.direct=0;JOY=null;const j=$('joy');if(j)j.hidden=true;const k=$('joyk');if(k)k.style.transform='';if(!quiet)refresh(true)}
+function directStep(dt){const s=ui.direct&&pById.get(ui.direct);if(!s||!s._direct||!s.ctrl){directStop(true);return}
+ let mv=false;const m=JOY?Math.min(1,Math.hypot(JOY.x,JOY.y)):0;
+ if(m>.12){const fx=-Math.sin(cam.yaw),fz=-Math.cos(cam.yaw),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);let dx=fx*(-JOY.y)+rx*JOY.x,dz=fz*(-JOY.y)+rz*JOY.x;const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l;
+  const sp=(m>.9?3.1:1.6)*m*(isKid(s)?.9:1),nx=s.x+dx*sp*dt,nz=s.y+dz*sp*dt;
+  if(fpWalkable(nx,nz)){s.x=nx;s.y=nz;mv=true}else if(fpWalkable(nx,s.y)){s.x=nx;mv=true}else if(fpWalkable(s.x,nz)){s.y=nz;mv=true}
+  s.run=m>.9;if(mv&&JOY.y<-.35){const ty=Math.atan2(-dx,-dz);let d=ty-cam.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));cam.yaw+=d*Math.min(1,dt*1.2)}}
+ if(!mv)s.run=false;s.act=mv?'walk':'idle';s.th=mv?'Unterwegs – von dir gesteuert.':'Wartet – du steuerst direkt.';
+ cam.x+=(s.x-cam.x)*Math.min(1,dt*6);cam.y+=(s.y-cam.y)*Math.min(1,dt*6)}
+function joyInit(){const base=$('joyb'),knob=$('joyk');if(!base||base._on)return;base._on=1;let pid=null;
+ const upd=e=>{const r=base.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,R=r.width/2-18;let x=(e.clientX-cx)/R,y=(e.clientY-cy)/R;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}JOY={x,y};knob.style.transform=`translate(${x*R}px,${y*R}px)`};
+ base.addEventListener('pointerdown',e=>{pid=e.pointerId;base.setPointerCapture(pid);upd(e);e.preventDefault();e.stopPropagation()});
+ base.addEventListener('pointermove',e=>{if(e.pointerId===pid)upd(e)});
+ const end=e=>{if(e.pointerId!==pid)return;pid=null;JOY=null;knob.style.transform=''};base.addEventListener('pointerup',end);base.addEventListener('pointercancel',end);
+ $('joyx').onclick=()=>directStop()}
 // ===== Landschaftsgestaltung =====
 const LAND_TOOLS={wasser:{n:'Wasser',i:'💧',cost:{taler:3},d:'Gräbt Teiche, Kanäle und Buchten.'},erde:{n:'Erde',i:'🟫',cost:{taler:4},d:'Schüttet Land auf, ebnet Fels ein und rodet Wald (gibt Holz).'},
  baum:{n:'Bäume',i:'🌳',cost:{taler:1},d:'Pflanzt Wald oder Schirmpinien an der Küste.'},blume:{n:'Blumen',i:'🌼',cost:{taler:1},d:'Legt bunte Blumenwiesen an – bebaubar und begehbar.'},
@@ -4572,7 +4653,7 @@ function selectB(b,focus){ui.sel={k:'b',id:b.id};ui.tab='bld';if(focus)focusOn(b
 function deselect(){ui.sel=null;ui.follow=false;if(ui.tab==='cit'||ui.tab==='bld')ui.tab=null;refresh(true)}
 function ctrlCit(){return ui.ctrlId&&pById.get(ui.ctrlId)}
 function takeCtrl(s){const o=ctrlCit();if(o)setCtrl(o,false);setCtrl(s,true);ui.ctrlId=s.id;ui.follow=true;ui.sel={k:'s',id:s.id};if(!wide())ui.tab=null;toast(`Du steuerst jetzt ${s.fn}.`);refresh(true)}
-function endCtrl(){const s=ctrlCit();if(s){setCtrl(s,false);toast(`${s.fn} handelt wieder selbstständig.`)}ui.ctrlId=0;refresh(true)}
+function endCtrl(){if(ui.direct)directStop(true);const s=ctrlCit();if(s){setCtrl(s,false);toast(`${s.fn} handelt wieder selbstständig.`)}ui.ctrlId=0;refresh(true)}
 
 // ---------- HUD ----------
 function hud(){
@@ -4580,8 +4661,8 @@ function hud(){
  chips();
  const c=ctrlCit();$('ctrlbar').hidden=!c;
  $('feed').style.top=(c?$('ctrlbar').offsetHeight+18+(IM?54:0):IM?64:10)+'px';
- if(c){$('ctrlname').textContent=`🎮 ${nm(c)}`;$('ctrlimg').src=portraitURL(c);const q=c.cmds.filter(x=>!x.auto)[0];$('ctrlstate').textContent=q?'Als Nächstes: '+cmdText(q):where(c)}
- const sel=ui.sel&&ui.sel.k==='s'&&pById.get(ui.sel.id);$('ctxbar').hidden=!sel||!!c&&c===sel||!!ui.mode||!!IM;$('ctrlbar').style.top=IM?'64px':'10px';$('tools').hidden=!!IM;
+ if(c){$('ctrlname').textContent=`🎮 ${nm(c)}`;$('ctrlimg').src=portraitURL(c);const q=c.cmds.filter(x=>!x.auto)[0];$('ctrlstate').textContent=q?'Als Nächstes: '+cmdText(q):where(c);const nh=ctrlNeeds(c);if($('ctrlneeds')._h!==nh){$('ctrlneeds')._h=nh;$('ctrlneeds').innerHTML=nh}$('cqfollow').classList.toggle('on',!!ui.follow);$('cqwill').classList.toggle('on',c.freeWill!==false);$('cqwill').innerHTML=`<b>🧠</b>${c.freeWill===false?'Wille aus':'Freier Wille'}`;$('cqdirect').classList.toggle('on',ui.direct===c.id)}$('tools').hidden=!!IM||!!ui.direct;
+ const sel=ui.sel&&ui.sel.k==='s'&&pById.get(ui.sel.id);$('ctxbar').hidden=!sel||!!c&&c===sel||!!ui.mode||!!IM;$('ctrlbar').style.top=IM?'64px':'10px';$('tools').hidden=!!IM||!!ui.direct;
  if(sel){$('ctximg').src=portraitURL(sel);$('ctxname').textContent=`${sel.fn} ${sel.ln} · ${age(sel)} J. · ${jobTitle(sel)}`;$('cfav').textContent=sel.fav?'⭐':'☆';$('cfollow').classList.toggle('on',ui.follow)}
  $('modehint').hidden=!ui.mode;$('mhpan').hidden=!(ui.mode&&ui.mode.k==='road');{const pm=ui.mode&&(ui.mode.k==='place'||ui.mode.k==='move');$('mhrot').hidden=!pm&&!(ui.mode&&ui.mode.k==='plant'&&ui.mode.t==='move'&&ui.mode.pick!=null);$('mhok').hidden=!pm||ui.mode.gx==null;if(pm)$('mhok').textContent=ui.mode.k==='move'?'✓ Hierhin':'✓ Bauen';$('mhsty').hidden=!pm||ui.mode.t!=='haus';if(pm&&ui.mode.t==='haus')$('mhsty').textContent='🏛 '+FORMS[(ui.mode.d&&ui.mode.d.f)||'fachwerk'].n}if(ui.mode)$('mhtext').textContent=ui.mode.hint;
  $('panel').hidden=!(ui.tab)&&!wide();
@@ -4792,7 +4873,7 @@ $('ctxbar').addEventListener('click',e=>{const el=e.target.closest('[data-c]');i
   case 'follow':ui.follow=!ui.follow;break;case 'ctrl':return takeCtrl(s);case 'fav':s.fav=!s.fav;break}refresh(true)});
 // Steuerleiste
 $('ctrlbar').addEventListener('click',e=>{const el=e.target.closest('[data-q]');if(!el)return;const s=ctrlCit();if(!s)return;const q=el.dataset.q;
- if(q==='end')return endCtrl();if(q==='profil'){ui.sel={k:'s',id:s.id};ui.tab='cit';return refresh(true)}
+ if(q==='end')return endCtrl();if(q==='follow'){ui.follow=!ui.follow;ui.sel={k:'s',id:s.id};return refresh(true)}if(q==='will'){s.freeWill=s.freeWill===false;s._idle0=0;toast(s.freeWill===false?`${s.fn} wartet jetzt immer auf deine Anweisungen.`:`${s.fn} sucht sich selbst etwas, wenn du nichts vorgibst.`);return refresh(true)}if(q==='direct'){if(ui.direct===s.id)directStop();else directStart(s);return}if(q==='drink'){const wl=nearest(s,b=>b.t==='brunnen'&&b.built>=1),home=s.home&&bById.get(s.home);queueCmd(s,wl&&Math.hypot(wl.x-s.x,wl.y-s.y)<25?{k:'water',bid:wl.id}:home?{k:'water',bid:home.id}:{k:'water',x:Math.floor(s.x),y:Math.floor(s.y)});return refresh(true)}if(q==='profil'){ui.sel={k:'s',id:s.id};ui.tab='cit';return refresh(true)}
  const home=s.home&&bById.get(s.home);
  if(q==='eat'){if(s.brot>0)queueCmd(s,{k:'eat',x:Math.floor(s.x),y:Math.floor(s.y)});else if(home&&home.stock>0)queueCmd(s,{k:'eat',bid:home.id});else{const sh=nearest(s,b=>F(b).shop||F(b).tavern);if(sh)queueCmd(s,{k:'eat',bid:sh.id});else toast('Kein Essen erreichbar.')}}
  if(q==='sleep')queueCmd(s,home?{k:'sleep',bid:home.id}:{k:'sleep',x:Math.floor(s.x),y:Math.floor(s.y)});
@@ -4811,16 +4892,16 @@ function propSheet(j){const d=S.deco[j];if(!d)return;const P=PLANT[d.t],st=d.t.s
 function sheet(title,opts,hd){ui.sheet=opts;$('sheet').innerHTML=`<div class="sh">${hd||''}<h3>${esc(title)}</h3>${opts.map((o,i)=>`<button data-i="${i}" ${o.dis?'disabled':''}>${o.l}</button>`).join('')}<button data-i="x" class="cancel">Abbrechen</button></div>`;$('sheet').hidden=false}
 $('sheet').addEventListener('click',e=>{const el=e.target.closest('button');if(!el&&e.target.id!=='sheet')return;if(el&&el.dataset.a){$('sheet').hidden=true;act(el.dataset.a,el.dataset.v,el);return}$('sheet').hidden=true;if(!el||el.dataset.i==='x')return;const o=ui.sheet[+el.dataset.i];if(o&&!o.dis)o.f();refresh(true)});
 function buildingSheet(s,b){
- const T=F(b),o=[],home=b.id===s.home;
+ const T=F(b),o=[...outActs(s,b)],home=b.id===s.home;
  o.push({l:'🚶 Hingehen',f:()=>queueCmd(s,{k:'enter',bid:b.id})});
  if(b.built<1){o.push({l:'🧱 Beim Bau helfen',f:()=>{s.job=b.id;s.noJob=false;queueCmd(s,{k:'work',bid:b.id})}})}
  else{
-  if(s.job===b.id)o.push({l:'🔨 Arbeiten',f:()=>queueCmd(s,{k:'work',bid:b.id})});
+  if(s.job===b.id){o.push({l:'🔨 Arbeiten',f:()=>queueCmd(s,{k:'work',bid:b.id})});o.push(...jobActs(s,b))}
   else if(T.slots&&!isKid(s)){const full=S.p.filter(p=>p.job===b.id).length>=T.slots;o.push({l:`📝 Hier anfangen (${T.job[s.g==='f'?0:1]})`,dis:full,f:()=>{s.job=b.id;s.noJob=false;mem(s,`arbeitet jetzt als ${jobTitle(s)}`);story(s,'🔨',`fing als ${jobTitle(s)} an (${bName(b)})`);queueCmd(s,{k:'work',bid:b.id})}})}
   if(T.shop){o.push({l:'🧺 Brot kaufen',dis:s.money<2,f:()=>queueCmd(s,{k:'buy',bid:b.id})});o.push({l:'🍞 Brot essen (2 Taler)',dis:s.money<2,f:()=>queueCmd(s,{k:'eat',bid:b.id})})}
   if(T.tavern){o.push({l:'🍲 Essen (2 Taler)',dis:s.money<2,f:()=>queueCmd(s,{k:'eat',bid:b.id})});o.push({l:'🍺 Einkehren & feiern',f:()=>queueCmd(s,{k:'leisure',bid:b.id})})}
   if(T.social&&!T.tavern)o.push({l:'💬 Leute treffen',f:()=>queueCmd(s,{k:'social',bid:b.id})});
-  if(home){o.push({l:'🛏️ Schlafen',f:()=>queueCmd(s,{k:'sleep',bid:b.id})});o.push({l:`🍞 Essen (Vorrat ${b.stock||0})`,dis:!b.stock,f:()=>queueCmd(s,{k:'eat',bid:b.id})});o.push({l:'🏠 Ausruhen',f:()=>queueCmd(s,{k:'home',bid:b.id})})}
+  if(home){o.push({l:'💧 Wasser trinken',f:()=>queueCmd(s,{k:'water',bid:b.id})});o.push({l:'🛏️ Schlafen',f:()=>queueCmd(s,{k:'sleep',bid:b.id})});o.push({l:`🍞 Essen (Vorrat ${b.stock||0})`,dis:!b.stock,f:()=>queueCmd(s,{k:'eat',bid:b.id})});o.push({l:'🏠 Ausruhen',f:()=>queueCmd(s,{k:'home',bid:b.id})})}
   else if(residents(b).length)o.push({l:`☕ Besuchen (${esc(residents(b).map(p=>p.fn).join(', '))})`,f:()=>queueCmd(s,{k:'visit',bid:b.id})});
   const staff=S.p.find(p=>p.job===b.id&&p.inside===b.id);if(staff&&staff!==s)o.push({l:`💬 ${esc(staff.fn)} ansprechen`,f:()=>queueCmd(s,{k:'interact',tid:staff.id,ik:'reden'})});
  }
@@ -4829,7 +4910,7 @@ function buildingSheet(s,b){
 }
 function personSheet(s,p){
  const o=[],adult=!isKid(s)&&!isKid(p);
- for(const[k,I]of Object.entries(INTER)){if(I.req&&!I.req(s,p))continue;if(['fuettern','wickeln','wiegen','spielen_k','vorlesen','hausaufgaben','loben','bauch','kinderwunsch'].includes(k)&&!I.req)continue;if(ageOf(p)<1&&!I.req)continue;if((k==='flirt'||k==='kuss')&&!adult)continue;if(k==='kuss'&&s.partner!==p.id&&(s.rel[p.id]||{r:0}).r<60)continue;if(k==='antrag'&&(s.partner!==p.id||s.married))continue;o.push({l:`${I.i} ${I.n}`,f:()=>queueCmd(s,{k:'interact',tid:p.id,ik:k})})}
+ for(const[k,I]of Object.entries(INTER)){if(I.req&&!I.req(s,p))continue;if(['fuettern','wickeln','wiegen','spielen_k','vorlesen','hausaufgaben','loben','bauch','kinderwunsch'].includes(k)&&!I.req)continue;if(ageOf(p)<1&&!I.req)continue;if((k==='flirt'||k==='kuss')&&!adult)continue;if(k==='kuss'&&s.partner!==p.id&&(s.rel[p.id]||{r:0}).r<60)continue;if(INTER_GATE[k]&&!INTER_GATE[k](s,p))continue;if(k==='antrag'&&(s.partner!==p.id||s.married))continue;o.push({l:`${I.i} ${I.n}`,f:()=>queueCmd(s,{k:'interact',tid:p.id,ik:k})})}
  o.push({l:`🔄 Zu ${esc(p.fn)} wechseln`,f:()=>takeCtrl(p)});o.push({l:'👤 Profil ansehen',f:()=>{ui.sel={k:'s',id:p.id};ui.tab='cit';ui.ptab='profil'}});
  const R=s.rel[p.id]||{f:0,r:0};sheet(`${s.fn} → ${p.fn} (${relLabel(s,p)})`,o,`<div class="shp">${pic(s,56)}<span>${R.r>20?'❤️':'🤝'}</span>${pic(p,56)}</div>`);
 }
@@ -4896,7 +4977,7 @@ cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return
  if(cam.fp){if(gest&&gest.k==='one'){if(Math.hypot(x-gest.sx,y-gest.sy)>(gest.touch?14:8))gest.moved=true;cam.fp.yaw+=(x-px)*.006;cam.fp.pitch=clamp(cam.fp.pitch+(y-py)*.004,-.7,.6)}return}
  if(gest&&gest.k==='one'){if(Math.hypot(x-gest.sx,y-gest.sy)>(gest.touch?14:8))gest.moved=true;
   if(ui.mode&&ui.mode.k==='road'&&ui.mode.draw&&gest.btn===0){paint(x,y);return}if(!gest.moved)return;if(gest.drag){dragMove(gest,x,y);return}
-  if(gest.btn===2||e.shiftKey){cam.yaw-=(x-px)*.008;cam.pitch+=(y-py)*.006}else panCam(px,py,x,y);cam.tx=null;ui.follow=false;clampCam()}
+  if(gest.btn===2||e.shiftKey||ui.direct){cam.yaw-=(x-px)*.008;cam.pitch+=(y-py)*(ui.direct?.004:.006)}else panCam(px,py,x,y);cam.tx=null;ui.follow=false;clampCam()}
  else if(gest&&gest.k==='two'&&ptrs.size===2){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y),ang=Math.atan2(b.y-a.y,b.x-a.x),my=(a.y+b.y)/2;
   cam.dist*=gest.d/Math.max(1,d);let da=ang-gest.ang;if(da>Math.PI)da-=2*Math.PI;if(da<-Math.PI)da+=2*Math.PI;cam.yaw-=da;
   if(Math.abs(d-gest.d)<3)cam.pitch+=(my-gest.my)*.006;gest.d=d;gest.ang=ang;gest.my=my;cam.tx=null;clampCam()}});
@@ -4926,10 +5007,10 @@ function tap(sx,sy){if(cam.fp)return fpTap(sx,sy);
   ui.sel={k:'s',id:s.id};ui.tab='cit';refresh(true);return}
  if(!c&&!m&&!dbl){const pj=propPick(sx,sy);if(pj>=0)return propSheet(pj)}
  if(!c&&!b&&!m){const bi=bridgeAt(sx,sy);if(bi>=0)return bridgeSheet(bi);if(isBr(y*W+x))return bridgeSheet(y*W+x)}
- if(dbl){if(b&&b.plan&&b.built>=1)return enterHouse(b);if(c)focusOn(c.x-.5,c.y-.5,4);else if(b)focusOn(b.x,b.y,4.5);return}
+ if(dbl){if(b&&b.plan&&b.built>=1)return enterHouse(b);if(c){if(ctrlCit()!==c)takeCtrl(c);ui.sel={k:'s',id:c.id};ui.follow=true;focusOn(c.x-.5,c.y-.5,Math.min(cam.dist,6));toast(`🎥 Kamera folgt ${c.fn}.`);refresh(true)}else if(b)focusOn(b.x,b.y,4.5);return}
  const cc=ctrlCit();
  if(cc){if(c&&c!==cc)return personSheet(cc,c);if(c===cc)return selectS(cc,false);if(b)return buildingSheet(cc,b);if(S.map[y*W+x]===3)return toast('Dort ist Wasser.');command(cc,{k:'goto',x,y});ui.marker={x,y,t:now+1200};return}
- if(c)return selectS(c,false);if(b)return selectB(b,false);deselect();
+ if(c){takeCtrl(c);ui.follow=false;return refresh(true)}if(b)return selectB(b,false);deselect();
 }
 // ---------- Schleife ----------
 function resize(){r3resize()}
@@ -4940,7 +5021,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.1,(now-last)
  if(cam.tx){cam.x+=(cam.tx.x-cam.x)*.15;cam.y+=(cam.tx.y-cam.y)*.15;cam.dist+=(cam.tx.dist-cam.dist)*.15;if(Math.abs(cam.tx.x-cam.x)<.02&&Math.abs(cam.tx.dist-cam.dist)<.02)cam.tx=null}
  else if(!IM&&ui.follow&&ui.sel&&ui.sel.k==='s'){const s=pById.get(ui.sel.id);if(s){const b=s.inside&&s.act!=='walk'&&bById.get(s.inside),[ox,oy]=camOff(cam.dist);cam.x+=((b?b.x+.5:s.x)+ox-cam.x)*.1;cam.y+=((b?b.y+.5:s.y)+oy-cam.y)*.1}}
  if(ui.sel&&ui.sel.k==='s'&&!pById.get(ui.sel.id)){const d=deadById.get(ui.sel.id);if(d){ui.sel={k:'d',id:d.id};ui.ptab='story';refresh(true)}else deselect()}if(ui.ctrlId&&!pById.get(ui.ctrlId)){const h=S.heirOf&&pById.get(S.heirOf[ui.ctrlId]),d=deadById.get(ui.ctrlId);ui.ctrlId=0;if(h){takeCtrl(h);toast(`${d?d.fn:'Deine Figur'} ist gestorben. Du spielst mit ${h.fn} weiter.`)}else toast('Deine Figur ist gestorben.')}
- if(E)edDraw();else drawScene(ui);uiAcc+=dt;if(uiAcc>.35){uiAcc=0;refresh(false);updQueue()}saveAcc+=dt;if(saveAcc>15){saveAcc=0;save()}gfxMonitor(dt);if(cam.fp)fpStep(Math.min(.05,dt))}
+ if(ui.direct)directStep(dt);if(E)edDraw();else drawScene(ui);uiAcc+=dt;if(uiAcc>.35){uiAcc=0;refresh(false);updQueue()}saveAcc+=dt;if(saveAcc>15){saveAcc=0;save()}gfxMonitor(dt);if(cam.fp)fpStep(Math.min(.05,dt))}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});window.addEventListener('pagehide',save);
 try{ui.gfx=localStorage.getItem('everstead-gfx')||'auto'}catch(e){ui.gfx='auto'}const loaded=load();if(!loaded){newGame('Lindenau')}
 idbLoad().then(p=>{if(p&&(!loaded||(p.savedAt||0)>(S.savedAt||0)+1000)){if(loadObj(p)){if(!$('modal').hidden&&!loaded)closeModal();redrawAll();refresh(true);toast('💾 Spielstand geladen.')}}});

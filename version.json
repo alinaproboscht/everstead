@@ -1,7 +1,7 @@
 {
-  "build": 62,
+  "build": 63,
   "file": "everstead.html",
-  "notes": "Update 62: Eigener Reiter „📈 Leistung“ unter Gebäude; Produktivität sofort sichtbar (vorläufige Schätzung ≈), danach gemessen",
+  "notes": "Update 63: Sims-Steuerung – Antippen wählt eine Person, Personen-HUD mit 8 Bedürfnissen (neu: Durst), freier Wille, Prioritäten, Aktionen an Brunnen/Linde/Park, Berufstätigkeiten, neue Gespräche, Warteschlange mit 8 Aktionen, Doppeltipp = Folgen, Direktsteuerung mit Joystick",
   "models": [
     {
       "file": "m_assets.json",
