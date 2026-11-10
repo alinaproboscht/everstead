@@ -1,12 +1,12 @@
 {
-  "build": 2026111078,
+  "build": 2026111079,
   "file": "everstead.html",
-  "notes": "Update 78: Mädchen als eigene Figur; neues Strandmodell mit Spielplatz für Badebereich, Strandabschnitt und Badestrand",
+  "notes": "Update 79: Holzfäller so groß wie die Mühle; Bootsanleger zeigt mit dem Steg ins Wasser; Badehaus, Sägewerk und Salzgarten stehen gerade",
   "models": [
     {
       "file": "m_badehaus.json",
-      "size": 1481589,
-      "sha": "5368d59eddeb"
+      "size": 1481586,
+      "sha": "5602e6a89b2e"
     },
     {
       "file": "m_baeckerei.json",
@@ -20,8 +20,8 @@
     },
     {
       "file": "m_bootsbauer.json",
-      "size": 1487373,
-      "sha": "f54c460134a4"
+      "size": 1487369,
+      "sha": "f9251ca62c5e"
     },
     {
       "file": "m_brunnen.json",
@@ -176,12 +176,12 @@
     {
       "file": "m_saege.json",
       "size": 1222634,
-      "sha": "d467a8966245"
+      "sha": "05a7809b8b56"
     },
     {
       "file": "m_saline.json",
-      "size": 1401032,
-      "sha": "b4f6d37140d1"
+      "size": 1401034,
+      "sha": "995a3b7c0fcf"
     },
     {
       "file": "m_schmiede.json",

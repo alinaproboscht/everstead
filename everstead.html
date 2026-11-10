@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="78">
-<meta name="everstead-build" content="2026111078">
+<meta name="everstead-update" content="79">
+<meta name="everstead-build" content="2026111079">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3150,7 +3150,7 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
 // U73: größer und höher – Türen passen jetzt zur Körpergröße der Leute (vs = zusätzliche Höhe)
-const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:1.6,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15},strand:{sc:1.25,vs:1.1,np:1},badebereich:{k:'strand',sc:1.25,np:1},strandplatz:{k:'strand',sc:1.25,np:1},badestrand:{k:'strand',sc:1.25,np:1}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:2.0,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15},strand:{sc:1.25,vs:1.1,np:1},badebereich:{k:'strand',sc:1.25,np:1},strandplatz:{k:'strand',sc:1.25,np:1},badestrand:{k:'strand',sc:1.25,np:1}};const GLBK=Object.keys(MDEF);
 // U72: Bauernhaus-Modell auf Höfen: Haus an fester Stelle im Grundstück, Tiere/Felder bleiben
 const FARMHOUSE={bauernhof:{x:0,z:-.05,s:1.6},viehhof:{x:-.2,z:-.2,s:1.6},eselfarm:{x:-.2,z:-.2,s:1.6},schafsfarm:{x:-.2,z:-.2,s:1.6},schweinezucht:{x:0,z:-.05,s:1.6},huehnerfarm:{x:0,z:-.05,s:1.6},gemuese:{k:'gemuese',x:0,z:0,s:1.6},imker:{k:'imker',x:0,z:0,s:1.6},olivenfarm:{k:'olivenfarm',x:.2,z:.2,s:1.6}};let NOHOUSE=0;
 function hgPlace(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
@@ -3256,7 +3256,7 @@ function mkItems(){if(MKI)return MKI;const out={};if(!S)return out;const add=(k,
  for(const d of S.deco||[]){const P=PLANT[d.t];if(!P||!P.glb)continue;if(need(P.glb))add(P.glb,mkMat(P.glb,d.x,d.y,d.r||0,P.len))}
  if(!wait)MKI=out;return out}
 function mkReady(){const q=MKSTAND[0].k;if(!HGD[q]){mLoad(q);return false}return !!hgInit(q)}
-function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,PL=hgPlace(b,K),z=MR?MR.sz:PL.z,s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):PL.sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:PL.cx,cz=MR?MR.cy:PL.cz,vs=(MDEF[K]&&MDEF[K].vs)||1,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s*vs-.004*z,
+function hgMat(b){if(WATERBACK[b.t]&&!b._wr){b._wr=1;const r=waterRot(b.t,b.x,b.y);if(r>=0&&r!==b.rot){b.rot=r;bDirty=true}}const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,PL=hgPlace(b,K),z=MR?MR.sz:PL.z,s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):PL.sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:PL.cx,cz=MR?MR.cy:PL.cz,vs=(MDEF[K]&&MDEF[K].vs)||1,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s*vs-.004*z,
  ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s*vs,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
 const hgList=()=>S.b.filter(useGlb);
 function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const PL=hgPlace(b,K),s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):PL.z*PL.sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s*((MDEF[K]&&MDEF[K].vs)||1)}
@@ -3864,13 +3864,15 @@ function ghostMesh(m){const t=m.t,x=m.gx,y=m.gy,z=szOf(t),mb=m.bid&&bById.get(m.
  const lc=col(ok?'#c9f0ff':'#ffd0c8',.9),y0=.02;for(let i=0;i<=z*4;i++){const o=i/(z*4)*z;gq(x+o-.008,y,x+o+.008,y+z,y0,lc);gq(x,y+o-.008,x+z,y+o+.008,y0,lc)}
  const fr=(m.rot||0)*Math.PI/2,fx=x+z/2+Math.sin(fr)*(z/2+.18),fz=y+z/2+Math.cos(fr)*(z/2+.18);cone(TR(fx,.03,fz,fr+Math.PI,Math.PI/2),.08,.14,3,col(ok?'#c9f0ff':'#ffd0c8',.9));BY=0}
 const BT_DT2=new Batch();
-function faceRoad(t,x,y){const z=szOf(t);const tests=[[0,z,0],[z,0,1],[0,-1,2],[-1,0,3]];for(const[dx,dy,r]of tests)for(let k=0;k<z;k++){const xx=x+(dy?k:dx),yy=y+(dx?k:dy);if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.road[yy*W+xx])return r}return 0}
+const WATERBACK={bootsbauer:1,bootssteg:1};
+function waterRot(t,x,y){const z=szOf(t),bk=[[0,1],[1,0],[0,-1],[-1,0]];let best=-1,bn=0;for(let r=0;r<4;r++){const[dx,dy]=bk[r];let n=0;for(let k=1;k<=3;k++)for(let j=-1;j<=z;j++){const xx=dx?(dx<0?x-k:x+z-1+k):x+j,yy=dy?(dy<0?y-k:y+z-1+k):y+j;if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.map[yy*W+xx]===3)n++}if(n>bn){bn=n;best=r}}return best}
+function faceRoad(t,x,y){if(WATERBACK[t]){const r=waterRot(t,x,y);if(r>=0)return r}const z=szOf(t);const tests=[[0,z,0],[z,0,1],[0,-1,2],[-1,0,3]];for(const[dx,dy,r]of tests)for(let k=0;k<z;k++){const xx=x+(dy?k:dx),yy=y+(dx?k:dy);if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.road[yy*W+xx])return r}return 0}
 // ===== Gebäude versetzen =====
 function withoutOcc(b,fn){const z=szOf(b.t),saved=[];for(let dy=0;dy<z;dy++)for(let dx=0;dx<z;dx++){const i=(b.y+dy)*W+b.x+dx;saved.push([i,occ[i]]);occ[i]=0}try{return fn()}finally{for(const[i,v]of saved)occ[i]=v}}
 function canMove(b,x,y){return withoutOcc(b,()=>canPlace(b.t,x,y))}
 function startMove(b){if(!b)return;ui.mode={k:'move',bid:b.id,t:b.t,d:b.d,rot:b.rot||0,userRot:1,gx:null,gy:null,hint:`${bName(b)} versetzen: Tippe auf den neuen Platz – danach kannst du es mit dem Finger ziehen.`};ui.tab=null;refresh(true)}
 function moveConfirm(){const m=ui.mode,b=m&&bById.get(m.bid);if(!b||m.gx==null)return toast('Tippe zuerst auf den neuen Platz.');const why=canMove(b,m.gx,m.gy);if(why)return toast(why);
- const x0=b.x,y0=b.y,r0=b.rot||0,old=relocB(b,m.gx,m.gy,m.rot||0);
+ const x0=b.x,y0=b.y,r0=b.rot||0,old=relocB(b,m.gx,m.gy,m.rot||0);b._wr=1;
  undoPush(bName(b)+' versetzt',()=>{const q=bById.get(b.id);if(!q)return 'Gebäude gibt es nicht mehr.';const why=canMove(q,x0,y0);if(why)return 'Alter Platz ist belegt: '+why;relocB(q,x0,y0,r0);for(const[i,r]of old)if(!occ[i]&&r)S.road[i]=r});log(`🏗️ ${bName(b)} wurde versetzt.`);ui.mode=null;ui.sel={k:'b',id:b.id};ui.tab='bld';refresh(true)}
 // ===== U58: Rückgängig, Ziehen mit dem Finger, 45°-Drehung =====
 function undoPush(n,f){UNDO.push({n,f,t:Date.now()});if(UNDO.length>30)UNDO.shift();undoBtn()}
@@ -4926,7 +4928,7 @@ function act(a,v,el){if(a==='bgrow'){const b=bById.get(+v);if(b)growB(b);refresh
  ui.hold=0;refresh(true);
 }
 function placeConfirm(){if(ui.mode&&ui.mode.k==='move')return moveConfirm();const m=ui.mode;if(!m||m.k!=='place'||m.gx==null)return toast('Tippe zuerst auf einen Bauplatz.');const why=canPlace(m.t,m.gx,m.gy);if(why)return toast(why);const T=BT[m.t];if(!afford(T.cost))return toast('Nicht genug Mittel.');
- pay(T.cost);const nb=addB(m.t,m.gx,m.gy,m.d);nb.rot=m.rot||0;log(`🏗️ Baustelle: ${bName(nb)}.`);{const id=nb.id,c=Object.assign({},T.cost);undoPush(bName(nb)+' gebaut',()=>{const q=bById.get(id);if(!q)return 'Gebäude gibt es nicht mehr.';if(q.built>=1)return 'Schon fertig gebaut – zum Entfernen bitte abreißen.';removeB(q);refundC(c);bDirty=true;terDirty=true})}if(m.free){ui.mode=null;refresh(true);openPlan(nb);return}
+ pay(T.cost);const nb=addB(m.t,m.gx,m.gy,m.d);nb.rot=m.rot||0;nb._wr=1;log(`🏗️ Baustelle: ${bName(nb)}.`);{const id=nb.id,c=Object.assign({},T.cost);undoPush(bName(nb)+' gebaut',()=>{const q=bById.get(id);if(!q)return 'Gebäude gibt es nicht mehr.';if(q.built>=1)return 'Schon fertig gebaut – zum Entfernen bitte abreißen.';removeB(q);refundC(c);bDirty=true;terDirty=true})}if(m.free){ui.mode=null;refresh(true);openPlan(nb);return}
  if(m.t!=='haus'||!afford(T.cost))ui.mode=null;else{m.gx=null;m.hint='Weiteres Haus? Tippe auf den nächsten Bauplatz.'}refresh(true)}
 function cycleStyle(){const m=ui.mode;if(!m||m.t!=='haus')return;const cur=(m.d&&m.d.f)||'fachwerk',i=STYLE_ORDER.indexOf(cur),nf=STYLE_ORDER[(i+1)%STYLE_ORDER.length],F2=FORMS[nf];
  m.d=Object.assign({},m.d||{fl:1,deco:[]},{f:nf,wc:F2.walls[0],rc:F2.roofs[0]});m.d.fl=Math.min(m.d.fl||1,F2.maxF,nf==='gotisch'||nf==='stadt'?2:1);if(nf==='gotisch'||nf==='stadt'||nf==='chalet')m.d.fl=Math.max(m.d.fl,2);m.d.fl=Math.min(m.d.fl,F2.maxF);toast(`Baustil: ${F2.n}`);refresh(true)}
