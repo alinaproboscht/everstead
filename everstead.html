@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="79">
-<meta name="everstead-build" content="2026111079">
+<meta name="everstead-update" content="80">
+<meta name="everstead-build" content="2026111080">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -2464,6 +2464,10 @@ Object.assign(TEMPLATES,{weinberg:{v:1,floors:[{rooms:[Ro(0,0,12,10)],furn:[Fu('
  olivenfarm:{v:1,floors:[{rooms:[Ro(0,0,12,6),Rm(0,6,6,4,'stein'),Ro(6,6,6,4)],furn:[Fu('baum',1,1),Fu('baum',4,1),Fu('baum',7,1),Fu('baum',10,1),Fu('baum',2,4),Fu('baum',8,4),Fu('muehlstein',1,7),Fu('fass',4,7),Fu('fass',4,8),Fu('bank',8,8)],edges:{'v:6:8':'door'}}]}});
 for(const t of['weinberg','weingut','olivenfarm']){PLAN_TYPES[t]=1;JP[t]=10}
 Object.assign(JOBSK,{weinberg:'garten',weingut:'kochen',olivenfarm:'garten'});Object.assign(JOBPROP,{weinberg:'korb',weingut:'krug',olivenfarm:'korb'});
+// U80: Olivenhain
+Object.assign(RES,{oliven:['🫒','Oliven']});Object.assign(BASE,{oliven:2.5});if(!TRADEABLE.includes('oliven'))TRADEABLE.push('oliven');FOODLUX.push('oliven');
+Object.assign(BT,{olivenhain:{n:'Olivenhain',i:'🌳',sz:2,slots:3,job:['Olivenbäuerin','Olivenbauer'],wh:1.6,out:{oliven:3},cost:{bretter:8,stein:4,taler:80},bh:6,cat:'gew',d:'Knorrige Olivenbäume auf sonnigen Terrassen – liefert Oliven für den Tisch, den Markt und den Handel (2×2 Felder).'}});
+TEMPLATES.olivenhain=TEMPLATES.olivenfarm;PLAN_TYPES.olivenhain=1;JP.olivenhain=10;JOBSK.olivenhain='garten';JOBPROP.olivenhain='korb';
 // ===== Lagerhaus =====
 Object.assign(BT,{lagerhaus:{n:'Lagerhaus',i:'📦',sz:2,slots:2,job:['Lagerverwalterin','Lagerverwalter'],cost:{bretter:24,stein:10,taler:120},bh:9,def:{f:'lang',fl:2},cat:'gew',d:'Eigenes Lager mit Bestandsliste: Alle Waren des Dorfes werden hier eingelagert, Betriebe holen ihre Rohstoffe hier ab. Ist ein Lagerhaus voll, kommt die Ware ins nächste. Verderbliches hält hier viel länger (2×2 Felder).'}});
 TEMPLATES.lagerhaus={v:1,floors:[{rooms:[Rm(0,0,12,7,'holz'),Ro(0,7,12,3)],furn:[Fu('regal',0,0),Fu('regal',2,0),Fu('regal',4,0),Fu('regal',6,0),Fu('regal',8,0),Fu('fass',10,0),Fu('fass',11,0),Fu('truhe',1,3),Fu('truhe',3,3),Fu('fass',6,3),Fu('fass',7,3),Fu('truhe',9,3),Fu('pult',10,5),Fu('stuhl',10,4),Fu('holzstapel',1,8),Fu('fass',5,8),Fu('fass',6,8)],edges:{'h:6:7':'door','h:3:7':'door','v:0:3':'window','v:12:3':'window'}}]};
@@ -2548,7 +2552,7 @@ function pBiz(){const rows=bizRows(),opt=rows.filter(r=>!r.have&&!r.build&&!r.ne
  if(opt.length)h+=`<h3>💤 Noch nicht gebaut – derzeit kein Bedarf</h3><div class="optl">${opt.map(r=>`<button data-a="bizbuild" data-v="${r.t}">${r.T.i} ${esc(r.T.n)}</button>`).join('')}</div>`;
  return h+`<p class="hint">Der Bedarf richtet sich nach Einwohnerzahl, dem Verbrauch von gestern und dem, was andere Betriebe als Rohstoff brauchen. „Benötigt“ ist eine Empfehlung bei voller Besetzung.</p>`}
 // ===== Häuser stehen an der Straße =====
-const ROADFREE={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,viehhof:1,imker:1,garten:1,park:1,dorflinde:1,spielplatz:1,aussichtspunkt:1,bogen:1,angelsteg:1,bootssteg:1,badebereich:1,steinbruch:1,holz:1};
+const ROADFREE={olivenhain:1,bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,viehhof:1,imker:1,garten:1,park:1,dorflinde:1,spielplatz:1,aussichtspunkt:1,bogen:1,angelsteg:1,bootssteg:1,badebereich:1,steinbruch:1,holz:1};
 function needsRoad(t){const T=BT[t];if(!T||ROADFREE[t]||T.onSand||T.onWater||T.nearW)return false;return t==='haus'||!!T.def}
 function roadTouch(t,x,y){const z=szOf(t);for(let k=-1;k<=z;k++)for(const[xx,yy]of[[x+k,y-1],[x+k,y+z],[x-1,y+k],[x+z,y+k]]){if(k<0||k>=z){if(!((xx>=x&&xx<x+z)||(yy>=y&&yy<y+z)))continue}if(xx<0||yy<0||xx>=W||yy>=H)continue;if(S.road[yy*W+xx])return true}return false}
 function faceRoadS(t,x,y){const z=szOf(t);const tests=[[0,z,0],[z,0,1],[0,-1,2],[-1,0,3]];for(const[dx,dy,r]of tests)for(let k=0;k<z;k++){const xx=x+(dy?k:dx),yy=y+(dx?k:dy);if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.road[yy*W+xx])return r}return 0}
@@ -2703,7 +2707,7 @@ const SEASONS=[['fruehling','🌸','Frühling'],['sommer','☀️','Sommer'],['h
 const seasonIdx=()=>Math.floor(day()/SEASON_DAYS)%4,seasonDay=()=>day()%SEASON_DAYS+1;
 function seasonWeights(){if(hAbs()/24<SEASON_DAYS)return[1,0,0,0];const t=hAbs()/24/SEASON_DAYS,i=Math.floor(t)%4,f=(t-Math.floor(t))*SEASON_DAYS,bl=Math.min(1,f/2),w=[0,0,0,0];w[i]+=bl;w[(i+3)%4]+=1-bl;return w}
 Object.assign(MOODLET,{frieren:{i:'🥶',n:'Es ist bitterkalt',v:-8,h:24,e:'traurig'},schnee:{i:'⛄',n:'Spaß im Schnee',v:6,h:12,e:'glueck'},fruehling:{i:'🌸',n:'Frühlingsgefühle',v:5,h:24,e:'glueck'},sommer:{i:'☀️',n:'Sommerlaune',v:4,h:24,e:'glueck'},herbst:{i:'🍂',n:'Gemütlicher Herbst',v:3,h:24,e:'ruhig'}});
-const FARM={bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,imker:1,garten:1,viehhof:.5};
+const FARM={olivenhain:1,bauernhof:1,gemuese:1,weinberg:1,olivenfarm:1,imker:1,garten:1,viehhof:.5};
 Object.assign(FARM,{eselfarm:.5,schafsfarm:.5,schweinezucht:1,huehnerfarm:1});
 function seasonProd(b){const f=FARM[b.t];if(!f)return 1;const m=[1.0,1.15,1.35,.3][seasonIdx()];return 1+(m-1)*f}
 function seasonBanner(si,pre){if(typeof document==='undefined')return;const SE=SEASONS[si],el=document.createElement('div');el.className='seasonban s'+si;
@@ -3150,7 +3154,7 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
 // U73: größer und höher – Türen passen jetzt zur Körpergröße der Leute (vs = zusätzliche Höhe)
-const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:2.0,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15},strand:{sc:1.25,vs:1.1,np:1},badebereich:{k:'strand',sc:1.25,np:1},strandplatz:{k:'strand',sc:1.25,np:1},badestrand:{k:'strand',sc:1.25,np:1}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:2.0,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},weinberg:{sc:1.02,vs:1.1},olivenhain:{sc:1.02,vs:1.1},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15},strand:{sc:1.25,vs:1.1,np:1},badebereich:{k:'strand',sc:1.25,np:1},strandplatz:{k:'strand',sc:1.25,np:1},badestrand:{k:'strand',sc:1.25,np:1}};const GLBK=Object.keys(MDEF);
 // U72: Bauernhaus-Modell auf Höfen: Haus an fester Stelle im Grundstück, Tiere/Felder bleiben
 const FARMHOUSE={bauernhof:{x:0,z:-.05,s:1.6},viehhof:{x:-.2,z:-.2,s:1.6},eselfarm:{x:-.2,z:-.2,s:1.6},schafsfarm:{x:-.2,z:-.2,s:1.6},schweinezucht:{x:0,z:-.05,s:1.6},huehnerfarm:{x:0,z:-.05,s:1.6},gemuese:{k:'gemuese',x:0,z:0,s:1.6},imker:{k:'imker',x:0,z:0,s:1.6},olivenfarm:{k:'olivenfarm',x:.2,z:.2,s:1.6}};let NOHOUSE=0;
 function hgPlace(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
@@ -3713,6 +3717,7 @@ Object.assign(HMESH,{
  weingut(b,cx,cz){const t=houseMesh(b.d,cx-.06,cz-.12,.9,b);for(let r=0;r<2;r++)for(let i=0;i<3-r;i++)cyl(TR(cx-.32+i*.1+r*.05,.045+r*.075,cz+.32,0,0,Math.PI/2),.04,.04,.09,10,col(i%2?'#7a5030':'#6b4428'));
   box(TR(cx+.28,0,cz+.3),.16,.08,.16,col('#7a5030'));cyl(TR(cx+.28,.08,cz+.3),.012,.012,.18,6,col('#3a3a3a'));box(TR(cx+.28,.24,cz+.3),.18,.03,.03,col('#5a3d24'));
   for(const s of[-1,1])box(TR(cx+.28+s*.08,0,cz+.3),.025,.27,.025,col('#5a3d24'));ell3(TR(cx+.28,.09,cz+.3),.05,.02,.05,5,6,col('#5a2a6a'));return t},
+ olivenhain(b,cx,cz){HMESH.olivenfarm(b,cx,cz)},
  olivenfarm(b,cx,cz){const x0=b.x,z0=b.y;gq(x0+.04,z0+.04,x0+1.96,z0+1.96,.008,col('#b8a77a'));for(const[a,c]of[[.3,.3],[.8,.25],[1.3,.32],[1.75,.28],[.5,.75],[1.05,.78],[1.6,.72],[.3,1.2]]){if(NOHOUSE&&a>.45&&c>.55)continue;olive3(x0+a,z0+c,1.3)}
   const px=NOHOUSE?x0+.4:x0+.8,pz=NOHOUSE?z0+1.7:z0+1.55;if(!NOHOUSE){box(TR(x0+1.3,0,z0+1.45),.5,.22,.36,col('#e6dcc6'));prism(TR(x0+1.3,.22,z0+1.45,Math.PI/2),.4,.12,.56,col('#b85a3a'))}cyl(TR(px,0,pz),.14,.14,.06,12,col('#a9a69c'));
   cyl(TR(px,.06,pz,0,0,Math.PI/2),.09,.09,.05,12,col('#bfbcb2'));box(TR(px,.1,pz),.4,.025,.025,col('#5a3d24'));
@@ -3942,7 +3947,7 @@ function outActs(s,b){const o=[],t=b.t,kid=isKid(s),Q=(k,x)=>queueCmd(s,Object.a
 function meetingCall(s,b){const L=S.p.filter(p=>p!==s&&!isKid(p)&&!p.away&&!p._direct&&!(p.task&&(p.task.k==='sleep'||p.task.k==='birth'))&&Math.hypot(p.x-b.x,p.y-b.y)<28).sort((a,c)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(c.x-b.x,c.y-b.y)).slice(0,8);
  for(const p of L)p.cmds.unshift({k:'social',bid:b.id,exp:hAbs()+3,auto:1,pri:5});s.rep=(s.rep||0)+2;story(s,'📣',`rief eine Versammlung unter der ${bName(b)} ein`);return L.length}
 // ---- Berufe als spielbare Tätigkeiten ----
-const JOBTASKS={zuckerbaecker:['🍯 Honig erwärmen','🥣 Teig rühren','🎂 Torten verzieren','❤️ Lebkuchenherzen backen'],muehle:['🌾 Getreide einfüllen','⚙️ Mahlwerk starten','🫙 Mehlsäcke füllen','🪨 Mühlstein warten','🛒 Mehl verladen'],baeckerei:['🥣 Teig kneten','🔥 Ofen anheizen','🍞 Brot backen','🧺 Brot verkaufen'],
+const JOBTASKS={olivenhain:['🌳 Bäume beschneiden','🫒 Oliven schütteln','🧺 Körbe füllen'],zuckerbaecker:['🍯 Honig erwärmen','🥣 Teig rühren','🎂 Torten verzieren','❤️ Lebkuchenherzen backen'],muehle:['🌾 Getreide einfüllen','⚙️ Mahlwerk starten','🫙 Mehlsäcke füllen','🪨 Mühlstein warten','🛒 Mehl verladen'],baeckerei:['🥣 Teig kneten','🔥 Ofen anheizen','🍞 Brot backen','🧺 Brot verkaufen'],
  schmiede:['🔥 Feuer anfachen','⚒️ Eisen erhitzen','🔨 Schmieden','🪣 Werkstück abkühlen','🗄️ Werkzeug einlagern'],holz:['🪓 Bäume fällen','🪵 Stämme entasten','🛒 Holz stapeln'],saege:['🪚 Stämme sägen','📏 Bretter zuschneiden','🗄️ Bretter stapeln'],
  bauernhof:['🌱 Säen','💧 Felder gießen','🌾 Ernten','🧺 Garben binden'],steinbruch:['⛏️ Stein brechen','🔨 Blöcke behauen','🛒 Steine verladen'],schneider:['🧶 Stoff zuschneiden','🪡 Nähen','👕 Gewänder anprobieren lassen'],
  taverne:['🍲 Eintopf kochen','🍺 Bier zapfen','🧹 Gaststube fegen'],apotheke:['🌿 Kräuter mörsern','⚗️ Arznei mischen','💊 Arznei abfüllen'],uhrmacher:['⚙️ Zahnräder feilen','🕰️ Uhrwerk zusammensetzen','🔧 Uhren justieren'],

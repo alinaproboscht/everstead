@@ -1,7 +1,7 @@
 {
-  "build": 2026111079,
+  "build": 2026111080,
   "file": "everstead.html",
-  "notes": "Update 79: Holzfäller so groß wie die Mühle; Bootsanleger zeigt mit dem Steg ins Wasser; Badehaus, Sägewerk und Salzgarten stehen gerade",
+  "notes": "Update 80: Neues Weingut-Modell, eigenes Weinberg-Modell und neuer Betrieb Olivenhain",
   "models": [
     {
       "file": "m_badehaus.json",
@@ -130,8 +130,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 6398838,
-      "sha": "fd846329e704"
+      "size": 6746374,
+      "sha": "544f414da05a"
     },
     {
       "file": "m_muehle.json",
@@ -142,6 +142,11 @@
       "file": "m_olivenfarm.json",
       "size": 1447234,
       "sha": "cf105258c12d"
+    },
+    {
+      "file": "m_olivenhain.json",
+      "size": 1412245,
+      "sha": "d5e2de4cf9e0"
     },
     {
       "file": "m_pfrau.json",
@@ -264,9 +269,14 @@
       "sha": "67aeedb01fb8"
     },
     {
+      "file": "m_weinberg.json",
+      "size": 1529523,
+      "sha": "0580d4cfefd7"
+    },
+    {
       "file": "m_weingut.json",
-      "size": 1393620,
-      "sha": "4f148665fdaa"
+      "size": 1434476,
+      "sha": "1d298a83d55f"
     },
     {
       "file": "m_werft.json",
