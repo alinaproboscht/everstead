@@ -1,7 +1,7 @@
 {
-  "build": 2026111070,
+  "build": 2026111071,
   "file": "everstead.html",
-  "notes": "Update 70: Neue 3D-Figur Mann (auch für Ältere), neues 3D-Modell Fischerei",
+  "notes": "Update 71: Neue 3D-Modelle für Schmiede und Kirche",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -79,14 +79,19 @@
       "sha": "d31ccce3f97a"
     },
     {
+      "file": "m_kirche.json",
+      "size": 1400283,
+      "sha": "1932a8544c08"
+    },
+    {
       "file": "m_lagerhaus.json",
       "size": 1298607,
       "sha": "f1c9b2a8b4f3"
     },
     {
       "file": "m_lod.json",
-      "size": 2616543,
-      "sha": "bd69fdcc345d"
+      "size": 2884979,
+      "sha": "de1dddf996ac"
     },
     {
       "file": "m_muehle.json",
@@ -117,6 +122,11 @@
       "file": "m_rathaus.json",
       "size": 1346893,
       "sha": "123907f82747"
+    },
+    {
+      "file": "m_schmiede.json",
+      "size": 1414022,
+      "sha": "328810913ffc"
     },
     {
       "file": "m_spielplatz.json",

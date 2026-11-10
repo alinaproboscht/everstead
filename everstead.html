@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="70">
-<meta name="everstead-build" content="2026111070">
+<meta name="everstead-update" content="71">
+<meta name="everstead-build" content="2026111071">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3144,7 +3144,7 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
-const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:.82,np:1},dorflinde:{sc:1.2},spielplatz:{sc:1.0,np:1},muehle:{sc:1.4},holz:{sc:1.3},fischerei:{sc:1.35}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:.82,np:1},dorflinde:{sc:1.2},spielplatz:{sc:1.0,np:1},muehle:{sc:1.4},holz:{sc:1.3},fischerei:{sc:1.35},schmiede:{sc:1.35},kirche:{sc:1.6}};const GLBK=Object.keys(MDEF);
 const MBASE='https://alinaproboscht.github.io/everstead/',MVER=40;let mWarned=0;const HGD={},HGL={};
 function mLoad(key){if(HGD[key]||HGL[key])return;HGL[key]=1;const f='m_'+key+'.json',tryF=u=>fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
  const alt='m%20'+key+'.json',q='?v='+MVER;tryF(f).catch(()=>tryF(alt)).catch(()=>tryF(MBASE+f+q)).catch(()=>tryF(MBASE+alt+q)).then(M=>{HGD[key]=M;bDirty=true;sig=''}).catch(e=>{console.warn('Modell '+key+' nicht geladen',e);if(!mWarned){mWarned=1;try{toast('3D-Modelle konnten nicht geladen werden – Internet prüfen')}catch(_){}}setTimeout(()=>{delete HGL[key]},20000)})}
