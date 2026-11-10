@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="69">
-<meta name="everstead-build" content="2026110969">
+<meta name="everstead-update" content="70">
+<meta name="everstead-build" content="2026111070">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3144,7 +3144,7 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
-const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:.82,np:1},dorflinde:{sc:1.2},spielplatz:{sc:1.0,np:1},muehle:{sc:1.4},holz:{sc:1.3}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:.82,np:1},dorflinde:{sc:1.2},spielplatz:{sc:1.0,np:1},muehle:{sc:1.4},holz:{sc:1.3},fischerei:{sc:1.35}};const GLBK=Object.keys(MDEF);
 const MBASE='https://alinaproboscht.github.io/everstead/',MVER=40;let mWarned=0;const HGD={},HGL={};
 function mLoad(key){if(HGD[key]||HGL[key])return;HGL[key]=1;const f='m_'+key+'.json',tryF=u=>fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
  const alt='m%20'+key+'.json',q='?v='+MVER;tryF(f).catch(()=>tryF(alt)).catch(()=>tryF(MBASE+f+q)).catch(()=>tryF(MBASE+alt+q)).then(M=>{HGD[key]=M;bDirty=true;sig=''}).catch(e=>{console.warn('Modell '+key+' nicht geladen',e);if(!mWarned){mWarned=1;try{toast('3D-Modelle konnten nicht geladen werden – Internet prüfen')}catch(_){}}setTimeout(()=>{delete HGL[key]},20000)})}
@@ -4558,8 +4558,8 @@ function poseOf(s,inHouse){if(ageOf(s)<1){return{hy:0,lean:0,thL:-.3,thR:-.3,knL
  P.shL+=.04*Math.sin(t*1.3+s.id);P.shR+=.04*Math.sin(t*1.3+s.id+1);if(!P.lie&&!walking&&a!=='do'||(a==='do'&&(k==='interact'||k==='social'||k==='buy'||k==='visit'))){const id=s.id;P.hx=(P.hx||0)+.01*Math.sin(t*.45+id);P.tw=(P.tw||0)+.06*Math.sin(t*.31+id*2.1);P.hyaw=(P.hyaw||0)+.45*Math.sin(t*.21+id*1.7)*Math.max(0,Math.sin(t*.13+id));P.thL+=.05*Math.sin(t*.45+id);P.thR-=.03*Math.sin(t*.45+id);P.hy+=.004*Math.sin(t*1.7+id)}return P}
 // Zeichnen einer Figur (Welt- oder Hauskoordinaten)
 // ===== Animierte 3D-Figuren (geriggte GLB, Skelett-Animation auf der Grafikkarte) =====
-const SKM={f:'pfrau',km:'pjunge'};let SKP=null,SKQ=[],SK_FAIL=false;const SKH={};
-function skKey(s){if(SK_FAIL||s.dead||(typeof eraOf==='function'&&eraOf()>2))return null;const a=ageOf(s);if(a<3||a>=66)return null;if(a<16)return SKM[s.g==='f'?'kf':'km']||null;const k=SKM[s.g==='f'?'f':'m'];return k||null}
+const SKM={f:'pfrau',m:'pmann',km:'pjunge'};let SKP=null,SKQ=[],SK_FAIL=false;const SKH={};
+function skKey(s){if(SK_FAIL||s.dead||(typeof eraOf==='function'&&eraOf()>2))return null;const a=ageOf(s);if(a<3)return null;if(a<16)return SKM[s.g==='f'?'kf':'km']||null;const k=SKM[s.g==='f'?'f':'m'];return k||null}
 function skInit(k){if(SKH[k])return SKH[k].ok?SKH[k]:null;const M=HGD[k];if(!M){mLoad(k);return null}const H=SKH[k]={ok:false};
  try{if(!SKP){const mk=(t,src)=>{const x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
    const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 u;attribute vec4 j;attribute vec4 w;uniform mat4 vp;uniform mat4 mdl;uniform vec4 B[72];varying vec2 v;varying vec3 nn;varying vec3 wp;

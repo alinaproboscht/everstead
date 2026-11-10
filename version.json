@@ -1,7 +1,7 @@
 {
-  "build": 2026110969,
+  "build": 2026111070,
   "file": "everstead.html",
-  "notes": "Update 69: Neue 3D-Figur Junge (mit Gehen, Laufen, Stehen, Sitzen, Liegen), neue 3D-Modelle für Mühle und Holzfäller",
+  "notes": "Update 70: Neue 3D-Figur Mann (auch für Ältere), neues 3D-Modell Fischerei",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -37,6 +37,11 @@
       "file": "m_fherd.json",
       "size": 1389052,
       "sha": "83758d3a05d8"
+    },
+    {
+      "file": "m_fischerei.json",
+      "size": 1136637,
+      "sha": "609edeb2bba1"
     },
     {
       "file": "m_fstuhl.json",
@@ -80,8 +85,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 2492919,
-      "sha": "50570760d44e"
+      "size": 2616543,
+      "sha": "bd69fdcc345d"
     },
     {
       "file": "m_muehle.json",
@@ -102,6 +107,11 @@
       "file": "m_pjunge.json",
       "size": 1957164,
       "sha": "5926a9b27523"
+    },
+    {
+      "file": "m_pmann.json",
+      "size": 1863123,
+      "sha": "37989451ae8f"
     },
     {
       "file": "m_rathaus.json",
