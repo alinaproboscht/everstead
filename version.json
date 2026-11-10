@@ -1,8 +1,13 @@
 {
-  "build": 2026111076,
+  "build": 2026111077,
   "file": "everstead.html",
-  "notes": "Update 76: Sieben neue Gebäudemodelle – Schneiderei, Seidenstickerei, Tuchmacherei, Fischlokal, Schule, Bootsbauerei/Bootssteg und die neue Zuckerbäckerei",
+  "notes": "Update 77: Alle Betriebe und Wohnhäuser im Größenverhältnis der Mühle; 8 neue Gebäudemodelle – Fleischerei, Wagnerei, Salzgarten, Werft, Sägewerk, Heilerhaus, Uhrmacherei, Badehaus",
   "models": [
+    {
+      "file": "m_badehaus.json",
+      "size": 1481589,
+      "sha": "5368d59eddeb"
+    },
     {
       "file": "m_baeckerei.json",
       "size": 1386208,
@@ -59,6 +64,11 @@
       "sha": "afa3684cc9e2"
     },
     {
+      "file": "m_fleischer.json",
+      "size": 1167524,
+      "sha": "584a9ff1d883"
+    },
+    {
       "file": "m_fstuhl.json",
       "size": 1307510,
       "sha": "236f4283faba"
@@ -94,6 +104,11 @@
       "sha": "cacc3ff16d8e"
     },
     {
+      "file": "m_heiler.json",
+      "size": 1216579,
+      "sha": "84cb0f0c640e"
+    },
+    {
       "file": "m_holz.json",
       "size": 1081982,
       "sha": "d31ccce3f97a"
@@ -115,8 +130,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 5084273,
-      "sha": "d6e3db307962"
+      "size": 6254817,
+      "sha": "8bff6c92d3cf"
     },
     {
       "file": "m_muehle.json",
@@ -152,6 +167,16 @@
       "file": "m_rathaus.json",
       "size": 1346893,
       "sha": "123907f82747"
+    },
+    {
+      "file": "m_saege.json",
+      "size": 1222634,
+      "sha": "d467a8966245"
+    },
+    {
+      "file": "m_saline.json",
+      "size": 1401032,
+      "sha": "b4f6d37140d1"
     },
     {
       "file": "m_schmiede.json",
@@ -209,9 +234,19 @@
       "sha": "a48467cc2fe6"
     },
     {
+      "file": "m_uhrmacher.json",
+      "size": 1631166,
+      "sha": "be9b7456f82e"
+    },
+    {
       "file": "m_villa.json",
       "size": 1363338,
       "sha": "7255a28dbfb7"
+    },
+    {
+      "file": "m_wagnerei.json",
+      "size": 1193889,
+      "sha": "9abffe364248"
     },
     {
       "file": "m_weberei.json",
@@ -222,6 +257,11 @@
       "file": "m_weingut.json",
       "size": 1393620,
       "sha": "4f148665fdaa"
+    },
+    {
+      "file": "m_werft.json",
+      "size": 1234604,
+      "sha": "9dd034c8bb2e"
     },
     {
       "file": "m_zuckerbaecker.json",
