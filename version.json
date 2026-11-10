@@ -1,7 +1,7 @@
 {
-  "build": 2026111074,
+  "build": 2026111075,
   "file": "everstead.html",
-  "notes": "Update 74: Neues 3D-Modell für die Taverne",
+  "notes": "Update 75: Bauernhäuser auf Höfen, Olivenölfarm und Weingut größer – passend zu den übrigen Häusern",
   "models": [
     {
       "file": "m_baeckerei.json",
