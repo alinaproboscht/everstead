@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="80">
-<meta name="everstead-build" content="2026111080">
+<meta name="everstead-update" content="81">
+<meta name="everstead-build" content="2026111081">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3157,7 +3157,18 @@ let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:2.0,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},weinberg:{sc:1.02,vs:1.1},olivenhain:{sc:1.02,vs:1.1},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15},strand:{sc:1.25,vs:1.1,np:1},badebereich:{k:'strand',sc:1.25,np:1},strandplatz:{k:'strand',sc:1.25,np:1},badestrand:{k:'strand',sc:1.25,np:1}};const GLBK=Object.keys(MDEF);
 // U72: Bauernhaus-Modell auf Höfen: Haus an fester Stelle im Grundstück, Tiere/Felder bleiben
 const FARMHOUSE={bauernhof:{x:0,z:-.05,s:1.6},viehhof:{x:-.2,z:-.2,s:1.6},eselfarm:{x:-.2,z:-.2,s:1.6},schafsfarm:{x:-.2,z:-.2,s:1.6},schweinezucht:{x:0,z:-.05,s:1.6},huehnerfarm:{x:0,z:-.05,s:1.6},gemuese:{k:'gemuese',x:0,z:0,s:1.6},imker:{k:'imker',x:0,z:0,s:1.6},olivenfarm:{k:'olivenfarm',x:.2,z:.2,s:1.6}};let NOHOUSE=0;
-function hgPlace(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
+// U81: GLB-Gebäude dürfen nur in freie Nachbarfelder (Wege, Wiese) ragen, nie in Nachbargebäude – so berühren sie sich nicht
+function hgPlace(b,K){const P=hgPlace0(b,K),HM=(typeof HGM!=='undefined'&&HGM[K])||HGD[K];if(!HM||!HM.mx||K==='markt'||(MDEF[K]&&MDEF[K].np))return P;
+ const z=szOf(b.t),x0=b.x,y0=b.y,id=b.id,o=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&occ[y*W+x]&&occ[y*W+x]!==id,G=.05,BIG=9;
+ let ex=HM.mx[0]-HM.mn[0],ez=HM.mx[2]-HM.mn[2];const m=Math.max(ex,ez);if((b.rot||0)%2){const t=ex;ex=ez;ez=t}
+ const w=P.z*.98*P.sc,Wx=w*ex/m,Wz=w*ez/m;let L=false,R=false,T=false,B=false;
+ for(let k=0;k<z;k++){if(o(x0-1,y0+k))L=true;if(o(x0+z,y0+k))R=true;if(o(x0+k,y0-1))T=true;if(o(x0+k,y0+z))B=true}
+ const lo_x=L?x0+G:x0-BIG,hi_x=R?x0+z-G:x0+z+BIG;let lo_z=T?y0+G:y0-BIG,hi_z=B?y0+z-G:y0+z+BIG;
+ if(!T&&(o(x0-1,y0-1)||o(x0+z,y0-1)))lo_z=Math.max(lo_z,y0+G);if(!B&&(o(x0-1,y0+z)||o(x0+z,y0+z)))hi_z=Math.min(hi_z,y0+z-G);
+ const f=Math.min(1,(hi_x-lo_x)/Wx,(hi_z-lo_z)/Wz),hx=Wx*f/2,hz=Wz*f/2;
+ const cx=Math.min(Math.max(P.cx,lo_x+hx),hi_x-hx),cz=Math.min(Math.max(P.cz,lo_z+hz),hi_z-hz);
+ return{z:P.z,cx,cz,sc:P.sc*f}}
+function hgPlace0(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
 const MBASE='https://alinaproboscht.github.io/everstead/',MVER=40;let mWarned=0;const HGD={},HGL={};
 function mLoad(key){if(HGD[key]||HGL[key])return;HGL[key]=1;const f='m_'+key+'.json',tryF=u=>fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
  const alt='m%20'+key+'.json',q='?v='+MVER;tryF(f).catch(()=>tryF(alt)).catch(()=>tryF(MBASE+f+q)).catch(()=>tryF(MBASE+alt+q)).then(M=>{HGD[key]=M;bDirty=true;sig=''}).catch(e=>{console.warn('Modell '+key+' nicht geladen',e);if(!mWarned){mWarned=1;try{toast('3D-Modelle konnten nicht geladen werden – Internet prüfen')}catch(_){}}setTimeout(()=>{delete HGL[key]},20000)})}

@@ -1,7 +1,7 @@
 {
-  "build": 2026111080,
+  "build": 2026111081,
   "file": "everstead.html",
-  "notes": "Update 80: Neues Weingut-Modell, eigenes Weinberg-Modell und neuer Betrieb Olivenhain",
+  "notes": "Update 81: Gebäude berühren sich nicht mehr – sie ragen nur noch in freie Nachbarfelder und rücken bei direkten Nachbarn zusammen",
   "models": [
     {
       "file": "m_badehaus.json",
