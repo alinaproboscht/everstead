@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="72">
-<meta name="everstead-build" content="2026111072">
+<meta name="everstead-update" content="73">
+<meta name="everstead-build" content="2026111073">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3144,16 +3144,17 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 // ===== 3D-Modell für Wohnhäuser (GLB, eingebettet) =====
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
-const MDEF={haus:{sc:1.3},villa:{sc:1.35},chalet:{sc:1.32},gut:{sc:1.38},lagerhaus:{sc:1.3},baeckerei:{sc:1.55},rathaus:{sc:1.65},brunnen:{sc:.82,np:1},dorflinde:{sc:1.2},spielplatz:{sc:1.0,np:1},muehle:{sc:1.4},holz:{sc:1.3},fischerei:{sc:1.35},schmiede:{sc:1.35},kirche:{sc:1.6},bauernhaus:{sc:1.3}};const GLBK=Object.keys(MDEF);
+// U73: größer und höher – Türen passen jetzt zur Körpergröße der Leute (vs = zusätzliche Höhe)
+const MDEF={haus:{sc:1.5,vs:1.13},villa:{sc:1.5,vs:1.12},chalet:{sc:1.5,vs:1.12},gut:{sc:1.5,vs:1.1},lagerhaus:{sc:1.45,vs:1.1},baeckerei:{sc:1.72,vs:1.12},rathaus:{sc:1.78,vs:1.12},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:1.5,vs:1.12},fischerei:{sc:1.5,vs:1.1},schmiede:{sc:1.55,vs:1.13},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.5,vs:1.13},imker:{sc:1,vs:1.1},gemuese:{sc:1,vs:1.1},olivenfarm:{sc:1,vs:1.1},weingut:{sc:1.45,vs:1.12},steinbruch:{sc:1.4,vs:1.1}};const GLBK=Object.keys(MDEF);
 // U72: Bauernhaus-Modell auf Höfen: Haus an fester Stelle im Grundstück, Tiere/Felder bleiben
-const FARMHOUSE={bauernhof:{x:-.12,z:-.14,s:.66},viehhof:{x:-.4,z:-.55,s:.95},eselfarm:{x:-.4,z:-.55,s:.95},schafsfarm:{x:-.4,z:-.55,s:.95},schweinezucht:{x:0,z:-.28,s:.5},huehnerfarm:{x:-.22,z:-.25,s:.46}};let NOHOUSE=0;
-function hgPlace(b,K){const A=K==='bauernhaus'&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
+const FARMHOUSE={bauernhof:{x:-.12,z:-.14,s:.85},viehhof:{x:-.38,z:-.5,s:1.15},eselfarm:{x:-.38,z:-.5,s:1.15},schafsfarm:{x:-.38,z:-.5,s:1.15},schweinezucht:{x:0,z:-.26,s:.62},huehnerfarm:{x:-.2,z:-.22,s:.56},gemuese:{k:'gemuese',x:.2,z:.22,s:.62},imker:{k:'imker',x:.2,z:.2,s:.62},olivenfarm:{k:'olivenfarm',x:.3,z:.42,s:1.1}};let NOHOUSE=0;
+function hgPlace(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
 const MBASE='https://alinaproboscht.github.io/everstead/',MVER=40;let mWarned=0;const HGD={},HGL={};
 function mLoad(key){if(HGD[key]||HGL[key])return;HGL[key]=1;const f='m_'+key+'.json',tryF=u=>fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
  const alt='m%20'+key+'.json',q='?v='+MVER;tryF(f).catch(()=>tryF(alt)).catch(()=>tryF(MBASE+f+q)).catch(()=>tryF(MBASE+alt+q)).then(M=>{HGD[key]=M;bDirty=true;sig=''}).catch(e=>{console.warn('Modell '+key+' nicht geladen',e);if(!mWarned){mWarned=1;try{toast('3D-Modelle konnten nicht geladen werden – Internet prüfen')}catch(_){}}setTimeout(()=>{delete HGL[key]},20000)})}
 const GLBS=()=>HGD;
 function glbKey(b){if(!HG_ON||HG_FAIL||!b||b.built<1)return null;const e=typeof eraOf==='function'?eraOf():0;let k=null;
- if(FARMHOUSE[b.t])k=e<=2?'bauernhaus':null;
+ if(FARMHOUSE[b.t])k=e<=2?(FARMHOUSE[b.t].k||'bauernhaus'):null;
  else if(b.t==='haus'&&b.d&&b.d.f==='lang')k=e<=1?'bauernhaus':null;
  else if(b.t==='haus'){if(b.d&&(b.d.f==='villa'||b.d.f==='stadt'||b.d.f==='chalet'||b.d.f==='gut'))k=e<=2?(b.d.f==='stadt'?'villa':b.d.f):null;else k=e<=1&&(!b.d||['fachwerk','lang','rund','buerger'].includes(b.d.f||'fachwerk'))?'haus':null}
  else if(MDEF[b.t]&&b.t!=='haus'&&!['villa','chalet','gut'].includes(b.t))k=e<=2?b.t:null;
@@ -3250,10 +3251,10 @@ function mkItems(){if(MKI)return MKI;const out={};if(!S)return out;const add=(k,
  for(const d of S.deco||[]){const P=PLANT[d.t];if(!P||!P.glb)continue;if(need(P.glb))add(P.glb,mkMat(P.glb,d.x,d.y,d.r||0,P.len))}
  if(!wait)MKI=out;return out}
 function mkReady(){const q=MKSTAND[0].k;if(!HGD[q]){mLoad(q);return false}return !!hgInit(q)}
-function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,PL=hgPlace(b,K),z=MR?MR.sz:PL.z,s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):PL.sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:PL.cx,cz=MR?MR.cy:PL.cz,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s-.004*z,
- ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
+function hgMat(b){const K=glbKey(b),H=HGM[K],MR=K==='markt'?marktRect(b):null,PL=hgPlace(b,K),z=MR?MR.sz:PL.z,s=z*.98*(MR?(MR.sz>1?1.02:MDEF[K].sc):PL.sc)/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]),a=(b.rot||0)*Math.PI/2+HG_OFF,c=Math.cos(a)*s,sn=Math.sin(a)*s,cx=MR?MR.cx:PL.cx,cz=MR?MR.cy:PL.cz,vs=(MDEF[K]&&MDEF[K].vs)||1,y=hgtAt(b.y*W+b.x)*HS-H.mn[1]*s*vs-.004*z,
+ ox=-(H.mn[0]+H.mx[0])/2,oz=-(H.mn[2]+H.mx[2])/2;return[c,0,-sn,0, 0,s*vs,0,0, sn,0,c,0, cx+(ox*c+oz*sn),y,cz+(-ox*sn+oz*c)/1*1,1]}
 const hgList=()=>S.b.filter(useGlb);
-function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const PL=hgPlace(b,K),s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):PL.z*PL.sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s}
+function hgTop(b){const K=glbKey(b),H=hgInit(K);if(!H)return .6;const MR=K==='markt'?marktRect(b):null;const PL=hgPlace(b,K),s=(MR?MR.sz*(MR.sz>1?1.02:MDEF[K].sc):PL.z*PL.sc)*.98/Math.max(H.mx[0]-H.mn[0],H.mx[2]-H.mn[2]);return (H.mx[1]-H.mn[1])*s*((MDEF[K]&&MDEF[K].vs)||1)}
 // ---- Detailstufen (LOD) und Sichtbarkeitsprüfung für 3D-Modelle ----
 let SHLV=null;
 function hgLodBuild(H,qp,uv,nm,ix){const n=qp.length/3;
@@ -3680,10 +3681,10 @@ function sheep3(x,z,ry){ell3(TR(x,.07,z,ry),.055,.045,.075,5,7,col('#f4f2ec'));c
 function pig3(x,z,ry){ell3(TR(x,.05,z,ry),.045,.04,.065,5,7,col('#e8a8a0'));const fx=Math.sin(ry),fz=Math.cos(ry);cyl(TR(x+fx*.065,.05,z+fz*.065,ry,Math.PI/2),.018,.018,.02,6,col('#d98a84'))}
 function hen3(x,z){ell3(TR(x,.025,z),.018,.02,.022,4,6,col('#c06a3a'));box(TR(x,.045,z+.012),.008,.01,.008,col('#c0302a'))}
 Object.assign(HMESH,{
- gemuese(b,cx,cz){gq(b.x+.03,b.y+.03,b.x+.97,b.y+.97,.008,col('#7a5a3a'));const vc=['#4f9a45','#e07a2e','#5fae4a','#8a5cc2','#3d7a3a'];for(let r=0;r<5;r++)for(let k=0;k<7;k++){const x=b.x+.12+k*.12,z=b.y+.12+r*.17;if(r%2)ell3(TR(x,.02,z),.035,.03,.035,4,6,col(vc[(r+k)%vc.length]));else{box(TR(x,0,z),.012,.06,.012,col('#4f8a3e'));box(TR(x,.06,z),.03,.02,.03,col(vc[(r*2+k)%vc.length]))}}
-  box(TR(b.x+.85,0,b.y+.85),.18,.14,.14,col('#8a6a42'));prism(TR(b.x+.85,.14,b.y+.85),.2,.06,.16,col('#5a4a3e'));return .3},
- imker(b,cx,cz){gq(b.x+.04,b.y+.04,b.x+.96,b.y+.96,.008,col('#86b35a'));for(let i=0;i<5;i++){const x=b.x+.18+(i%3)*.3,z=b.y+.25+Math.floor(i/3)*.3;box(TR(x,0,z),.1,.04,.1,col('#6b4a2e'));cone(TR(x,.04,z),.06,.11,10,col('#d9b04a'));for(let k=0;k<3;k++)cyl(TR(x,.05+k*.025,z),.061-k*.01,.061-k*.01,.004,10,col('#a07a2a'))}
-  for(let i=0;i<14;i++)box(TR(b.x+.1+((i*37)%80)/100,0,b.y+.7+((i*13)%25)/100),.025,.04,.025,col(['#e0547a','#f2d33d','#8a5cc2','#f4efe4'][i%4]));box(TR(b.x+.8,0,b.y+.82),.16,.18,.12,col('#8a6a42'));prism(TR(b.x+.8,.18,b.y+.82),.18,.06,.14,col('#a8452f'));return .3},
+ gemuese(b,cx,cz){gq(b.x+.03,b.y+.03,b.x+.97,b.y+.97,.008,col('#7a5a3a'));const vc=['#4f9a45','#e07a2e','#5fae4a','#8a5cc2','#3d7a3a'];for(let r=0;r<5;r++)for(let k=0;k<7;k++){const x=b.x+.12+k*.12,z=b.y+.12+r*.17;if(NOHOUSE&&x>b.x+.36&&z>b.y+.36)continue;if(r%2)ell3(TR(x,.02,z),.035,.03,.035,4,6,col(vc[(r+k)%vc.length]));else{box(TR(x,0,z),.012,.06,.012,col('#4f8a3e'));box(TR(x,.06,z),.03,.02,.03,col(vc[(r*2+k)%vc.length]))}}
+  if(!NOHOUSE){box(TR(b.x+.85,0,b.y+.85),.18,.14,.14,col('#8a6a42'));prism(TR(b.x+.85,.14,b.y+.85),.2,.06,.16,col('#5a4a3e'))}return .3},
+ imker(b,cx,cz){gq(b.x+.04,b.y+.04,b.x+.96,b.y+.96,.008,col('#86b35a'));for(let i=0;i<5;i++){const x=b.x+.18+(i%3)*.3,z=b.y+.25+Math.floor(i/3)*.3;if(NOHOUSE&&x>b.x+.36&&z>b.y+.4)continue;box(TR(x,0,z),.1,.04,.1,col('#6b4a2e'));cone(TR(x,.04,z),.06,.11,10,col('#d9b04a'));for(let k=0;k<3;k++)cyl(TR(x,.05+k*.025,z),.061-k*.01,.061-k*.01,.004,10,col('#a07a2a'))}
+  for(let i=0;i<14;i++){const fx=b.x+.1+((i*37)%80)/100;if(NOHOUSE&&fx>b.x+.36)continue;box(TR(fx,0,b.y+.7+((i*13)%25)/100),.025,.04,.025,col(['#e0547a','#f2d33d','#8a5cc2','#f4efe4'][i%4]))}if(!NOHOUSE){box(TR(b.x+.8,0,b.y+.82),.16,.18,.12,col('#8a6a42'));prism(TR(b.x+.8,.18,b.y+.82),.18,.06,.14,col('#a8452f'))}return .3},
  viehhof(b,cx,cz){const x0=b.x,z0=b.y;const t=NOHOUSE?.5:houseMesh(b.d,x0+.6,z0+.45,1.05,b);gq(x0+.08,z0+1,x0+1.92,z0+1.92,.008,col('#7fa65a'));gq(x0+1.15,z0+.1,x0+1.92,z0+.95,.008,col('#9a8460'));
   for(let i=0;i<=9;i++){const x=x0+.08+i*.204;box(TR(x,0,z0+1.92),.025,.14,.025,col('#8a6a42'));box(TR(x,0,z0+1),.025,.14,.025,col('#8a6a42'))}for(let i=0;i<=4;i++){const z=z0+1+i*.23;box(TR(x0+.08,0,z),.025,.14,.025,col('#8a6a42'));box(TR(x0+1.92,0,z),.025,.14,.025,col('#8a6a42'))}
   for(const y of[.06,.12]){box(TR(x0+1,y,z0+1.92),1.84,.015,.015,col('#8a6a42'));box(TR(x0+1,y,z0+1),1.84,.015,.015,col('#8a6a42'))}
@@ -3708,9 +3709,9 @@ Object.assign(HMESH,{
   box(TR(cx+.28,0,cz+.3),.16,.08,.16,col('#7a5030'));cyl(TR(cx+.28,.08,cz+.3),.012,.012,.18,6,col('#3a3a3a'));box(TR(cx+.28,.24,cz+.3),.18,.03,.03,col('#5a3d24'));
   for(const s of[-1,1])box(TR(cx+.28+s*.08,0,cz+.3),.025,.27,.025,col('#5a3d24'));ell3(TR(cx+.28,.09,cz+.3),.05,.02,.05,5,6,col('#5a2a6a'));return t},
  olivenfarm(b,cx,cz){const x0=b.x,z0=b.y;gq(x0+.04,z0+.04,x0+1.96,z0+1.96,.008,col('#b8a77a'));for(const[a,c]of[[.3,.3],[.8,.25],[1.3,.32],[1.75,.28],[.5,.75],[1.05,.78],[1.6,.72],[.3,1.2]])olive3(x0+a,z0+c,1.3);
-  box(TR(x0+1.3,0,z0+1.45),.5,.22,.36,col('#e6dcc6'));prism(TR(x0+1.3,.22,z0+1.45,Math.PI/2),.4,.12,.56,col('#b85a3a'));cyl(TR(x0+.8,0,z0+1.55),.14,.14,.06,12,col('#a9a69c'));
-  cyl(TR(x0+.8,.06,z0+1.55,0,0,Math.PI/2),.09,.09,.05,12,col('#bfbcb2'));box(TR(x0+.8,.1,z0+1.55),.4,.025,.025,col('#5a3d24'));
-  for(let i=0;i<4;i++){const x=x0+1.65+(i%2)*.1,z=z0+1.8+Math.floor(i/2)*.1;cyl(TR(x,0,z),.035,.025,.1,8,col('#c0703a'));cyl(TR(x,.1,z),.015,.02,.03,6,col('#c0703a'))}return .4}});
+  const px=NOHOUSE?x0+.4:x0+.8,pz=NOHOUSE?z0+1.7:z0+1.55;if(!NOHOUSE){box(TR(x0+1.3,0,z0+1.45),.5,.22,.36,col('#e6dcc6'));prism(TR(x0+1.3,.22,z0+1.45,Math.PI/2),.4,.12,.56,col('#b85a3a'))}cyl(TR(px,0,pz),.14,.14,.06,12,col('#a9a69c'));
+  cyl(TR(px,.06,pz,0,0,Math.PI/2),.09,.09,.05,12,col('#bfbcb2'));box(TR(px,.1,pz),.4,.025,.025,col('#5a3d24'));
+  if(!NOHOUSE)for(let i=0;i<4;i++){const x=x0+1.65+(i%2)*.1,z=z0+1.8+Math.floor(i/2)*.1;cyl(TR(x,0,z),.035,.025,.1,8,col('#c0703a'));cyl(TR(x,.1,z),.015,.02,.03,6,col('#c0703a'))}return .4}});
 // ===== Epochen: Baustile, Bauten, Eisenbahn =====
 Object.assign(FOOT,{ziegel:[.66,.56],modern:[.72,.6]});
 function eraStyleMesh(d,cx,cz,s,f,w,dd,fh,H,fl,wc,rc){

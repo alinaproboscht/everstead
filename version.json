@@ -1,7 +1,7 @@
 {
-  "build": 2026111072,
+  "build": 2026111073,
   "file": "everstead.html",
-  "notes": "Update 72: Neues 3D-Bauernhaus für alle Höfe und Farmen sowie Wohnhäuser im Stil Bauernhaus – Tiere, Zäune und Felder bleiben",
+  "notes": "Update 73: GLB-Gebäude größer und höher (passend zu Menschen und Landschaft); neue 3D-Modelle für Imkerei, Gemüsegärtnerei, Olivenölfarm, Weingut und Steinbruch",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -69,6 +69,11 @@
       "sha": "7934828e50e8"
     },
     {
+      "file": "m_gemuese.json",
+      "size": 1482387,
+      "sha": "8ffbbd6c122c"
+    },
+    {
       "file": "m_gut.json",
       "size": 1355135,
       "sha": "0ba7de460c8b"
@@ -84,6 +89,11 @@
       "sha": "d31ccce3f97a"
     },
     {
+      "file": "m_imker.json",
+      "size": 1402592,
+      "sha": "e844a42d4479"
+    },
+    {
       "file": "m_kirche.json",
       "size": 1400283,
       "sha": "1932a8544c08"
@@ -95,13 +105,18 @@
     },
     {
       "file": "m_lod.json",
-      "size": 3038732,
-      "sha": "184370e5d84a"
+      "size": 3776142,
+      "sha": "2451f819bef6"
     },
     {
       "file": "m_muehle.json",
       "size": 1111292,
       "sha": "077cb0d84fc0"
+    },
+    {
+      "file": "m_olivenfarm.json",
+      "size": 1447234,
+      "sha": "cf105258c12d"
     },
     {
       "file": "m_pfrau.json",
@@ -159,9 +174,19 @@
       "sha": "683fc7567082"
     },
     {
+      "file": "m_steinbruch.json",
+      "size": 1391012,
+      "sha": "7e00a6cad585"
+    },
+    {
       "file": "m_villa.json",
       "size": 1363338,
       "sha": "7255a28dbfb7"
+    },
+    {
+      "file": "m_weingut.json",
+      "size": 1393620,
+      "sha": "4f148665fdaa"
     }
   ]
 }
