@@ -1,7 +1,7 @@
 {
-  "build": 2026111077,
+  "build": 2026111078,
   "file": "everstead.html",
-  "notes": "Update 77: Alle Betriebe und Wohnhäuser im Größenverhältnis der Mühle; 8 neue Gebäudemodelle – Fleischerei, Wagnerei, Salzgarten, Werft, Sägewerk, Heilerhaus, Uhrmacherei, Badehaus",
+  "notes": "Update 78: Mädchen als eigene Figur; neues Strandmodell mit Spielplatz für Badebereich, Strandabschnitt und Badestrand",
   "models": [
     {
       "file": "m_badehaus.json",
@@ -130,8 +130,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 6254817,
-      "sha": "8bff6c92d3cf"
+      "size": 6398838,
+      "sha": "fd846329e704"
     },
     {
       "file": "m_muehle.json",
@@ -157,6 +157,11 @@
       "file": "m_pjunge.json",
       "size": 1957164,
       "sha": "5926a9b27523"
+    },
+    {
+      "file": "m_pmaedchen.json",
+      "size": 1212639,
+      "sha": "533dd8034066"
     },
     {
       "file": "m_pmann.json",
@@ -227,6 +232,11 @@
       "file": "m_steinbruch.json",
       "size": 1391012,
       "sha": "7e00a6cad585"
+    },
+    {
+      "file": "m_strand.json",
+      "size": 1199552,
+      "sha": "07fcdb16cd5e"
     },
     {
       "file": "m_taverne.json",

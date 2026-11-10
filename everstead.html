@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="77">
-<meta name="everstead-build" content="2026111077">
+<meta name="everstead-update" content="78">
+<meta name="everstead-build" content="2026111078">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3150,7 +3150,7 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
 // U73: größer und höher – Türen passen jetzt zur Körpergröße der Leute (vs = zusätzliche Höhe)
-const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:1.6,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.6,vs:1.15},villa:{sc:1.6,vs:1.15},chalet:{sc:1.6,vs:1.15},gut:{sc:1.6,vs:1.15},lagerhaus:{sc:1,vs:1.15},baeckerei:{sc:1.6,vs:1.15},rathaus:{sc:1.6,vs:1.15},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:1.6,vs:1.15},fischerei:{sc:1.6,vs:1.15},schmiede:{sc:1.6,vs:1.15},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.6,vs:1.15},imker:{sc:1.6,vs:1.15},gemuese:{sc:1.6,vs:1.15},olivenfarm:{sc:1.6,vs:1.15},weingut:{sc:1.6,vs:1.15},steinbruch:{sc:1.6,vs:1.15},taverne:{sc:1.6,vs:1.15},schneider:{sc:1.6,vs:1.15},seidensticker:{sc:1.6,vs:1.15},zuckerbaecker:{sc:1.6,vs:1.15},fischlokal:{sc:1.6,vs:1.15},schule:{sc:1.6,vs:1.15},weberei:{sc:1.6,vs:1.15},bootsbauer:{sc:1.6,vs:1.15},bootssteg:{k:'bootsbauer',sc:1.6,vs:1.15},fleischer:{sc:1.6,vs:1.15},wagnerei:{sc:1.6,vs:1.15},saline:{sc:1.6,vs:1.15},werft:{sc:1.6,vs:1.15},saege:{sc:1.6,vs:1.15},heiler:{sc:1.6,vs:1.15},uhrmacher:{sc:1.6,vs:1.15},badehaus:{sc:1.6,vs:1.15},strand:{sc:1.25,vs:1.1,np:1},badebereich:{k:'strand',sc:1.25,np:1},strandplatz:{k:'strand',sc:1.25,np:1},badestrand:{k:'strand',sc:1.25,np:1}};const GLBK=Object.keys(MDEF);
 // U72: Bauernhaus-Modell auf Höfen: Haus an fester Stelle im Grundstück, Tiere/Felder bleiben
 const FARMHOUSE={bauernhof:{x:0,z:-.05,s:1.6},viehhof:{x:-.2,z:-.2,s:1.6},eselfarm:{x:-.2,z:-.2,s:1.6},schafsfarm:{x:-.2,z:-.2,s:1.6},schweinezucht:{x:0,z:-.05,s:1.6},huehnerfarm:{x:0,z:-.05,s:1.6},gemuese:{k:'gemuese',x:0,z:0,s:1.6},imker:{k:'imker',x:0,z:0,s:1.6},olivenfarm:{k:'olivenfarm',x:.2,z:.2,s:1.6}};let NOHOUSE=0;
 function hgPlace(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}
@@ -4569,7 +4569,7 @@ function poseOf(s,inHouse){if(ageOf(s)<1){return{hy:0,lean:0,thL:-.3,thR:-.3,knL
  P.shL+=.04*Math.sin(t*1.3+s.id);P.shR+=.04*Math.sin(t*1.3+s.id+1);if(!P.lie&&!walking&&a!=='do'||(a==='do'&&(k==='interact'||k==='social'||k==='buy'||k==='visit'))){const id=s.id;P.hx=(P.hx||0)+.01*Math.sin(t*.45+id);P.tw=(P.tw||0)+.06*Math.sin(t*.31+id*2.1);P.hyaw=(P.hyaw||0)+.45*Math.sin(t*.21+id*1.7)*Math.max(0,Math.sin(t*.13+id));P.thL+=.05*Math.sin(t*.45+id);P.thR-=.03*Math.sin(t*.45+id);P.hy+=.004*Math.sin(t*1.7+id)}return P}
 // Zeichnen einer Figur (Welt- oder Hauskoordinaten)
 // ===== Animierte 3D-Figuren (geriggte GLB, Skelett-Animation auf der Grafikkarte) =====
-const SKM={f:'pfrau',m:'pmann',km:'pjunge'};let SKP=null,SKQ=[],SK_FAIL=false;const SKH={};
+const SKM={f:'pfrau',m:'pmann',km:'pjunge',kf:'pmaedchen'};let SKP=null,SKQ=[],SK_FAIL=false;const SKH={};
 function skKey(s){if(SK_FAIL||s.dead||(typeof eraOf==='function'&&eraOf()>2))return null;const a=ageOf(s);if(a<3)return null;if(a<16)return SKM[s.g==='f'?'kf':'km']||null;const k=SKM[s.g==='f'?'f':'m'];return k||null}
 function skInit(k){if(SKH[k])return SKH[k].ok?SKH[k]:null;const M=HGD[k];if(!M){mLoad(k);return null}const H=SKH[k]={ok:false};
  try{if(!SKP){const mk=(t,src)=>{const x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
