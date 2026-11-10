@@ -1,7 +1,7 @@
 {
-  "build": 2026110968,
+  "build": 2026110969,
   "file": "everstead.html",
-  "notes": "Update 68: Direkthandel – Ware, Menge und Stadt selbst wählen, mit Talern oder Tauschwaren bezahlen; erst danach zieht der Händler los. Auch direkt verkaufen.",
+  "notes": "Update 69: Neue 3D-Figur Junge (mit Gehen, Laufen, Stehen, Sitzen, Liegen), neue 3D-Modelle für Mühle und Holzfäller",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -69,14 +69,24 @@
       "sha": "cacc3ff16d8e"
     },
     {
+      "file": "m_holz.json",
+      "size": 1081982,
+      "sha": "d31ccce3f97a"
+    },
+    {
       "file": "m_lagerhaus.json",
       "size": 1298607,
       "sha": "f1c9b2a8b4f3"
     },
     {
       "file": "m_lod.json",
-      "size": 2257967,
-      "sha": "1e1daa9eb599"
+      "size": 2492919,
+      "sha": "50570760d44e"
+    },
+    {
+      "file": "m_muehle.json",
+      "size": 1111292,
+      "sha": "077cb0d84fc0"
     },
     {
       "file": "m_pfrau.json",
@@ -87,6 +97,11 @@
       "file": "m_picknick.json",
       "size": 1349001,
       "sha": "8dd947b0f3dc"
+    },
+    {
+      "file": "m_pjunge.json",
+      "size": 1957164,
+      "sha": "5926a9b27523"
     },
     {
       "file": "m_rathaus.json",
