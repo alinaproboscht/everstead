@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="73">
-<meta name="everstead-build" content="2026111073">
+<meta name="everstead-update" content="74">
+<meta name="everstead-build" content="2026111074">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -3145,7 +3145,7 @@ function buildStatic(){MKR.clear();MKI=null;for(const b of S.b)if(b.plan)try{bat
 let HGM={},HG_FAIL=false,HG_ON=true,HG_OFF=Math.PI*1.5,HG=null;
 // Modelle liegen als eigene Dateien neben everstead.html und werden bei Bedarf geladen.
 // U73: größer und höher – Türen passen jetzt zur Körpergröße der Leute (vs = zusätzliche Höhe)
-const MDEF={haus:{sc:1.5,vs:1.13},villa:{sc:1.5,vs:1.12},chalet:{sc:1.5,vs:1.12},gut:{sc:1.5,vs:1.1},lagerhaus:{sc:1.45,vs:1.1},baeckerei:{sc:1.72,vs:1.12},rathaus:{sc:1.78,vs:1.12},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:1.5,vs:1.12},fischerei:{sc:1.5,vs:1.1},schmiede:{sc:1.55,vs:1.13},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.5,vs:1.13},imker:{sc:1,vs:1.1},gemuese:{sc:1,vs:1.1},olivenfarm:{sc:1,vs:1.1},weingut:{sc:1.45,vs:1.12},steinbruch:{sc:1.4,vs:1.1}};const GLBK=Object.keys(MDEF);
+const MDEF={haus:{sc:1.5,vs:1.13},villa:{sc:1.5,vs:1.12},chalet:{sc:1.5,vs:1.12},gut:{sc:1.5,vs:1.1},lagerhaus:{sc:1.45,vs:1.1},baeckerei:{sc:1.72,vs:1.12},rathaus:{sc:1.78,vs:1.12},brunnen:{sc:.9,np:1},dorflinde:{sc:1.4,vs:1.15},spielplatz:{sc:1.05,np:1},muehle:{sc:1.6,vs:1.15},holz:{sc:1.5,vs:1.12},fischerei:{sc:1.5,vs:1.1},schmiede:{sc:1.55,vs:1.13},kirche:{sc:2.0,vs:1.3},bauernhaus:{sc:1.5,vs:1.13},imker:{sc:1,vs:1.1},gemuese:{sc:1,vs:1.1},olivenfarm:{sc:1,vs:1.1},weingut:{sc:1.45,vs:1.12},steinbruch:{sc:1.4,vs:1.1},taverne:{sc:1.6,vs:1.15}};const GLBK=Object.keys(MDEF);
 // U72: Bauernhaus-Modell auf Höfen: Haus an fester Stelle im Grundstück, Tiere/Felder bleiben
 const FARMHOUSE={bauernhof:{x:-.12,z:-.14,s:.85},viehhof:{x:-.38,z:-.5,s:1.15},eselfarm:{x:-.38,z:-.5,s:1.15},schafsfarm:{x:-.38,z:-.5,s:1.15},schweinezucht:{x:0,z:-.26,s:.62},huehnerfarm:{x:-.2,z:-.22,s:.56},gemuese:{k:'gemuese',x:.2,z:.22,s:.62},imker:{k:'imker',x:.2,z:.2,s:.62},olivenfarm:{k:'olivenfarm',x:.3,z:.42,s:1.1}};let NOHOUSE=0;
 function hgPlace(b,K){const A=FARMHOUSE[b.t]&&K===(FARMHOUSE[b.t].k||'bauernhaus')&&FARMHOUSE[b.t],z=szOf(b.t);if(!A)return{z,cx:b.x+z/2,cz:b.y+z/2,sc:MDEF[K].sc};const a=(b.rot||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return{z:A.s,cx:b.x+z/2+A.x*c+A.z*s,cz:b.y+z/2-A.x*s+A.z*c,sc:1}}

@@ -1,7 +1,7 @@
 {
-  "build": 2026111073,
+  "build": 2026111074,
   "file": "everstead.html",
-  "notes": "Update 73: GLB-Gebäude größer und höher (passend zu Menschen und Landschaft); neue 3D-Modelle für Imkerei, Gemüsegärtnerei, Olivenölfarm, Weingut und Steinbruch",
+  "notes": "Update 74: Neues 3D-Modell für die Taverne",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -105,8 +105,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 3776142,
-      "sha": "2451f819bef6"
+      "size": 3922148,
+      "sha": "189b83842eb8"
     },
     {
       "file": "m_muehle.json",
@@ -177,6 +177,11 @@
       "file": "m_steinbruch.json",
       "size": 1391012,
       "sha": "7e00a6cad585"
+    },
+    {
+      "file": "m_taverne.json",
+      "size": 1403022,
+      "sha": "a48467cc2fe6"
     },
     {
       "file": "m_villa.json",
