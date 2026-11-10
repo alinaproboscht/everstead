@@ -1,7 +1,7 @@
 {
-  "build": 2026111075,
+  "build": 2026111076,
   "file": "everstead.html",
-  "notes": "Update 75: Bauernhäuser auf Höfen, Olivenölfarm und Weingut größer – passend zu den übrigen Häusern",
+  "notes": "Update 76: Sieben neue Gebäudemodelle – Schneiderei, Seidenstickerei, Tuchmacherei, Fischlokal, Schule, Bootsbauerei/Bootssteg und die neue Zuckerbäckerei",
   "models": [
     {
       "file": "m_baeckerei.json",
@@ -12,6 +12,11 @@
       "file": "m_bauernhaus.json",
       "size": 1392410,
       "sha": "6bd0ba6b4525"
+    },
+    {
+      "file": "m_bootsbauer.json",
+      "size": 1487373,
+      "sha": "f54c460134a4"
     },
     {
       "file": "m_brunnen.json",
@@ -47,6 +52,11 @@
       "file": "m_fischerei.json",
       "size": 1136637,
       "sha": "609edeb2bba1"
+    },
+    {
+      "file": "m_fischlokal.json",
+      "size": 1482523,
+      "sha": "afa3684cc9e2"
     },
     {
       "file": "m_fstuhl.json",
@@ -105,8 +115,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 3922148,
-      "sha": "189b83842eb8"
+      "size": 5084273,
+      "sha": "d6e3db307962"
     },
     {
       "file": "m_muehle.json",
@@ -149,6 +159,21 @@
       "sha": "328810913ffc"
     },
     {
+      "file": "m_schneider.json",
+      "size": 1404944,
+      "sha": "c4d9bba55afd"
+    },
+    {
+      "file": "m_schule.json",
+      "size": 1688736,
+      "sha": "b9f7454c5e5c"
+    },
+    {
+      "file": "m_seidensticker.json",
+      "size": 1481297,
+      "sha": "c889aae733f9"
+    },
+    {
       "file": "m_spielplatz.json",
       "size": 1415662,
       "sha": "040f923dbc54"
@@ -189,9 +214,19 @@
       "sha": "7255a28dbfb7"
     },
     {
+      "file": "m_weberei.json",
+      "size": 1478341,
+      "sha": "67aeedb01fb8"
+    },
+    {
       "file": "m_weingut.json",
       "size": 1393620,
       "sha": "4f148665fdaa"
+    },
+    {
+      "file": "m_zuckerbaecker.json",
+      "size": 1448861,
+      "sha": "b6a8652ca841"
     }
   ]
 }
