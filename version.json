@@ -1,12 +1,17 @@
 {
-  "build": 2026111071,
+  "build": 2026111072,
   "file": "everstead.html",
-  "notes": "Update 71: Neue 3D-Modelle für Schmiede und Kirche",
+  "notes": "Update 72: Neues 3D-Bauernhaus für alle Höfe und Farmen sowie Wohnhäuser im Stil Bauernhaus – Tiere, Zäune und Felder bleiben",
   "models": [
     {
       "file": "m_baeckerei.json",
       "size": 1386208,
       "sha": "357ec7678adc"
+    },
+    {
+      "file": "m_bauernhaus.json",
+      "size": 1392410,
+      "sha": "6bd0ba6b4525"
     },
     {
       "file": "m_brunnen.json",
@@ -90,8 +95,8 @@
     },
     {
       "file": "m_lod.json",
-      "size": 2884979,
-      "sha": "de1dddf996ac"
+      "size": 3038732,
+      "sha": "184370e5d84a"
     },
     {
       "file": "m_muehle.json",
