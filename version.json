@@ -1,7 +1,7 @@
 {
-  "build": 2026111081,
+  "build": 2026111082,
   "file": "everstead.html",
-  "notes": "Update 81: Gebäude berühren sich nicht mehr – sie ragen nur noch in freie Nachbarfelder und rücken bei direkten Nachbarn zusammen",
+  "notes": "Update 82: Alle Gebäude einheitlich groß, jedes vollständig auf seinem Grundstück – keine Berührungen mehr",
   "models": [
     {
       "file": "m_badehaus.json",
