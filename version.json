@@ -1,152 +1,152 @@
 {
-  "build": 2026111082,
+  "build": 2026111083,
   "file": "everstead.html",
-  "notes": "Update 82: Alle Gebäude einheitlich groß, jedes vollständig auf seinem Grundstück – keine Berührungen mehr",
+  "notes": "Update 83: Fenster und Laternen leuchten nachts, Farbvarianten je Gebäude, Rauch aus den Modell-Kaminen, Modelle wachsen auf Baustellen, Fahnen für Ausbaustufen, Modelldateien rund 23 % kleiner",
   "models": [
     {
       "file": "m_badehaus.json",
-      "size": 1481586,
-      "sha": "5602e6a89b2e"
+      "size": 1018201,
+      "sha": "2ada4821fc7a"
     },
     {
       "file": "m_baeckerei.json",
-      "size": 1386208,
-      "sha": "357ec7678adc"
+      "size": 1060706,
+      "sha": "8b323ae8a30b"
     },
     {
       "file": "m_bauernhaus.json",
-      "size": 1392410,
-      "sha": "6bd0ba6b4525"
+      "size": 1053689,
+      "sha": "33b97932b1af"
     },
     {
       "file": "m_bootsbauer.json",
-      "size": 1487369,
-      "sha": "f9251ca62c5e"
+      "size": 1092712,
+      "sha": "fbfd95fa1c82"
     },
     {
       "file": "m_brunnen.json",
-      "size": 1182226,
-      "sha": "8084e2418cc3"
+      "size": 679548,
+      "sha": "9d64cc87b706"
     },
     {
       "file": "m_chalet.json",
-      "size": 1288339,
-      "sha": "3a8205264af3"
+      "size": 1028989,
+      "sha": "f7e73f9bce4b"
     },
     {
       "file": "m_dorflinde.json",
-      "size": 1444254,
-      "sha": "380072558a4f"
+      "size": 896264,
+      "sha": "b201cf8a7189"
     },
     {
       "file": "m_fabort.json",
-      "size": 1334420,
-      "sha": "96571c824906"
+      "size": 874418,
+      "sha": "ee4a4fd0cc30"
     },
     {
       "file": "m_fbett.json",
-      "size": 1251323,
-      "sha": "761d5866ff1f"
+      "size": 611029,
+      "sha": "5a8f3ee7d94a"
     },
     {
       "file": "m_fherd.json",
-      "size": 1389052,
-      "sha": "83758d3a05d8"
+      "size": 872574,
+      "sha": "643cb603100d"
     },
     {
       "file": "m_fischerei.json",
-      "size": 1136637,
-      "sha": "609edeb2bba1"
+      "size": 1039985,
+      "sha": "8e6f22ab5c50"
     },
     {
       "file": "m_fischlokal.json",
-      "size": 1482523,
-      "sha": "afa3684cc9e2"
+      "size": 1107946,
+      "sha": "64bb71c1af24"
     },
     {
       "file": "m_fleischer.json",
-      "size": 1167524,
-      "sha": "584a9ff1d883"
+      "size": 995955,
+      "sha": "33452fc2f782"
     },
     {
       "file": "m_fstuhl.json",
-      "size": 1307510,
-      "sha": "236f4283faba"
+      "size": 765104,
+      "sha": "46987cca1b5e"
     },
     {
       "file": "m_ftisch.json",
-      "size": 1372908,
-      "sha": "aa28df49772a"
+      "size": 853442,
+      "sha": "9002342e3d75"
     },
     {
       "file": "m_fwasch.json",
-      "size": 1301057,
-      "sha": "aa72f8eb70c4"
+      "size": 845031,
+      "sha": "ba0dcfa9621e"
     },
     {
       "file": "m_fzuber.json",
-      "size": 1231395,
-      "sha": "7934828e50e8"
+      "size": 557789,
+      "sha": "cb51508ed9d1"
     },
     {
       "file": "m_gemuese.json",
-      "size": 1482387,
-      "sha": "8ffbbd6c122c"
+      "size": 1116234,
+      "sha": "92c364ea9096"
     },
     {
       "file": "m_gut.json",
-      "size": 1355135,
-      "sha": "0ba7de460c8b"
+      "size": 1043001,
+      "sha": "9ffddd4bd700"
     },
     {
       "file": "m_haus.json",
-      "size": 1372403,
-      "sha": "cacc3ff16d8e"
+      "size": 1068925,
+      "sha": "2e2c69494a9f"
     },
     {
       "file": "m_heiler.json",
-      "size": 1216579,
-      "sha": "84cb0f0c640e"
+      "size": 1033010,
+      "sha": "f7d09a71eb8d"
     },
     {
       "file": "m_holz.json",
-      "size": 1081982,
-      "sha": "d31ccce3f97a"
+      "size": 998898,
+      "sha": "c0817c549889"
     },
     {
       "file": "m_imker.json",
-      "size": 1402592,
-      "sha": "e844a42d4479"
+      "size": 1056759,
+      "sha": "c20e8a5a8607"
     },
     {
       "file": "m_kirche.json",
-      "size": 1400283,
-      "sha": "1932a8544c08"
+      "size": 1006762,
+      "sha": "c8fad8b2d4c5"
     },
     {
       "file": "m_lagerhaus.json",
-      "size": 1298607,
-      "sha": "f1c9b2a8b4f3"
+      "size": 1020533,
+      "sha": "3d90f834ac44"
     },
     {
       "file": "m_lod.json",
-      "size": 6746374,
-      "sha": "544f414da05a"
+      "size": 6560245,
+      "sha": "de987fd1d736"
     },
     {
       "file": "m_muehle.json",
-      "size": 1111292,
-      "sha": "077cb0d84fc0"
+      "size": 1019088,
+      "sha": "fd4487f86551"
     },
     {
       "file": "m_olivenfarm.json",
-      "size": 1447234,
-      "sha": "cf105258c12d"
+      "size": 1050961,
+      "sha": "60b233082c1c"
     },
     {
       "file": "m_olivenhain.json",
-      "size": 1412245,
-      "sha": "d5e2de4cf9e0"
+      "size": 974816,
+      "sha": "1dbbaa66d0c5"
     },
     {
       "file": "m_pfrau.json",
@@ -155,8 +155,8 @@
     },
     {
       "file": "m_picknick.json",
-      "size": 1349001,
-      "sha": "8dd947b0f3dc"
+      "size": 855967,
+      "sha": "81b0e5a1fcbb"
     },
     {
       "file": "m_pjunge.json",
@@ -175,118 +175,118 @@
     },
     {
       "file": "m_rathaus.json",
-      "size": 1346893,
-      "sha": "123907f82747"
+      "size": 1049623,
+      "sha": "1e449794c6ed"
     },
     {
       "file": "m_saege.json",
-      "size": 1222634,
-      "sha": "05a7809b8b56"
+      "size": 1049281,
+      "sha": "49afb58c5d88"
     },
     {
       "file": "m_saline.json",
-      "size": 1401034,
-      "sha": "995a3b7c0fcf"
+      "size": 1032025,
+      "sha": "a4f55d84ca36"
     },
     {
       "file": "m_schmiede.json",
-      "size": 1414022,
-      "sha": "328810913ffc"
+      "size": 1059861,
+      "sha": "d2204d83c021"
     },
     {
       "file": "m_schneider.json",
-      "size": 1404944,
-      "sha": "c4d9bba55afd"
+      "size": 1050183,
+      "sha": "2757e90bb6a3"
     },
     {
       "file": "m_schule.json",
-      "size": 1688736,
-      "sha": "b9f7454c5e5c"
+      "size": 1100707,
+      "sha": "e1a5005d22fe"
     },
     {
       "file": "m_seidensticker.json",
-      "size": 1481297,
-      "sha": "c889aae733f9"
+      "size": 1095120,
+      "sha": "0590a2ea28a7"
     },
     {
       "file": "m_spielplatz.json",
-      "size": 1415662,
-      "sha": "040f923dbc54"
+      "size": 895332,
+      "sha": "b8a61896edb6"
     },
     {
       "file": "m_stand1.json",
-      "size": 1301154,
-      "sha": "1e2320bb26e3"
+      "size": 847908,
+      "sha": "489b3589cb6b"
     },
     {
       "file": "m_stand2.json",
-      "size": 1344243,
-      "sha": "0dcfec9c0606"
+      "size": 870721,
+      "sha": "820aeac76b8f"
     },
     {
       "file": "m_stand3.json",
-      "size": 1381086,
-      "sha": "e3550b4dde3d"
+      "size": 890012,
+      "sha": "ed073f537038"
     },
     {
       "file": "m_stand4.json",
-      "size": 1373141,
-      "sha": "683fc7567082"
+      "size": 899979,
+      "sha": "aa50fa74ddc0"
     },
     {
       "file": "m_steinbruch.json",
-      "size": 1391012,
-      "sha": "7e00a6cad585"
+      "size": 1044091,
+      "sha": "b6730acbf567"
     },
     {
       "file": "m_strand.json",
-      "size": 1199552,
-      "sha": "07fcdb16cd5e"
+      "size": 1008683,
+      "sha": "fb09ab33a9a6"
     },
     {
       "file": "m_taverne.json",
-      "size": 1403022,
-      "sha": "a48467cc2fe6"
+      "size": 1047425,
+      "sha": "910fd438830f"
     },
     {
       "file": "m_uhrmacher.json",
-      "size": 1631166,
-      "sha": "be9b7456f82e"
+      "size": 1011117,
+      "sha": "228f9698c5f6"
     },
     {
       "file": "m_villa.json",
-      "size": 1363338,
-      "sha": "7255a28dbfb7"
+      "size": 1088536,
+      "sha": "201ea99fa619"
     },
     {
       "file": "m_wagnerei.json",
-      "size": 1193889,
-      "sha": "9abffe364248"
+      "size": 1024148,
+      "sha": "cb7f8cb6a186"
     },
     {
       "file": "m_weberei.json",
-      "size": 1478341,
-      "sha": "67aeedb01fb8"
+      "size": 1075916,
+      "sha": "6a8e89642e89"
     },
     {
       "file": "m_weinberg.json",
-      "size": 1529523,
-      "sha": "0580d4cfefd7"
+      "size": 1077634,
+      "sha": "8c05255ae46d"
     },
     {
       "file": "m_weingut.json",
-      "size": 1434476,
-      "sha": "1d298a83d55f"
+      "size": 994223,
+      "sha": "eec7bda73e5c"
     },
     {
       "file": "m_werft.json",
-      "size": 1234604,
-      "sha": "9dd034c8bb2e"
+      "size": 1129272,
+      "sha": "c0c8ead0d291"
     },
     {
       "file": "m_zuckerbaecker.json",
-      "size": 1448861,
-      "sha": "b6a8652ca841"
+      "size": 1081584,
+      "sha": "50dfead52d34"
     }
   ]
 }
