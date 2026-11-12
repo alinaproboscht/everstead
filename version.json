@@ -1,7 +1,7 @@
 {
-  "build": 2026111083,
+  "build": 2026111284,
   "file": "everstead.html",
-  "notes": "Update 83: Fenster und Laternen leuchten nachts, Farbvarianten je Gebäude, Rauch aus den Modell-Kaminen, Modelle wachsen auf Baustellen, Fahnen für Ausbaustufen, Modelldateien rund 23 % kleiner",
+  "notes": "Update 84: Jeder Bewohner sieht anders aus – eigene Haut-, Haar- und Kleiderfarben je Person und Beruf, leicht unterschiedliche Statur",
   "models": [
     {
       "file": "m_badehaus.json",
@@ -150,8 +150,8 @@
     },
     {
       "file": "m_pfrau.json",
-      "size": 2064861,
-      "sha": "bfc1fc69fe1f"
+      "size": 2334973,
+      "sha": "4799248aae31"
     },
     {
       "file": "m_picknick.json",
@@ -160,18 +160,18 @@
     },
     {
       "file": "m_pjunge.json",
-      "size": 1957164,
-      "sha": "5926a9b27523"
+      "size": 2141625,
+      "sha": "2a26b585496e"
     },
     {
       "file": "m_pmaedchen.json",
-      "size": 1212639,
-      "sha": "533dd8034066"
+      "size": 1391766,
+      "sha": "cc8a362619c0"
     },
     {
       "file": "m_pmann.json",
-      "size": 1863123,
-      "sha": "37989451ae8f"
+      "size": 2026323,
+      "sha": "f44ff47d174e"
     },
     {
       "file": "m_rathaus.json",

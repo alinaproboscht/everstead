@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="everstead-update" content="83">
-<meta name="everstead-build" content="2026111083">
+<meta name="everstead-update" content="84">
+<meta name="everstead-build" content="2026111284">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Everstead</title>
@@ -4602,33 +4602,43 @@ function skInit(k){if(SKH[k])return SKH[k].ok?SKH[k]:null;const M=HGD[k];if(!M){
     void main(){vec4 q=vec4(p,1.),r=vec4(n,0.);vec3 P=vec3(0.),N=vec3(0.);
      for(int i=0;i<4;i++){float wi=w[i];if(wi<=0.)continue;int k=int(j[i]+.5);P+=wi*tf(q,k);N+=wi*tf(r,k);}
      vec4 W=mdl*vec4(P,1.);wp=W.xyz;nn=mat3(mdl)*N;v=u;gl_Position=vp*W;}`));
-   gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 v;varying vec3 nn;varying vec3 wp;uniform sampler2D tx;uniform vec3 lt;uniform vec3 fogc;uniform vec3 eye;uniform float fogOn;uniform vec3 tint;
-    void main(){vec3 N=normalize(nn);vec3 b=texture2D(tx,v).rgb*tint;float d=max(dot(N,normalize(vec3(-.4,.8,.45))),0.);vec3 V=normalize(eye-wp);float rim=pow(1.-max(dot(N,V),0.),3.)*.12;
+   gl.attachShader(p,mk(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 v;varying vec3 nn;varying vec3 wp;uniform sampler2D tx;uniform vec3 lt;uniform vec3 fogc;uniform vec3 eye;uniform float fogOn;uniform vec3 tint;uniform sampler2D mk;uniform vec3 kS;uniform vec3 rH;uniform vec3 rU;uniform vec3 rL;uniform vec3 tH;uniform vec3 tU;uniform vec3 tL;
+    float lu(vec3 c){return dot(c,vec3(.3,.59,.11));}
+    void main(){vec3 N=normalize(nn);vec3 o=texture2D(tx,v).rgb;vec4 m=texture2D(mk,v);float l=lu(o);vec3 b=mix(o,o*kS,m.r);
+     b=mix(b,clamp(tH*(l/max(lu(rH),.03)),0.,1.),m.g*.92);b=mix(b,clamp(tU*(l/max(lu(rU),.03)),0.,1.),m.b*.88);b=mix(b,clamp(tL*(l/max(lu(rL),.03)),0.,1.),m.a*.88);b*=tint;float d=max(dot(N,normalize(vec3(-.4,.8,.45))),0.);vec3 V=normalize(eye-wp);float rim=pow(1.-max(dot(N,V),0.),3.)*.12;
      vec3 c=b*lt*(.62+.5*d)+lt*rim;float dist=length(wp-eye);c=mix(c,fogc,fogOn*clamp((dist-30.)/80.,0.,.94));gl_FragColor=vec4(c,1.);}`));
    ['p','n','u','j','w'].forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error('skin link');
-   const U={};for(const q of['vp','mdl','B','tx','lt','fogc','eye','fogOn','tint'])U[q]=gl.getUniformLocation(p,q);U.B=gl.getUniformLocation(p,'B[0]')||U.B;SKP={p,U}}
+   const U={};for(const q of['vp','mdl','B','tx','lt','fogc','eye','fogOn','tint','mk','kS','rH','rU','rL','tH','tU','tL'])U[q]=gl.getUniformLocation(p,q);U.B=gl.getUniformLocation(p,'B[0]')||U.B;SKP={p,U}}
   const d=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
   const q=d(M.p,Uint16Array),n=M.n,P=new Float32Array(n*3);for(let i=0;i<n*3;i++){const c=i%3;P[i]=M.mn[c]+q[i]/65535*(M.mx[c]-M.mn[c])}
   const mkB=(arr,tgt)=>{const b=gl.createBuffer();gl.bindBuffer(tgt||gl.ARRAY_BUFFER,b);gl.bufferData(tgt||gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);return b};
   H.bp=mkB(P);H.bn=mkB(d(M.nr,Int8Array));H.bu=mkB(d(M.uv,Uint16Array));H.bj=mkB(d(M.j,Uint8Array));H.bw=mkB(d(M.w,Uint8Array));const ix=d(M.ix,Uint16Array);H.bi=mkB(ix,gl.ELEMENT_ARRAY_BUFFER);H.ni=ix.length;
   H.clips={};for(const[c,C]of Object.entries(M.clips))H.clips[c]={n:C.n,dur:C.dur,m:new Float32Array(C.m)};H.nj=M.nj;H.h=M.h;H.B=new Float32Array(M.nj*12);
-  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.activeTexture(gl.TEXTURE0);H.tex=t;H.ok=true};im.src=M.tex}
+  const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);ANI();gl.activeTexture(gl.TEXTURE0);H.tex=t;H.ok=true};im.src=M.tex;H.rc=M.rc||null;if(M.mk){const mi=new Image();mi.onload=()=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,mi);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.activeTexture(gl.TEXTURE0);H.mtex=t};mi.src=M.mk}}
  catch(e){console.warn('Figuren-Modell',e);SK_FAIL=true;return null}return null}
 let SKN=0;
+// U84: jede Figur eigene Haut-, Haar- und Kleiderfarben (aus Aussehen und Beruf) und leicht andere Statur
+let SKZ=null;function skZeroTex(){if(!SKZ){SKZ=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,SKZ);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]))}return SKZ}
+const hx3=h=>{h=String(h||'#888').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]};
+function skCols(s){const a=ageOf(s),key=(s.job||0)+'|'+(a<13?0:a<16?1:a<48?2:3+Math.floor((a-48)/5))+'|'+(s.look?s.look.hair+','+s.look.skin:'');if(s._skc&&s._skcK===key)return s._skc;
+ let o=null;try{o=outfit(s)}catch(e){}const L=(typeof effLook==='function'?effLook(s,s.g):s.look)||{hair:s.id%5,skin:s.id%5};
+ const sk=hx3(SKINS[L.skin||0]),mid=hx3(SKINS[2]);let hh=HAIRS[L.hair||0];if(a>48)hh=mix(hh,'#d8d4cc',clamp((a-48)/22,0,1));
+ const up=o?(s.g==='f'?(o.bod||o.vest):(o.vest||o.bod)):'#6a4a30',lo=o?(s.g==='f'?(o.skirt||o.trou):(o.trou||o.skirt)):'#5a4030';
+ s._skcK=key;return s._skc={kS:sk.map((x,i)=>x/mid[i]),tH:hx3(hh),tU:hx3(up),tL:hx3(lo)}}
 let SK_IN=false;
 function skinQueue(s,x,y,z,yaw,h){const k=skKey(s);if(!k)return false;const t=s.task&&s.task.k,dn=s.act==='do';const lie=dn&&(t==='sleep'||t==='nap'||t==='birth'||t==='trybaby'),sit=!lie&&dn&&!s.iwalk&&!!(s.spot&&s.spot.seat);
  const H=skInit(k);if(!H)return false;if((lie||sit)&&!H.clips[lie?'lie':'sit'])return false;if(lie){y-=.035*h;h*=.86}const dd=Math.hypot(x-EYE[0],y-EYE[1],z-EYE[2]);if(dd>24||SKN>=36)return false;SKN++;
- const walk=s.act==='walk'||s.iwalk;SKQ.push({H,x,y,z,yaw,h,clip:lie?'lie':sit?'sit':walk?(s.run?'run':'walk'):'idle',ph:(s.id*.7311)%1,tint:s._skt||(s._skt=[.92+((s.id*37)%17)/100,.92+((s.id*53)%13)/100,.92+((s.id*71)%11)/100])});return true}
+ const walk=s.act==='walk'||s.iwalk;SKQ.push({H,x,y,z,yaw,h,clip:lie?'lie':sit?'sit':walk?(s.run?'run':'walk'):'idle',ph:(s.id*.7311)%1,tint:s._skt||(s._skt=[.97+((s.id*37)%7)/100,.97+((s.id*53)%7)/100,.97+((s.id*71)%7)/100]),cv:skCols(s),ws:s.look&&s.look.fw?.955+(s.look.fw-.9)*.45:1});return true}
 function flushSkins(lt,fog){SKN=0;if(!SKQ.length||!SKP)return SKQ.length=0;const U=SKP.U;gl.useProgram(SKP.p);
  for(const k of['p','n','c','e'])if(L[k]>=0)gl.disableVertexAttribArray(L[k]);for(let i=0;i<5;i++)gl.enableVertexAttribArray(i);
- gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniform3fv(U.lt,lt);gl.uniform3fv(U.fogc,fog||[1,1,1]);gl.uniform3fv(U.eye,EYE);gl.uniform1f(U.fogOn,fog?1:0);gl.uniform1i(U.tx,2);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
+ gl.uniformMatrix4fv(U.vp,false,new Float32Array(VPM));gl.uniform3fv(U.lt,lt);gl.uniform3fv(U.fogc,fog||[1,1,1]);gl.uniform3fv(U.eye,EYE);gl.uniform1f(U.fogOn,fog?1:0);gl.uniform1i(U.tx,2);gl.uniform1i(U.mk,3);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
  const now=performance.now()/1000;let cur=null;
- for(const q of SKQ){const H=q.H;if(cur!==H){cur=H;gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.activeTexture(gl.TEXTURE0);
+ for(const q of SKQ){const H=q.H;if(cur!==H){cur=H;gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,H.tex);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,H.mtex||skZeroTex());gl.activeTexture(gl.TEXTURE0);const rc=H.rc||{h:[.3,.2,.1],u:[.3,.2,.1],l:[.3,.2,.1]};gl.uniform3fv(U.rH,rc.h);gl.uniform3fv(U.rU,rc.u);gl.uniform3fv(U.rL,rc.l);
    gl.bindBuffer(gl.ARRAY_BUFFER,H.bp);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.bn);gl.vertexAttribPointer(1,3,gl.BYTE,true,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.bu);gl.vertexAttribPointer(2,2,gl.UNSIGNED_SHORT,true,0,0);
    gl.bindBuffer(gl.ARRAY_BUFFER,H.bj);gl.vertexAttribPointer(3,4,gl.UNSIGNED_BYTE,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,H.bw);gl.vertexAttribPointer(4,4,gl.UNSIGNED_BYTE,true,0,0);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,H.bi)}
   const C=H.clips[q.clip]||H.clips.idle||Object.values(H.clips)[0],f=((now/C.dur+q.ph)%1)*C.n,i0=Math.floor(f)%C.n,i1=(i0+1)%C.n,a=f-Math.floor(f),st=H.nj*12,B=H.B;
   for(let i=0;i<st;i++)B[i]=C.m[i0*st+i]*(1-a)+C.m[i1*st+i]*a;gl.uniform4fv(U.B,B);
-  const sc=q.h/H.h,c=Math.cos(q.yaw)*sc,sn=Math.sin(q.yaw)*sc;gl.uniformMatrix4fv(U.mdl,false,new Float32Array([c,0,-sn,0, 0,sc,0,0, sn,0,c,0, q.x,q.y,q.z,1]));gl.uniform3fv(U.tint,q.tint);
+  const sc=q.h/H.h,ws=q.ws||1,c=Math.cos(q.yaw)*sc*ws,sn=Math.sin(q.yaw)*sc*ws;gl.uniformMatrix4fv(U.mdl,false,new Float32Array([c,0,-sn,0, 0,sc,0,0, sn,0,c,0, q.x,q.y,q.z,1]));gl.uniform3fv(U.tint,q.tint);const V=q.cv;gl.uniform3fv(U.kS,V.kS);gl.uniform3fv(U.tH,V.tH);gl.uniform3fv(U.tU,V.tU);gl.uniform3fv(U.tL,V.tL);
   gl.drawElements(gl.TRIANGLES,H.ni,gl.UNSIGNED_SHORT,0)}
  SKQ.length=0;gl.disable(gl.CULL_FACE);for(let i=0;i<5;i++)gl.disableVertexAttribArray(i);gl.useProgram(P);for(const k of['p','n','c','e'])if(L[k]>=0)gl.enableVertexAttribArray(L[k])}
 // ===== Gemalte Figuren als Bild-Sprites (Ansichten vorne/seitlich/hinten aus den Figurenbögen) =====
